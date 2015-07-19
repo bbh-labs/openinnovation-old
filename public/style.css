@@ -1,0 +1,193 @@
+html, body, #root, .intro {
+	height: 100%;
+}
+
+header > nav {
+	margin-bottom: 0 !important;
+}
+
+.intro header {
+	width: 100%;
+	position: absolute;
+}
+
+.intro .valign-wrapper {
+	height: 100%;
+	background: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1)), url(images/intro.jpg) center / cover;
+}
+
+.intro .valign {
+	max-width: 80%;
+	text-align: center;
+	margin: auto;
+}
+
+.intro h1 {
+	color: white;
+	font-weight: bold;
+}
+
+.intro h5 {
+	color: white;
+}
+
+.login, .register, .forgotpassword {
+	width: 100%;
+	height: 100%;
+	background: #e1261c;
+}
+
+.login img,
+.register img,
+.forgotpassword img {
+	display: block;
+	margin: auto;
+}
+
+.login .form-content,
+.register .form-content,
+.forgotpassword .form-content {
+	margin: 40px;
+	padding: 40px;
+	background: white;
+	text-align: center;
+}
+
+.login .form-links,
+.register .form-links,
+.forgotpassword .form-links {
+	margin-top: 40px;
+	text-align: center;
+}
+
+.login .form-links a,
+.register .form-links a,
+.forgotpassword .form-links a {
+	margin: 10px;
+}
+
+.login .form-title,
+.register .form-title,
+.forgotpassword .form-title {
+	text-align: center;
+}
+
+.login .valign-wrapper,
+.register .valign-wrapper,
+.forgotpassword .valign-wrapper {
+	width: 100%;
+	height: 100%;
+}
+
+.login .valign,
+.register .valign,
+.forgotpassword .valign {
+	max-width: 80%;
+	margin: 0 auto;
+}
+
+.dashboard .featured-projects {
+	min-height: 480px;
+}
+
+.dashboard .featured-project {
+	min-height: 480px;
+	color: white;
+}
+
+.dashboard .featured-project .valign {
+	margin: 0 auto;
+	padding: 40px;
+}
+
+.dashboard .daily-updates .card-image {
+	height: 200px;
+	background: #e1261c;
+}
+
+.dashboard .daily-updates .card-title {
+}
+
+.project {
+	height: 1500px;
+}
+
+.project .parallax-container,
+.new-project .parallax-container {
+	position: relative;
+}
+
+.project .parallax,
+.new-project .parallax {
+	position: absolute;
+}
+
+.project .parallax-overlay,
+.new-project .parallax-overlay {
+	background: rgba(0,0,0,0.2);
+	width: 100%;
+	height: 100%;
+	color: white;
+}
+
+.project .parallax-overlay .valign,
+.new-project .parallax-overlay .valign {
+	margin: 0 auto;
+}
+
+#project-overview,
+#project-tasks,
+#project-milestones,
+#project-crew, {
+	padding: 20px 40px;
+}
+
+.project .sidebar .card-image {
+	height: 80px !important;
+}
+
+.project .sidebar .card-title {
+	width: 100%;
+	color: black;
+	padding: 10px;
+	text-align: center;
+}
+
+.project .sidebar .card-content > * {
+	margin: 0;
+	text-align: center;
+}
+
+.new-project .parallax-container {
+	background: #404040;
+	cursor: pointer;
+}
+
+.new-project .parallax-overlay {
+	pointer-events: none;
+	text-align: center;
+}
+
+.profile-picture {
+	display: block;
+	width: 200px;
+	height: 200px;
+	margin: 0 auto;
+}
+
+footer {
+	color: white;
+}
+
+.page-footer .container {
+	padding-bottom: 20px;
+}
+
+.page-footer .footer-links {
+	float: right;
+}
+
+.page-footer .footer-links a {
+	color: white;
+	margin: 0 20px;
+}

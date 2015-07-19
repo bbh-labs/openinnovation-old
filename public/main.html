@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+	<link rel="stylesheet" href="materialize/css/materialize-custom.css" />
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+	<link rel="stylesheet" href="owlcarousel/assets/owl.carousel.css" />
+	<link rel="stylesheet" href="vertical-timeline/css/style.css" />
+	<link rel="stylesheet" href="style.css" />
+
+	<script src="jquery/jquery.js"></script>
+	<script src="materialize/js/materialize.js"></script>
+	<script src="owlcarousel/owl.carousel.js"></script>
+	<script src="dropzone/dropzone.js"></script>
+</head>
+<body>
+	<div id="root"></div>
+
+	<script src="utility.js"></script>
+	<script src="data.js"></script>
+
+	<script src="react/react.js"></script>
+	<script src="react/ReactRouter.js"></script>
+	<script src="react/Flux.js"></script>
+	<script>
+		var Route        = ReactRouter.Route;
+		var DefaultRoute = ReactRouter.DefaultRoute;
+		var RouteHandler = ReactRouter.RouteHandler;
+		var Link         = ReactRouter.Link;
+		var Navigation   = ReactRouter.Navigation;
+		var State        = ReactRouter.State;
+
+		var dispatcher = new Flux.Dispatcher();
+	</script>
+
+	<script src="react/prod/FeaturedProjects.js"></script>
+	<script src="react/prod/DailyUpdates.js"></script>
+	<script src="react/prod/LatestProjects.js"></script>
+	<script src="react/prod/MyTasks.js"></script>
+	<script src="react/prod/TasksOfTheDay.js"></script>
+	<script src="react/prod/InvolvedProjects.js"></script>
+
+	<script src="react/prod/Intro.js"></script>
+	<script src="react/prod/Login.js"></script>
+	<script src="react/prod/Register.js"></script>
+	<script src="react/prod/ForgotPassword.js"></script>
+	<script src="react/prod/Dashboard.js"></script>
+	<script src="react/prod/Project.js"></script>
+	<script src="react/prod/NewProject.js"></script>
+	<script src="react/prod/Profile.js"></script>
+	<script src="react/prod/Header.js"></script>
+	<script src="react/prod/Drawer.js"></script>
+	<script src="react/prod/Footer.js"></script>
+	<script src="react/prod/App.js"></script>
+	<script src="react/prod/Routes.js"></script>
+</body>
+</html>

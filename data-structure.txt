@@ -1,0 +1,60 @@
+user
+----
+email		string
+pass		string
+fullname	string
+title		string
+description	string
+avatarURL	string
+createdAt	datetime
+
+project
+-------
+id			int
+authorID	int
+name		string
+tagline		string
+description	string
+createdAt	datetime
+
+task
+----
+id			int
+authorID	int
+projectID	int
+name		string
+description	string
+status		string
+startTime	datetime
+endTime		datetime
+difficulty  string
+createdAt	datetime
+
+worker
+------
+userID		int
+taskID		int
+created_at	datetime
+
+comment
+-------
+id			int
+userID		int
+sourceID	int
+text		string
+createdAt	datetime
+
+activity
+--------
+id			int
+userID		int
+otherUserID	int
+sourceID	int
+type		string
+createdAt	datetime
+
+tag
+----
+sourceID	int
+name		string
+type		string
