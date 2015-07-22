@@ -168,6 +168,10 @@ header > nav {
 	text-align: center;
 }
 
+.new-project input[name=project-image] {
+	display: none;
+}
+
 .profile-picture {
 	display: block;
 	width: 200px;

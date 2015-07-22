@@ -25,7 +25,10 @@ NewProject.Cover = React.createClass({
             addedfile: function(file) {
                 var reader = new FileReader();
                 reader.onload = function(e) {
-                    this.file = file;
+					dispatcher.dispatch({
+						type: "new-project-image-file",
+						file: file
+					});
                     dropzone.style.background = "url(" + e.target.result + ") center / cover";
                 }.bind(this);
                 reader.readAsDataURL(file);
@@ -53,32 +56,40 @@ NewProject.Form = React.createClass({
 	getInitialState: function() {
 		return {showOther: false};
 	},
+	componentDidMount: function() {
+		dispatcher.register(function(payload) {
+			if (payload.type === "new-project-image-file") {
+				React.findDOMNode(this.refs.projectImage).value = payload.file;
+			}
+		});
+	},
 	render: function() {
 		return (
 			<div className="row container">
-				<form className="col s8 offset-s2">
+				<form className="col s8 offset-s2" onSubmit={this.handleSubmit}>
+					<input type="file" name="project-image" ref="projectImage" />
 					<div className="row">
 						<div className="input-field col s12">
-							<input type="text" id="project-name" className="validate" />
+							<input type="text" name="project-name" id="project-name" className="validate" />
 							<label htmlFor="project-name">Name</label>
 						</div>
 					</div>
 					<div className="row">
 						<div className="input-field col s12">
-							<input type="text" id="project-tagline" className="validate" />
+							<input type="text" name="project-tagline" id="project-tagline" className="validate" />
 							<label htmlFor="project-tagline">Tagline</label>
 						</div>
 					</div>
 					<div className="row">
 						<div className="input-field col s12">
-							<textarea id="project-description" className="materialize-textarea"></textarea>
+							<textarea id="project-description" name="project-description" className="materialize-textarea"></textarea>
 							<label htmlFor="project-description">Description</label>
 						</div>
 					</div>
 					<div className="row">
 						<div className="col s12">
 							<label>Type</label>
-							<select onChange={this.onProjectTypeChanged} className="browser-default" defaultValue="">
+							<select onChange={this.onProjectTypeChanged} name="project-type" className="browser-default" defaultValue="">
 								<option value="" disabled>What's the project type?</option>
 								<option value="advertisement">Advertisement</option>
 								<option value="installation">Installation</option>
@@ -95,6 +106,19 @@ NewProject.Form = React.createClass({
 				</form>
 			</div>
 		)
+	},
+	handleSubmit: function(e) {
+		if (this.props.file) {
+			var form = React.findDOMNode(this.refs.form);
+			if (form.elements["project-title"].value.length <= 1) {
+				Materialize.toast("Title is too short!");
+			} else if (form.elements["project-tagline"].value.length <= 32) {
+				Materialize.toast("Tagline is too short!");
+			} else if (form.elements["project-description"].value.length <= 64) {
+				Materialize.toast("Description is too short!");
+			}
+		}
+		e.preventDefault();
 	},
 	onProjectTypeChanged: function(e) {
 		if (e.target.value == "other") {

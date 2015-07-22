@@ -1,60 +1,63 @@
 user
 ----
-email		string
-pass		string
-fullname	string
-title		string
-description	string
-avatarURL	string
-createdAt	datetime
+id				serial
+email			text
+password		text
+fullname		text
+title			text
+description		text
+avatar_url		text
+verify_code		text
+updated_at		timestamp
+created_at		timestamp
 
 project
 -------
-id			int
-authorID	int
-name		string
-tagline		string
-description	string
-createdAt	datetime
+id			serial
+author_id	int
+title		text
+concept		text
+howitworks	text
+image_url	text
+updated_at	timestamp
+created_at	timestamp
 
-task
-----
-id			int
-authorID	int
-projectID	int
-name		string
-description	string
-status		string
-startTime	datetime
-endTime		datetime
-difficulty  string
-createdAt	datetime
-
-worker
-------
-userID		int
-taskID		int
-created_at	datetime
+project_user
+------------
+project_id	int
+user_id		int
+role		text
 
 comment
 -------
-id			int
-userID		int
-sourceID	int
-text		string
-createdAt	datetime
+id			serial
+user_id		int
+source_id	int
+source_type	text
+text		text
+updated_at	timestamp
+created_at	timestamp
 
 activity
 --------
-id			int
-userID		int
-otherUserID	int
-sourceID	int
-type		string
-createdAt	datetime
+id				serial
+user_id			int
+other_user_id	int
+source_id		int
+source_type		text
+type			text
+created_at		timestamp
 
 tag
 ----
-sourceID	int
-name		string
-type		string
+source_id	serial
+name		text
+type		text
+
+link
+----
+id			serial
+source_id	int
+type		text
+url			text
+created_at	timestamp

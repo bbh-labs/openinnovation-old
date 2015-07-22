@@ -20,6 +20,7 @@ func main() {
 	apiRouter.HandleFunc("/api/logout", logout)
 	apiRouter.HandleFunc("/api/register", register)
 	apiRouter.HandleFunc("/api/verify", verify)
+	apiRouter.HandleFunc("/api/project", project)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/", home)

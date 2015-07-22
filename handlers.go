@@ -28,7 +28,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /login
+// /api/login
 // 
 // GET: retrieve the user's login state and respond with the user's data
 // POST: logs a user in and respond with the user's data
@@ -83,7 +83,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /logout
+// /api/logout
 // 
 // POST: logs a user out
 // 
@@ -98,7 +98,7 @@ func logout(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /register
+// /api/register
 // 
 // POST: register a user
 // 
@@ -140,7 +140,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /verify
+// /api/verify
 // 
 // GET: verify a user
 // 
@@ -169,7 +169,7 @@ func verify(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /user/mostactive
+// /api/user/mostactive
 // 
 // retrieve the most active users
 // 
@@ -201,7 +201,7 @@ func mostActiveUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /user
+// /api/user
 // 
 // GET: retrieve the user's profile information
 // PUT: update the user's profile information
@@ -244,7 +244,7 @@ func _user(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /user/image
+// /api/user/image
 // 
 // POST: update the user's profile picture
 // 
@@ -273,7 +273,7 @@ func userImage(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /user/project
+// /api/user/project
 // 
 // GET: retrieve the user's projects (involved, completed, all)
 // 
@@ -320,7 +320,7 @@ func userProject(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /user/skill
+// /api/user/skill
 // 
 // GET: retrieve the user's skill information
 // 
@@ -359,7 +359,7 @@ func userSkill(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /user/totd
+// /api/user/totd
 // 
 // GET: retrieve user's tasks of the day
 // 
@@ -384,7 +384,7 @@ func userTOTD(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /project
+// /api/project
 // 
 // POST: create a new project
 // PUT: update an existing project
@@ -434,7 +434,7 @@ func project(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /project/join
+// /api/project/join
 // 
 // POST: send a join project request
 // 
@@ -463,7 +463,7 @@ func projectJoin(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /project/staffpick
+// /api/project/staffpick
 // 
 // GET: retrieve projects that have been personally picked by OI staffs
 // 
@@ -495,7 +495,7 @@ func projectStaffPick(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /project/latest
+// /api/project/latest
 // 
 // GET: retrieve the latest projects
 // 
@@ -527,7 +527,7 @@ func projectLatest(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /project/completed
+// /api/project/completed
 // 
 // GET: retrieve completed projects
 // 
@@ -559,7 +559,7 @@ func projectCompleted(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /project/trending
+// /api/project/trending
 // 
 // GET: retrieve trending projects
 // 
@@ -590,7 +590,7 @@ func projectTrending(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /project/mostviewed
+// /api/project/mostviewed
 // 
 // GET: retrieve most viewed projects
 // 
@@ -622,7 +622,7 @@ func projectMostViewed(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /project/member
+// /api/project/member
 // 
 // GET: retrieve members of the project
 // 
@@ -648,7 +648,7 @@ func projectMember(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /search
+// /api/search
 // 
 // GET: retrieve projects or users that match the query
 // 
@@ -687,7 +687,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /comment
+// /api/comment
 // 
 // GET: retrieve comments of a project or a task
 // POST: create a new comment on projects or tasks
@@ -737,7 +737,7 @@ func comment(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /project/milestone
+// /api/project/milestone
 // 
 // GET: update milestone in a project
 // POST: insert / update milestone in a project
@@ -808,7 +808,7 @@ func projectMilestone(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /project/task
+// /api/project/task
 // 
 // GET: retrieve an existing task
 // PUT: update an existing task
@@ -870,7 +870,7 @@ func projectTask(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /project/task/accept
+// /api/project/task/accept
 // 
 // POST: allow project members to accept tasks
 // 
@@ -895,7 +895,7 @@ func taskAccept(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /project/task/assign
+// /api/project/task/assign
 // 
 // POST: allow author to assign task to project members
 // 
@@ -919,7 +919,7 @@ func taskAssign(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /project/task/categories
+// /api/project/task/categories
 // 
 // GET: retrieve (popular) task categories
 // 
@@ -947,7 +947,7 @@ func taskCategories(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /task/doer
+// /api/task/doer
 // 
 // POST: insert a task doer
 // DELETE: delete a task doer
