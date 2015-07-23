@@ -9,15 +9,15 @@ import (
 const (
 	createProjectSQL = `
 	id serial PRIMARY KEY,
-	authorID int NOT NULL,
+	author_id int NOT NULL,
 	title text NOT NULL,
+	tagline text NOT NULL,
 	description text NOT NULL,
-	coverURL text NOT NULL,
-	introURL text NOT NULL,
-	viewCount int NOT NULL,
+	image_url text NOT NULL,
+	view_count int NOT NULL,
 	status text NOT NULL,
-	recommended boolean NOT NULL,
-	createdAt timestamp NOT NULL`
+	updated_at timestamp NOT NULL,
+	created_at timestamp NOT NULL`
 )
 
 type Project struct {
@@ -25,34 +25,29 @@ type Project struct {
 	AuthorID    int64     `json:"authorID,omitempty"`
 	Title       string    `json:"title,omitempty"`
 	Description string    `json:"description,omitempty"`
-	CoverURL    string    `json:"coverURL,omitempty"`
-	IntroURL    string    `json:"introURL,omitempty"`
+	ImageURL    string    `json:"coverURL,omitempty"`
 	ViewCount   int64     `json:"viewCount"`
 	Status      string    `json:"status"`
 	Recommended bool      `json:"recommended,omitempty"`
 	CreatedAt   time.Time `json:"createdAt,omitempty"`
 
 	Author     User        `json:"author"`
-	Members    []User      `json:"members"`
-	Comments   []Comment   `json:"comments"`
-	Tasks      []Task      `json:"tasks"`
-	Milestones []Milestone `json:"milestones"`
 }
 
-func insertProject(authorID int64, title, description string) (int64, error) {
+func insertProject(authorID int64, title, tagline, description string) (int64, error) {
 	const q = `
-	INSERT INTO project (authorID, title, description, coverURL, introURL, viewCount, status, recommended, createdAt)
-	VALUES (?, ?, ?, "", "", 0, "open", false, NOW())`
+	INSERT INTO project (author_id, title, tagline, description, image_url, view_count, status, updated_at, created_at)
+	VALUES ($1, $2, $3, $4, '', 0, 'concept', now(), now()) RETURNING id`
 
-	res, err := db.Exec(q, authorID, title, description)
-	if err != nil {
+	var id int64
+	if err := db.QueryRow(q, authorID, title, tagline, description).Scan(&id); err != nil {
 		return 0, debug.Error(err)
 	}
-	return res.LastInsertId()
+	return id, nil
 }
 
 func updateProject(projectID int64, title, description string) error {
-	const q = `UPDATE project SET title = ?, description = ? WHERE id = ?`
+	const q = `UPDATE project SET title = $1, description = $2 WHERE id = $3`
 
 	if _, err := db.Exec(q, title, description, projectID); err != nil {
 		return debug.Error(err)
@@ -60,19 +55,10 @@ func updateProject(projectID int64, title, description string) error {
 	return nil
 }
 
-func updateProjectCover(projectID int64, coverURL string) error {
-	const q = `UPDATE project SET coverURL = ? WHERE id = ?`
+func updateProjectImage(projectID int64, imageURL string) error {
+	const q = `UPDATE project SET image_url = $1 WHERE id = $2`
 
-	if _, err := db.Exec(q, coverURL, projectID); err != nil {
-		return debug.Error(err)
-	}
-	return nil
-}
-
-func updateProjectIntro(projectID int64, introURL string) error {
-	const q = `UPDATE project SET introURL = ? WHERE id = ?`
-
-	if _, err := db.Exec(q, introURL, projectID); err != nil {
+	if _, err := db.Exec(q, imageURL, projectID); err != nil {
 		return debug.Error(err)
 	}
 	return nil
@@ -87,8 +73,7 @@ func getProject(projectID int64) (Project, error) {
 		&p.AuthorID,
 		&p.Title,
 		&p.Description,
-		&p.CoverURL,
-		&p.IntroURL,
+		&p.ImageURL,
 		&p.ViewCount,
 		&p.Status,
 		&p.Recommended,
@@ -152,8 +137,7 @@ func queryProjects(q string, data ...interface{}) ([]Project, error) {
 			&p.AuthorID,
 			&p.Title,
 			&p.Description,
-			&p.CoverURL,
-			&p.IntroURL,
+			&p.ImageURL,
 			&p.ViewCount,
 			&p.Status,
 			&p.Recommended,
@@ -184,8 +168,7 @@ func queryProjectsWithMembers(q string, data ...interface{}) ([]Project, error) 
 			&p.AuthorID,
 			&p.Title,
 			&p.Description,
-			&p.CoverURL,
-			&p.IntroURL,
+			&p.ImageURL,
 			&p.ViewCount,
 			&p.Status,
 			&p.Recommended,
@@ -194,22 +177,16 @@ func queryProjectsWithMembers(q string, data ...interface{}) ([]Project, error) 
 			return nil, debug.Error(err)
 		}
 
-		p.Members = GetProjectMembers(p.ID, "accepted")
-
 		ps = append(ps, p)
 	}
 
 	return ps, nil
 }
 
-func GetProjectMembers(projectID int64, status string) []User {
-	return GetMembers(projectID, status)
-}
-
 func isAuthor(projectID, userID int64) bool {
 	const q = `
-	SELECT authorID FROM project
-	WHERE projectID WHERE ?`
+	SELECT author_id FROM project
+	WHERE project_id WHERE $1`
 
 	var authorID int64
 	if err := db.QueryRow(q, projectID).Scan(&authorID); err != nil {

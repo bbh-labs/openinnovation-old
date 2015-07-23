@@ -14,7 +14,6 @@ Login.Form = React.createClass({
 		return (
 			<div className="valign-wrapper">
 				<form className="valign" onSubmit={this.handleSubmit}>
-					<img className="img-responsive" src="images/sheep.png" width="50%" />
 					<div className="form-content">
 						<h4 className="form-title">Login</h4>
 						<div className="input-field col s12">
@@ -40,17 +39,7 @@ Login.Form = React.createClass({
 		var email = form.elements["email"].value;
 		var password = form.elements["password"].value;
 
-		if (!dispatcher) {
-			this.transitionTo("dashboard");
-		} else {
-			dispatcher.dispatch({
-				type: "login",
-				data: {
-					email: email,
-					password: password,
-				},
-			});
-		}
+		OI.login({email: email, password: password});
 
 		e.preventDefault();
 	},

@@ -12,7 +12,7 @@ func ValidLogin(email, password string) (bool, error) {
 
 	var u user
 	if err := db.QueryRow(q, email).Scan(
-		&u.ID_,
+		&u.id,
 		&u.Email,
 		&u.Password,
 		&u.Fullname,
@@ -20,6 +20,7 @@ func ValidLogin(email, password string) (bool, error) {
 		&u.Description,
 		&u.AvatarURL,
 		&u.VerificationCode,
+		&u.UpdatedAt,
 		&u.CreatedAt,
 	); err != nil {
 		if err != sql.ErrNoRows {

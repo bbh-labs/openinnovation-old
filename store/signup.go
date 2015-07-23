@@ -32,7 +32,15 @@ func Register(email, password, fullname, title, description, avatarURL string) e
 	verificationCode := generateVerificationCode()
 
 	// insert user to database
-	if err := error(insertUser(email, string(hpassword), fullname, avatarURL, description, title, verificationCode)); err != nil {
+	if err := error(insertUser(map[string]string{
+		"email": email,
+		"password": string(hpassword),
+		"fullname": fullname,
+		"title": title,
+		"description": description,
+		"avatarURL": avatarURL,
+		"verificationCode": verificationCode,
+	})); err != nil {
 		return debug.Error(err)
 	}
 
@@ -81,7 +89,7 @@ func sendVerificationEmail(email, code string) error {
 	}
 
 	// Prepare body with link to verify
-	body := preamble + "http://" + config.Hostname() + ":" + config.Port() + "/api/verify?" + "email=" + email + "&verificationCode=" + code
+	body := preamble + "http://" + config.Hostname() + ":" + config.Port() + "/verify?" + "email=" + email + "&verificationCode=" + code
 	message += "\r\n" + body
 
 	// Send email

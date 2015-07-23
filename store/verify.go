@@ -7,7 +7,7 @@ import (
 )
 
 func VerifyUser(email string) error {
-	const q = `UPDATE user_ SET verificationCode = 'verified' WHERE email = $1`
+	const q = `UPDATE user_ SET verification_code = 'verified' WHERE email = $1`
 
 	if _, err := db.Exec(q, email); err != nil {
 		return debug.Error(err)
@@ -16,7 +16,7 @@ func VerifyUser(email string) error {
 }
 
 func IsUserVerified(email string) bool {
-	const q = `SELECT COUNT(*) FROM user_ WHERE email = $1 AND verificationCode = 'verified'`
+	const q = `SELECT COUNT(*) FROM user_ WHERE email = $1 AND verification_code = 'verified'`
 
 	var count int64
 	if err := db.QueryRow(q, email).Scan(&count); err != nil {
@@ -29,7 +29,7 @@ func IsUserVerified(email string) bool {
 }
 
 func ValidVerificationCode(email, code string) bool {
-	const q = `SELECT COUNT(*) FROM user_ WHERE email = $1 AND verificationCode = $2`
+	const q = `SELECT COUNT(*) FROM user_ WHERE email = $1 AND verification_code = $2`
 
 	var count int64
 	if err := db.QueryRow(q, email, code).Scan(&count); err != nil {

@@ -12,7 +12,6 @@ ForgotPassword.Form = React.createClass({
 	render: function() {
 		return (
 			<form className="valign" onSubmit={this.handleSubmit}>
-				<img className="responsive-img" src="images/sheep.png" width="50%" />
 				<div className="form-content">
 					<h4 className="form-title">Forgot Password</h4>
 					<div className="input-field col s12">

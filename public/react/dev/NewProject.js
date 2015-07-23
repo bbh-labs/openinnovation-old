@@ -27,8 +27,9 @@ NewProject.Cover = React.createClass({
                 reader.onload = function(e) {
 					dispatcher.dispatch({
 						type: "new-project-image-file",
-						file: file
+						file: file,
 					});
+					console.log("test");
                     dropzone.style.background = "url(" + e.target.result + ") center / cover";
                 }.bind(this);
                 reader.readAsDataURL(file);
@@ -53,25 +54,28 @@ NewProject.Cover = React.createClass({
 });
 
 NewProject.Form = React.createClass({
+	image: null,
 	getInitialState: function() {
 		return {showOther: false};
 	},
 	componentDidMount: function() {
 		dispatcher.register(function(payload) {
 			if (payload.type === "new-project-image-file") {
-				React.findDOMNode(this.refs.projectImage).value = payload.file;
+				this.image = payload.file;
 			}
-		});
+		}.bind(this));
+	},
+	componentWillUnmount: function() {
+		this.image = null;
 	},
 	render: function() {
 		return (
 			<div className="row container">
-				<form className="col s8 offset-s2" onSubmit={this.handleSubmit}>
-					<input type="file" name="project-image" ref="projectImage" />
+				<form ref="form" className="col s8 offset-s2" onSubmit={this.handleSubmit}>
 					<div className="row">
 						<div className="input-field col s12">
-							<input type="text" name="project-name" id="project-name" className="validate" />
-							<label htmlFor="project-name">Name</label>
+							<input type="text" name="project-title" id="project-title" className="validate" />
+							<label htmlFor="project-title">Name</label>
 						</div>
 					</div>
 					<div className="row">
@@ -108,17 +112,35 @@ NewProject.Form = React.createClass({
 		)
 	},
 	handleSubmit: function(e) {
-		if (this.props.file) {
-			var form = React.findDOMNode(this.refs.form);
-			if (form.elements["project-title"].value.length <= 1) {
-				Materialize.toast("Title is too short!");
-			} else if (form.elements["project-tagline"].value.length <= 32) {
-				Materialize.toast("Tagline is too short!");
-			} else if (form.elements["project-description"].value.length <= 64) {
-				Materialize.toast("Description is too short!");
-			}
-		}
 		e.preventDefault();
+
+		if (!this.image) {
+			Materialize.toast("Image was not selected!");
+			return;
+		}
+
+		var form = React.findDOMNode(this.refs.form);
+		var title = form.elements["project-title"].value;
+		var tagline = form.elements["project-tagline"].value;
+		var description = form.elements["project-description"].value;
+		if (title.length <= 1) {
+			Materialize.toast("Title is too short!");
+			return;
+		} else if (tagline.length <= 5) {
+			Materialize.toast("Tagline is too short!");
+			return;
+		} else if (description.length <= 20) {
+			Materialize.toast("Description is too short!");
+			return;
+		}
+
+		var fd = new FormData();
+		fd.append("image", this.image);
+		fd.append("title", title);
+		fd.append("tagline", tagline);
+		fd.append("description", description);
+
+		OI.newProject(fd);
 	},
 	onProjectTypeChanged: function(e) {
 		if (e.target.value == "other") {

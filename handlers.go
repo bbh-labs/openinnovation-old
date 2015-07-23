@@ -8,7 +8,19 @@ import (
 	"bbhoi.com/response"
 	"bbhoi.com/session"
 	"bbhoi.com/store"
+	"github.com/gorilla/context"
 )
+
+// middleware that restricts access to users only
+func apiMiddleware(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	user := session.GetUser(r)
+	if user.Exists() {
+		context.Set(r, "user", user)
+		next(w, r)
+	} else {
+		response.ClientError(w, http.StatusForbidden)
+	}
+}
 
 // 
 // /
@@ -28,7 +40,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /api/login
+// /login
 // 
 // GET: retrieve the user's login state and respond with the user's data
 // POST: logs a user in and respond with the user's data
@@ -83,7 +95,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /api/logout
+// /logout
 // 
 // POST: logs a user out
 // 
@@ -98,7 +110,7 @@ func logout(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /api/register
+// /register
 // 
 // POST: register a user
 // 
@@ -140,7 +152,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /api/verify
+// /verify
 // 
 // GET: verify a user
 // 
@@ -169,7 +181,7 @@ func verify(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /api/user/mostactive
+// /user/mostactive
 // 
 // retrieve the most active users
 // 
@@ -201,7 +213,7 @@ func mostActiveUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /api/user
+// /user
 // 
 // GET: retrieve the user's profile information
 // PUT: update the user's profile information
@@ -244,7 +256,7 @@ func _user(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /api/user/image
+// /user/image
 // 
 // POST: update the user's profile picture
 // 
@@ -273,7 +285,7 @@ func userImage(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /api/user/project
+// /user/project
 // 
 // GET: retrieve the user's projects (involved, completed, all)
 // 
@@ -320,7 +332,7 @@ func userProject(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /api/user/skill
+// /user/skill
 // 
 // GET: retrieve the user's skill information
 // 
@@ -359,43 +371,14 @@ func userSkill(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /api/user/totd
-// 
-// GET: retrieve user's tasks of the day
-// 
-func userTOTD(w http.ResponseWriter, r *http.Request) {
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
-
-	switch r.Method {
-	case "GET":
-		count, err := strconv.ParseInt(r.FormValue("count"), 10, 0)
-		if err != nil {
-			response.ClientError(w, http.StatusBadRequest)
-			return
-		}
-		response.OK(w, user.GetTasksOfTheDay(count))
-	default:
-		response.ClientError(w, http.StatusMethodNotAllowed)
-	}
-}
-
-// 
-// /api/project
+// /project
 // 
 // POST: create a new project
 // PUT: update an existing project
 // GET: get a project's information
 // 
 func project(w http.ResponseWriter, r *http.Request) {
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
+	user := context.Get(r, "user").(store.User)
 
 	switch r.Method {
 	case "POST":
@@ -434,7 +417,7 @@ func project(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /api/project/join
+// /project/join
 // 
 // POST: send a join project request
 // 
@@ -444,18 +427,13 @@ func projectJoin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
-
 	projectID, err := strconv.ParseInt(r.FormValue("projectID"), 10, 0)
 	if err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
 
+	user := context.Get(r, "user").(store.User)
 	if err = user.JoinProject(projectID); err != nil {
 		response.ServerError(w, err)
 		return
@@ -463,19 +441,13 @@ func projectJoin(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /api/project/staffpick
+// /project/staffpick
 // 
 // GET: retrieve projects that have been personally picked by OI staffs
 // 
 func projectStaffPick(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		response.ClientError(w, http.StatusMethodNotAllowed)
-		return
-	}
-
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
 		return
 	}
 
@@ -495,19 +467,13 @@ func projectStaffPick(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /api/project/latest
+// /project/latest
 // 
 // GET: retrieve the latest projects
 // 
 func projectLatest(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		response.ClientError(w, http.StatusMethodNotAllowed)
-		return
-	}
-
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
 		return
 	}
 
@@ -527,19 +493,13 @@ func projectLatest(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /api/project/completed
+// /project/completed
 // 
 // GET: retrieve completed projects
 // 
 func projectCompleted(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		response.ClientError(w, http.StatusMethodNotAllowed)
-		return
-	}
-
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
 		return
 	}
 
@@ -559,19 +519,13 @@ func projectCompleted(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /api/project/trending
+// /project/trending
 // 
 // GET: retrieve trending projects
 // 
 func projectTrending(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		response.ClientError(w, http.StatusMethodNotAllowed)
-		return
-	}
-
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
 		return
 	}
 
@@ -590,17 +544,11 @@ func projectTrending(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /api/project/mostviewed
+// /project/mostviewed
 // 
 // GET: retrieve most viewed projects
 // 
 func projectMostViewed(w http.ResponseWriter, r *http.Request) {
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
-
 	switch r.Method {
 	case "GET":
 		count, err := strconv.ParseInt(r.FormValue("count"), 10, 0)
@@ -622,33 +570,7 @@ func projectMostViewed(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /api/project/member
-// 
-// GET: retrieve members of the project
-// 
-func projectMember(w http.ResponseWriter, r *http.Request) {
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
-
-	switch r.Method {
-	case "GET":
-		projectID, err := strconv.ParseInt(r.FormValue("projectID"), 10, 0)
-		if err != nil {
-			response.ClientError(w, http.StatusBadRequest)
-			return
-		}
-
-		response.OK(w, store.GetProjectMembers(projectID, "accepted"))
-	default:
-		response.ClientError(w, http.StatusMethodNotAllowed)
-	}
-}
-
-// 
-// /api/search
+// /search
 // 
 // GET: retrieve projects or users that match the query
 // 
@@ -681,312 +603,6 @@ func search(w http.ResponseWriter, r *http.Request) {
 		}
 
 		response.OK(w, searchResult{Projects: projects, Users: users})
-	default:
-		response.ClientError(w, http.StatusMethodNotAllowed)
-	}
-}
-
-// 
-// /api/comment
-// 
-// GET: retrieve comments of a project or a task
-// POST: create a new comment on projects or tasks
-// 
-func comment(w http.ResponseWriter, r *http.Request) {
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
-
-	switch r.Method {
-	case "POST":
-		sourceID, err := strconv.ParseInt(r.FormValue("sourceID"), 10, 0)
-		if err != nil {
-			response.ClientError(w, http.StatusBadRequest)
-			return
-		}
-
-		sourceType := r.FormValue("sourceType")
-		text := r.FormValue("text")
-
-		if err = user.PostComment(sourceID, sourceType, text); err != nil {
-			response.ServerError(w, err)
-			return
-		}
-
-		response.OK(w, store.GetComments(sourceID, sourceType))
-	case "GET":
-		sourceID, err := strconv.ParseInt(r.FormValue("sourceID"), 10, 0)
-		if err != nil {
-			response.ClientError(w, http.StatusBadRequest)
-			return
-		}
-
-		typ := r.FormValue("type")
-		sourceType := r.FormValue("sourceType")
-
-		if typ == "user" {
-			response.OK(w, store.GetCommentsWithUser(sourceID, sourceType))
-			return
-		}
-		response.OK(w, store.GetComments(sourceID, sourceType))
-	default:
-		response.ClientError(w, http.StatusMethodNotAllowed)
-	}
-}
-
-// 
-// /api/project/milestone
-// 
-// GET: update milestone in a project
-// POST: insert / update milestone in a project
-// DELETE: delete milestone in a project
-// 
-func projectMilestone(w http.ResponseWriter, r *http.Request) {
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
-
-	switch r.Method {
-	case "POST":
-		milestoneID, err := strconv.ParseInt(r.FormValue("milestoneID"), 10, 0)
-		if err != nil {
-			response.ClientError(w, http.StatusBadRequest)
-			return
-		}
-
-		title := r.FormValue("title")
-		description := r.FormValue("description")
-		deadline := r.FormValue("deadline")
-
-		if milestoneID == -1 {
-			projectID, err := strconv.ParseInt(r.FormValue("projectID"), 10, 0)
-			if err != nil {
-				response.ClientError(w, http.StatusBadRequest)
-				return
-			}
-
-			if err = store.InsertMilestone(projectID, title, description, deadline); err != nil {
-				response.ServerError(w, err)
-				return
-			}
-		} else {
-			if err = store.UpdateMilestone(milestoneID, title, description, deadline); err != nil {
-				response.ServerError(w, err)
-				return
-			}
-		}
-
-		response.OK(w, milestoneID)
-	case "DELETE":
-		milestoneID, err := strconv.ParseInt(r.FormValue("milestoneID"), 10, 0)
-		if err != nil {
-			response.ClientError(w, http.StatusBadRequest)
-			return
-		}
-
-		if err := store.DeleteMilestone(milestoneID); err != nil {
-			response.ServerError(w, err)
-			return
-		}
-
-		response.OK(w, nil)
-	case "GET":
-		projectID, err := strconv.ParseInt(r.FormValue("projectID"), 10, 0)
-		if err != nil {
-			response.ClientError(w, http.StatusBadRequest)
-			return
-		}
-
-		response.OK(w, store.GetMilestones(projectID))
-	default:
-		response.ClientError(w, http.StatusMethodNotAllowed)
-	}
-}
-
-// 
-// /api/project/task
-// 
-// GET: retrieve an existing task
-// PUT: update an existing task
-// POST: create a new task
-// DELETE: delete an existing task
-// 
-func projectTask(w http.ResponseWriter, r *http.Request) {
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
-
-	var sourceID int64
-	var err error
-
-	switch r.Method {
-	case "POST":
-		taskID, err := user.CreateTask(r)
-		if err != nil {
-			response.ServerError(w, err)
-			return
-		}
-		response.OK(w, taskID)
-	case "PUT":
-		taskID, err := user.UpdateTask(r)
-		if err != nil {
-			response.ServerError(w, err)
-			return
-		}
-		response.OK(w, store.GetTask(taskID))
-	case "GET":
-		switch r.FormValue("type") {
-		case "user":
-			response.OK(w, user.GetTasks())
-		case "project":
-			if sourceID, err = strconv.ParseInt(r.FormValue("projectID"), 10, 0); err != nil {
-				response.ClientError(w, http.StatusBadRequest)
-				return
-			}
-			response.OK(w, store.GetTasks(sourceID))
-		default:
-			var count int64
-			if count, err = strconv.ParseInt(r.FormValue("count"), 10, 0); err != nil {
-				response.ClientError(w, http.StatusBadRequest)
-				return
-			}
-			response.OK(w, store.GetLatestTasks(count))
-		}
-	case "DELETE":
-		if err := user.DeleteTask(r); err != nil {
-			response.ServerError(w, err)
-			return
-		}
-		response.OK(w, nil)
-	default:
-		response.ClientError(w, http.StatusMethodNotAllowed)
-	}
-}
-
-// 
-// /api/project/task/accept
-// 
-// POST: allow project members to accept tasks
-// 
-func taskAccept(w http.ResponseWriter, r *http.Request) {
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
-
-	switch r.Method {
-	case "POST":
-		if err := user.AcceptTask(r); err != nil {
-			response.ServerError(w, err)
-			return
-		}
-
-		response.OK(w, nil)
-	default:
-		response.ClientError(w, http.StatusMethodNotAllowed)
-	}
-}
-
-// 
-// /api/project/task/assign
-// 
-// POST: allow author to assign task to project members
-// 
-func taskAssign(w http.ResponseWriter, r *http.Request) {
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
-
-	switch r.Method {
-	case "POST":
-		if err := user.AssignTask(r); err != nil {
-			response.ServerError(w, err)
-			return
-		}
-		response.OK(w, nil)
-	default:
-		response.ClientError(w, http.StatusMethodNotAllowed)
-	}
-}
-
-// 
-// /api/project/task/categories
-// 
-// GET: retrieve (popular) task categories
-// 
-func taskCategories(w http.ResponseWriter, r *http.Request) {
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
-
-	switch r.Method {
-	case "GET":
-		switch r.FormValue("type") {
-		case "popular":
-			cs, err := store.PopularTaskCategories()
-			if err != nil {
-				response.ServerError(w, err)
-				return
-			}
-			response.OK(w, cs)
-		}
-	default:
-		response.ClientError(w, http.StatusMethodNotAllowed)
-	}
-}
-
-// 
-// /api/task/doer
-// 
-// POST: insert a task doer
-// DELETE: delete a task doer
-// 
-func taskDoer(w http.ResponseWriter, r *http.Request) {
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
-
-	var taskID, doerID int64
-	var err error
-
-	if taskID, err = strconv.ParseInt(r.FormValue("taskID"), 10, 0); err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	if doerID, err = strconv.ParseInt(r.FormValue("doerID"), 10, 0); err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	switch r.Method {
-	case "POST":
-		var id int64
-		if id, err = store.InsertDoer(taskID, doerID); err != nil {
-			response.ServerError(w, err)
-			return
-		}
-
-		response.OK(w, id)
-	case "DELETE":
-		if err = store.DeleteDoer(taskID, doerID); err != nil {
-			response.ServerError(w, err)
-			return
-		}
-		response.OK(w, nil)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}

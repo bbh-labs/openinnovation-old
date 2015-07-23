@@ -16,15 +16,16 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	apiRouter := mux.NewRouter()
-	apiRouter.HandleFunc("/api/login", login)
 	apiRouter.HandleFunc("/api/logout", logout)
-	apiRouter.HandleFunc("/api/register", register)
-	apiRouter.HandleFunc("/api/verify", verify)
 	apiRouter.HandleFunc("/api/project", project)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/", home)
+	router.HandleFunc("/login", login)
+	router.HandleFunc("/register", register)
+	router.HandleFunc("/verify", verify)
 	router.PathPrefix("/api").Handler(negroni.New(
+		negroni.HandlerFunc(apiMiddleware),
 		negroni.Wrap(apiRouter),
 	))
 

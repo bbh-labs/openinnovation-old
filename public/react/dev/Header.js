@@ -46,15 +46,8 @@ var Header = React.createClass({
 		)
 	},
 	logout: function(e) {
-		$.ajax({
-			url: "/api/logout",
-			method: "POST",
-			dataType: "json",
-		}).done(function(resp) {
-			this.transitionTo("intro");
-		}.bind(this)).fail(function(resp) {
-			Materialize.toast(resp.responseText, 1000, "red");
-		});
+		OI.logout();
+
 		e.preventDefault();
 	},
 });
