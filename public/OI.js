@@ -8,10 +8,10 @@ function notifyApp(type) {
 }
 
 var OI = {
-	api: function(name, data) {
-		$.ajax(data)
-			.done(notifyApp(name + "Done"))
-			.fail(notifyApp(name + "Fail"));
+	api: function(name, data, done, fail) {
+		if (!done) done = notifyApp(name + "Done");
+		if (!fail) fail = notifyApp(name + "Fail");
+		$.ajax(data).done(done).fail(done);
 	},
 	login: function(data) {
 		this.api("login", {
@@ -45,7 +45,6 @@ var OI = {
 			processData: false,
 			contentType: false,
 		});
-
-		console.log("test");
 	},
+	featuredProjects: function
 };
