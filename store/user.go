@@ -23,6 +23,7 @@ const (
 	description text NOT NULL,
 	avatar_url text NOT NULL,
 	verification_code text NOT NULL,
+	is_admin boolean NOT NULL,
 	updated_at timestamp NOT NULL,
 	created_at timestamp NOT NULL`
 )
@@ -44,8 +45,6 @@ type User interface {
 	UpdateProject(w http.ResponseWriter, r *http.Request) error
 	JoinProject(projectID int64) error
 
-	GetCompleteProject(projectID int64) (Project, error)
-
 	IsAuthor(projectID int64) bool
 }
 
@@ -58,6 +57,7 @@ type user struct {
 	Description      string    `json:"description,omitempty"`
 	AvatarURL        string    `json:"avatarURL,omitempty"`
 	VerificationCode string    `json:"-"`
+	IsAdmin          bool      `json:"isAdmin"`
 	UpdatedAt        time.Time `json:"updatedAt,omitempty"`
 	CreatedAt        time.Time `json:"createdAt,omitempty"`
 
@@ -106,8 +106,8 @@ func HasUserWithEmail(email string) bool {
 
 func insertUser(m map[string]string) error {
 	const q = `
-	INSERT INTO user_ (email, password, fullname, title, description, avatar_url, verification_code, updated_at, created_at)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, now(), now())`
+	INSERT INTO user_ (email, password, fullname, title, description, avatar_url, verification_code, is_admin, updated_at, created_at)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, FALSE, now(), now())`
 
 	if _, err := db.Exec(q,
 		m["email"],
@@ -143,6 +143,7 @@ func GetUser(data interface{}) User {
 		&u.Description,
 		&u.AvatarURL,
 		&u.VerificationCode,
+		&u.IsAdmin,
 		&u.UpdatedAt,
 		&u.CreatedAt,
 	); err != nil && err != sql.ErrNoRows {
@@ -180,6 +181,7 @@ func MostActiveUsers(count int64) ([]User, error) {
 			&u.Description,
 			&u.AvatarURL,
 			&u.VerificationCode,
+			&u.IsAdmin,
 			&u.UpdatedAt,
 			&u.CreatedAt,
 		); err != nil {
@@ -219,6 +221,7 @@ func queryUsers(q string, data ...interface{}) ([]User, error) {
 			&u.Title,
 			&u.AvatarURL,
 			&u.VerificationCode,
+			&u.IsAdmin,
 			&u.UpdatedAt,
 			&u.CreatedAt,
 		); err != nil {
@@ -492,17 +495,6 @@ func (u user) JoinProject(projectID int64) error {
 		return debug.Error(err)
 	}
 	return nil
-}
-
-func (u user) GetCompleteProject(projectID int64) (Project, error) {
-	p, err := getProject(projectID)
-	if err != nil {
-		return p, err
-	}
-
-	p.Author = GetUser(p.AuthorID)
-
-	return p, nil
 }
 
 func (u user) IsAuthor(projectID int64) bool {

@@ -401,18 +401,13 @@ func project(w http.ResponseWriter, r *http.Request) {
 		}
 		response.OK(w, "Successfully updated the project")
 	case "GET":
-		projectID, err := strconv.ParseInt(r.FormValue("projectID"), 10, 0)
-		if err != nil {
+		typ := r.FormValue("searchType")
+		switch typ {
+		case "featured":
+			featuredProjects(w, r)
+		default:
 			response.ClientError(w, http.StatusBadRequest)
-			return
 		}
-
-		project, err := user.GetCompleteProject(projectID)
-		if err != nil {
-			response.ServerError(w, err)
-			return
-		}
-		response.OK(w, project)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}
@@ -440,32 +435,6 @@ func projectJoin(w http.ResponseWriter, r *http.Request) {
 		response.ServerError(w, err)
 		return
 	}
-}
-
-// 
-// /project/staffpick
-// 
-// GET: retrieve projects that have been personally picked by OI staffs
-// 
-func projectStaffPick(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		response.ClientError(w, http.StatusMethodNotAllowed)
-		return
-	}
-
-	count, err := strconv.ParseInt(r.FormValue("count"), 10, 0)
-	if err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	projects, err := store.StaffPickedProjects(count)
-	if err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	response.OK(w, projects)
 }
 
 // 

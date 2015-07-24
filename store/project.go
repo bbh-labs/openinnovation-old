@@ -95,11 +95,6 @@ func SearchProjects(term string) ([]Project, error) {
 	return queryProjects(q, "%"+term+"%")
 }
 
-func StaffPickedProjects(count int64) ([]Project, error) {
-	const q = `SELECT * FROM project WHERE recommended = 1 LIMIT ?`
-	return queryProjects(q, count)
-}
-
 func TrendingProjects(count int64) ([]Project, error) {
 	return GetMostViewedProjects(count)
 }
@@ -195,4 +190,15 @@ func isAuthor(projectID, userID int64) bool {
 	}
 
 	return authorID == userID
+}
+
+func GetCompleteProject(projectID int64) (Project, error) {
+	p, err := getProject(projectID)
+	if err != nil {
+		return p, err
+	}
+
+	p.Author = GetUser(p.AuthorID)
+
+	return p, nil
 }

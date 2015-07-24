@@ -33,6 +33,8 @@ func init() {
 
 	create("user_", createUserSQL)
 	create("project", createProjectSQL)
+
+	create("featured_project", createFeaturedProjectSQL)
 }
 
 func createTable(name, content string) error {

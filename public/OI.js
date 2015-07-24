@@ -36,15 +36,18 @@ var OI = {
 			dataType: "json",
 		});
 	},
-	newProject: function(data) {
+	project: function(data, method) {
+		if (!method) {
+			method = "GET";
+		}
+
 		this.api("newProject", {
 			url: "/api/project",
-			method: "POST",
+			method: method,
 			data: data,
 			dataType: "json",
 			processData: false,
 			contentType: false,
 		});
 	},
-	featuredProjects: function
 };
