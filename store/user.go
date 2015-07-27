@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"bbhoi.com/debug"
@@ -23,6 +24,7 @@ const (
 	title text NOT NULL,
 	description text NOT NULL,
 	avatar_url text NOT NULL,
+	interests text[],
 	verification_code text NOT NULL,
 	is_admin boolean NOT NULL,
 	updated_at timestamp NOT NULL,
@@ -160,7 +162,7 @@ func (u user) Update(w http.ResponseWriter, r *http.Request) {
 func (u user) UpdateInterests(w http.ResponseWriter, r *http.Request) {
 	const q = `UPDATE user_ SET interests = $1 WHERE id = $2`
 
-	interests := r.FormValue("interests")
+	interests := strings.Split(r.FormValue("interests"), ",")
 
 	if _, err := db.Exec(q, interests, u.id); err != nil {
 		response.ServerError(w, err)
