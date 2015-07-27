@@ -22,7 +22,7 @@ func adminMiddleware(w http.ResponseWriter, r *http.Request, next http.HandlerFu
 }
 
 // 
-// /admin/user
+// /api/admin/user
 // 
 // PUT: 
 // GET: 
@@ -49,7 +49,7 @@ func adminUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /admin/project
+// /api/admin/project
 // 
 // POST: create a new project
 // PUT: update an existing project
@@ -70,4 +70,3 @@ func adminProject(w http.ResponseWriter, r *http.Request) {
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}
 }
-

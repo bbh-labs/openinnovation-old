@@ -210,18 +210,22 @@ func isAuthor(projectID, userID int64) bool {
 }
 
 func GetCompleteProject(w http.ResponseWriter, r *http.Request) {
-	id, err := formutil.Number(r, "id")
+	projectID, err := formutil.Number(r, "projectID")
 	if err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
 
-	p, err := getProject(id)
+	p, err := getProject(projectID)
 	if err != nil {
 		response.ServerError(w, err)
 		return
 	}
-	p.Author = GetUser(p.AuthorID)
+
+	if p.Author, err = GetUserByID(p.AuthorID); err != nil {
+		response.ServerError(w, err)
+		return
+	}
 
 	response.OK(w, p)
 }
@@ -231,13 +235,13 @@ func SetFeaturedProject(w http.ResponseWriter, r *http.Request) {
 	SELECT COUNT(*) FROM featured_project
 	WHERE project_id = $1`
 
-	id, err := formutil.Number(r, "id")
+	projectID, err := formutil.Number(r, "projectID")
 	if err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
 
-	if exists(existSQL, id) {
+	if exists(existSQL, projectID) {
 		response.OK(w, nil)
 		return
 	}
@@ -245,7 +249,7 @@ func SetFeaturedProject(w http.ResponseWriter, r *http.Request) {
 	const rawSQL = `
 	INSERT INTO featured_project (project_id, created_at) VALUES ($1, now())`
 
-	if _, err := db.Exec(rawSQL, id); err != nil {
+	if _, err := db.Exec(rawSQL, projectID); err != nil {
 		response.ServerError(w, err)
 	}
 }
@@ -254,13 +258,13 @@ func UnsetFeaturedProject(w http.ResponseWriter, r *http.Request) {
 	const rawSQL = `
 	DELETE FROM featured_project WHERE project_id = $1`
 
-	id, err := formutil.Number(r, "id")
+	projectID, err := formutil.Number(r, "projectID")
 	if err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
 
-	if _, err := db.Exec(rawSQL, id); err != nil {
+	if _, err := db.Exec(rawSQL, projectID); err != nil {
 		response.ServerError(w, err)
 	}
 }

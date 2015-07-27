@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"strconv"
 	"strings"
 
 	"bbhoi.com/config"
@@ -16,7 +15,7 @@ import (
 // middleware that restricts access to users only
 func apiMiddleware(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	user := session.GetUser(r)
-	if user.Exists() {
+	if user != nil && user.Exists() {
 		context.Set(r, "user", user)
 		next(w, r)
 	} else {
@@ -183,38 +182,6 @@ func verify(w http.ResponseWriter, r *http.Request) {
 }
 
 // 
-// /user/mostactive
-// 
-// retrieve the most active users
-// 
-func mostActiveUsers(w http.ResponseWriter, r *http.Request) {
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
-
-	switch r.Method {
-	case "GET":
-		count, err := strconv.ParseInt(r.FormValue("count"), 10, 0)
-		if err != nil {
-			response.ServerError(w, err)
-			return
-		}
-
-		var users []store.User
-		if users, err = store.MostActiveUsers(count); err != nil {
-			response.ServerError(w, err)
-			return
-		}
-
-		response.OK(w, users)
-	default:
-		response.ClientError(w, http.StatusMethodNotAllowed)
-	}
-}
-
-// 
 // /user
 // 
 // GET: retrieve the user's profile information
@@ -224,30 +191,15 @@ func user(w http.ResponseWriter, r *http.Request) {
 	user := context.Get(r, "user").(store.User)
 
 	switch r.Method {
-	case "PUT":
-		if r.FormValue("type") == "interests" {
-			interests := r.FormValue("interests")
-			if err := user.UpdateInterests(interests); err != nil {
-				response.ServerError(w, err)
-				return
-			}
-		} else {
-			name := r.FormValue("name")
-			title := r.FormValue("title")
-			description := r.FormValue("description")
-			if err := user.Update(name, title, description); err != nil {
-				response.ServerError(w, err)
-				return
-			}
+	case "PUT":	
+		switch r.FormValue("type") {
+		case "interests":
+			user.UpdateInterests(w, r)
+		default:
+			user.Update(w, r)
 		}
-		response.OK(w, store.GetUser(user.ID()))
 	case "GET":
-		userID, err := strconv.ParseInt(r.FormValue("userID"), 10, 0)
-		if err != nil {
-			response.ClientError(w, http.StatusBadRequest)
-			return
-		}
-		response.OK(w, store.GetUser(userID))
+		store.GetUser(w, r)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}
@@ -259,24 +211,11 @@ func user(w http.ResponseWriter, r *http.Request) {
 // POST: update the user's profile picture
 // 
 func userImage(w http.ResponseWriter, r *http.Request) {
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
+	user := context.Get(r, "user").(store.User)
 
 	switch r.Method {
 	case "POST":
-		header, err := user.SaveAvatar(w, r)
-		if err != nil {
-			response.ServerError(w, err)
-			return
-		}
-		if header == nil {
-			response.ClientError(w, http.StatusBadRequest)
-			return
-		}
-		response.OK(w, nil)
+		user.SaveAvatar(w, r)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}
@@ -288,81 +227,18 @@ func userImage(w http.ResponseWriter, r *http.Request) {
 // GET: retrieve the user's projects (involved, completed, all)
 // 
 func userProject(w http.ResponseWriter, r *http.Request) {
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
+	user := context.Get(r, "user").(store.User)
 
 	switch r.Method {
 	case "GET":
-		var userID int64
-		var err error
-
-		userIDStr := r.FormValue("userID")
-		if userIDStr != "" {
-			userID, err = strconv.ParseInt(userIDStr, 10, 0)
-			if err != nil {
-				response.ClientError(w, http.StatusBadRequest)
-				return
-			}
-			user = store.GetUser(userID)
-		}
-
-		var ps []store.Project
 		switch r.FormValue("type") {
 		case "involved":
-			ps, err = user.InvolvedProjects()
+			user.InvolvedProjects(w, r)
 		case "completed":
-			ps, err = user.CompletedProjects()
+			user.CompletedProjects(w, r)
 		default:
-			ps, err = user.CreatedProjects()
+			user.CreatedProjects(w, r)
 		}
-
-		if err != nil {
-			response.ServerError(w, err)
-			return
-		}
-		response.OK(w, ps)
-	default:
-		response.ClientError(w, http.StatusMethodNotAllowed)
-	}
-}
-
-// 
-// /user/skill
-// 
-// GET: retrieve the user's skill information
-// 
-func userSkill(w http.ResponseWriter, r *http.Request) {
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
-
-	switch r.Method {
-	case "GET":
-		var userID int64
-		var err error
-
-		userIDStr := r.FormValue("userID")
-		if userIDStr != "" {
-			userID, err = strconv.ParseInt(userIDStr, 10, 0)
-			if err != nil {
-				response.ClientError(w, http.StatusBadRequest)
-				return
-			}
-			user = store.GetUser(userID)
-		}
-
-		skills, err := user.Skills()
-		if err != nil {
-			response.ServerError(w, err)
-			return
-		}
-
-		response.OK(w, skills)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}
@@ -409,54 +285,6 @@ func projectJoin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	projectID, err := strconv.ParseInt(r.FormValue("projectID"), 10, 0)
-	if err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
 	user := context.Get(r, "user").(store.User)
-	if err = user.JoinProject(projectID); err != nil {
-		response.ServerError(w, err)
-		return
-	}
-}
-
-// 
-// /search
-// 
-// GET: retrieve projects or users that match the query
-// 
-func search(w http.ResponseWriter, r *http.Request) {
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
-
-	type searchResult struct {
-		Projects []store.Project `json:"projects,omitempty"`
-		Users    []store.User    `json:"users,omitempty"`
-	}
-
-	switch r.Method {
-	case "GET":
-		term := r.FormValue("s")
-
-		projects, err := store.SearchProjects(term)
-		if err != nil {
-			response.ServerError(w, err)
-			return
-		}
-
-		users, err := store.SearchUsers(term)
-		if err != nil {
-			response.ServerError(w, err)
-			return
-		}
-
-		response.OK(w, searchResult{Projects: projects, Users: users})
-	default:
-		response.ClientError(w, http.StatusMethodNotAllowed)
-	}
+	user.JoinProject(w, r)
 }

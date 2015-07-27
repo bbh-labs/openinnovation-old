@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"net/http"
 
+	"bbhoi.com/debug"
 	"bbhoi.com/store"
 	"github.com/gorilla/sessions"
 )
@@ -40,6 +41,9 @@ func GetEmail(r *http.Request) string {
 }
 
 func GetUser(r *http.Request) store.User {
-	email := GetEmail(r)
-	return store.GetUser(email)
+	user, err := store.GetUserByEmail(GetEmail(r))
+	if err != nil {
+		debug.Warn(err)
+	}
+	return user
 }

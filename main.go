@@ -31,9 +31,9 @@ func main() {
 	))
 
 	adminRouter := mux.NewRouter()
-	adminRouter.HandleFunc("/admin/user", adminUser)
-	adminRouter.HandleFunc("/admin/project", adminProject)
-	router.PathPrefix("/admin").Handler(negroni.New(
+	adminRouter.HandleFunc("/api/admin/user", adminUser)
+	adminRouter.HandleFunc("/api/admin/project", adminProject)
+	router.PathPrefix("/api/admin").Handler(negroni.New(
 		negroni.HandlerFunc(adminMiddleware),
 		negroni.Wrap(adminRouter),
 	))

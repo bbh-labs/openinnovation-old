@@ -31,9 +31,12 @@ func init() {
 		return err
 	}
 
+	// primary tables
 	create("user_", createUserSQL)
 	create("project", createProjectSQL)
 
+	// secondary tables
+	create("project_user", createProjectUserSQL)
 	create("featured_project", createFeaturedProjectSQL)
 }
 
