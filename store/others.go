@@ -2,8 +2,10 @@ package store
 
 import (
 	"net/http"
-	"strconv"
 	"time"
+
+	"bbhoi.com/formutil"
+	"bbhoi.com/response"
 )
 
 //////////////////////
@@ -17,18 +19,26 @@ const (
 )
 
 type FeaturedProject struct {
-	ProjectID			int64		`json:"id,omitempty"`
-	CreatedAt			time.Time	`json:"createdAt,omitempty"`
+	ProjectID	int64		`json:"id,omitempty"`
+	CreatedAt	time.Time	`json:"createdAt,omitempty"`
 }
 
-func FeaturedProjects(r *http.Request) ([]Project, error) {
-	const q = `SELECT * FROM project LIMIT ?`
+func FeaturedProjects(w http.ResponseWriter, r *http.Request) {
+	const rawSQL = `SELECT project.* FROM featured_project
+	                INNER JOIN project ON project.id = featured_project.project_id
+					LIMIT $1`
 
-	count, err := strconv.ParseInt(r.FormValue("count"), 10, 0)
+	count, err := formutil.Number(r, "count") 
 	if err != nil {
-		count = 3
+		response.ClientError(w, http.StatusBadRequest)
+		return
 	}
 
-	return queryProjects(q, count)
-}
+	projects, err := queryProjects(rawSQL, count)
+	if err != nil {
+		response.ServerError(w, err)
+		return
+	}
 
+	response.OK(w, projects)
+}

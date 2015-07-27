@@ -36,18 +36,30 @@ var OI = {
 			dataType: "json",
 		});
 	},
-	project: function(data, method) {
-		if (!method) {
-			method = "GET";
-		}
-
+	newProject: function(data) {
 		this.api("newProject", {
 			url: "/api/project",
-			method: method,
+			method: "POST",
 			data: data,
 			dataType: "json",
 			processData: false,
 			contentType: false,
+		});
+	},
+	featuredProjects: function(data) {
+		this.api("featuredProjects", {
+			url: "/api/project",
+			method: "GET",
+			dataType: "json",
+			data: m(data, {searchType: "featured"}),
+		});
+	},
+	latestProjects: function(data) {
+		this.api("featuredProjects", {
+			url: "/api/project",
+			method: "GET",
+			dataType: "json",
+			data: m(data, {searchType: "latest"}),
 		});
 	},
 };

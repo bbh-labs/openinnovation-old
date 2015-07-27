@@ -1,9 +1,12 @@
 package store
 
 import (
+	"net/http"
 	"time"
 
 	"bbhoi.com/debug"
+	"bbhoi.com/formutil"
+	"bbhoi.com/response"
 )
 
 const (
@@ -35,40 +38,40 @@ type Project struct {
 }
 
 func insertProject(authorID int64, title, tagline, description string) (int64, error) {
-	const q = `
+	const rawSQL = `
 	INSERT INTO project (author_id, title, tagline, description, image_url, view_count, status, updated_at, created_at)
 	VALUES ($1, $2, $3, $4, '', 0, 'concept', now(), now()) RETURNING id`
 
 	var id int64
-	if err := db.QueryRow(q, authorID, title, tagline, description).Scan(&id); err != nil {
+	if err := db.QueryRow(rawSQL, authorID, title, tagline, description).Scan(&id); err != nil {
 		return 0, debug.Error(err)
 	}
 	return id, nil
 }
 
 func updateProject(projectID int64, title, description string) error {
-	const q = `UPDATE project SET title = $1, description = $2 WHERE id = $3`
+	const rawSQL = `UPDATE project SET title = $1, description = $2 WHERE id = $3`
 
-	if _, err := db.Exec(q, title, description, projectID); err != nil {
+	if _, err := db.Exec(rawSQL, title, description, projectID); err != nil {
 		return debug.Error(err)
 	}
 	return nil
 }
 
 func updateProjectImage(projectID int64, imageURL string) error {
-	const q = `UPDATE project SET image_url = $1 WHERE id = $2`
+	const rawSQL = `UPDATE project SET image_url = $1 WHERE id = $2`
 
-	if _, err := db.Exec(q, imageURL, projectID); err != nil {
+	if _, err := db.Exec(rawSQL, imageURL, projectID); err != nil {
 		return debug.Error(err)
 	}
 	return nil
 }
 
 func getProject(projectID int64) (Project, error) {
-	const q = `SELECT * FROM project WHERE id = ?`
+	const rawSQL = `SELECT * FROM project WHERE id = ?`
 
 	p := Project{}
-	if err := db.QueryRow(q, projectID).Scan(
+	if err := db.QueryRow(rawSQL, projectID).Scan(
 		&p.ID,
 		&p.AuthorID,
 		&p.Title,
@@ -86,38 +89,52 @@ func getProject(projectID int64) (Project, error) {
 }
 
 func GetMostViewedProjects(count int64) ([]Project, error) {
-	const q = `SELECT * FROM project ORDER BY view_count DESC LIMIT ?`
-	return queryProjects(q, count)
+	const rawSQL = `SELECT * FROM project ORDER BY view_count DESC LIMIT ?`
+	return queryProjects(rawSQL, count)
 }
 
 func SearchProjects(term string) ([]Project, error) {
-	const q = `SELECT * FROM project WHERE title LIKE ?`
-	return queryProjects(q, "%"+term+"%")
+	const rawSQL = `SELECT * FROM project WHERE title LIKE ?`
+	return queryProjects(rawSQL, "%"+term+"%")
 }
 
 func TrendingProjects(count int64) ([]Project, error) {
 	return GetMostViewedProjects(count)
 }
 
-func LatestProjects(count int64) ([]Project, error) {
-	const q = `
+func LatestProjects(w http.ResponseWriter, r *http.Request) {
+	const rawSQL = `
 	SELECT * FROM project
-	ORDER BY createdAt DESC LIMIT ?`
+	ORDER BY createdAt DESC LIMIT $1`
 
-	return queryProjectsWithMembers(q, count)
+	var count int64
+	var err error
+
+	if count, err = formutil.Number(r, "count"); err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	projects, err :=  queryProjects(rawSQL, count)
+	if err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	response.OK(w, projects)
 }
 
 func CompletedProjects(count int64) ([]Project, error) {
-	const q = `
+	const rawSQL = `
 	SELECT * FROM project
 	WHERE status = 'completed'
 	ORDER BY createdAt DESC LIMIT ?`
 
-	return queryProjectsWithMembers(q, count)
+	return queryProjectsWithMembers(rawSQL, count)
 }
 
-func queryProjects(q string, data ...interface{}) ([]Project, error) {
-	rows, err := db.Query(q, data...)
+func queryProjects(rawSQL string, data ...interface{}) ([]Project, error) {
+	rows, err := db.Query(rawSQL, data...)
 	if err != nil {
 		return nil, debug.Error(err)
 	}
@@ -147,8 +164,8 @@ func queryProjects(q string, data ...interface{}) ([]Project, error) {
 	return ps, nil
 }
 
-func queryProjectsWithMembers(q string, data ...interface{}) ([]Project, error) {
-	rows, err := db.Query(q, data...)
+func queryProjectsWithMembers(rawSQL string, data ...interface{}) ([]Project, error) {
+	rows, err := db.Query(rawSQL, data...)
 	if err != nil {
 		return nil, debug.Error(err)
 	}
@@ -179,12 +196,12 @@ func queryProjectsWithMembers(q string, data ...interface{}) ([]Project, error) 
 }
 
 func isAuthor(projectID, userID int64) bool {
-	const q = `
+	const rawSQL = `
 	SELECT author_id FROM project
 	WHERE project_id WHERE $1`
 
 	var authorID int64
-	if err := db.QueryRow(q, projectID).Scan(&authorID); err != nil {
+	if err := db.QueryRow(rawSQL, projectID).Scan(&authorID); err != nil {
 		debug.Warn(err)
 		return false
 	}
@@ -192,13 +209,58 @@ func isAuthor(projectID, userID int64) bool {
 	return authorID == userID
 }
 
-func GetCompleteProject(projectID int64) (Project, error) {
-	p, err := getProject(projectID)
+func GetCompleteProject(w http.ResponseWriter, r *http.Request) {
+	id, err := formutil.Number(r, "id")
 	if err != nil {
-		return p, err
+		response.ClientError(w, http.StatusBadRequest)
+		return
 	}
 
+	p, err := getProject(id)
+	if err != nil {
+		response.ServerError(w, err)
+		return
+	}
 	p.Author = GetUser(p.AuthorID)
 
-	return p, nil
+	response.OK(w, p)
+}
+
+func SetFeaturedProject(w http.ResponseWriter, r *http.Request) {
+	const existSQL = `
+	SELECT COUNT(*) FROM featured_project
+	WHERE project_id = $1`
+
+	id, err := formutil.Number(r, "id")
+	if err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	if exists(existSQL, id) {
+		response.OK(w, nil)
+		return
+	}
+
+	const rawSQL = `
+	INSERT INTO featured_project (project_id, created_at) VALUES ($1, now())`
+
+	if _, err := db.Exec(rawSQL, id); err != nil {
+		response.ServerError(w, err)
+	}
+}
+
+func UnsetFeaturedProject(w http.ResponseWriter, r *http.Request) {
+	const rawSQL = `
+	DELETE FROM featured_project WHERE project_id = $1`
+
+	id, err := formutil.Number(r, "id")
+	if err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	if _, err := db.Exec(rawSQL, id); err != nil {
+		response.ServerError(w, err)
+	}
 }

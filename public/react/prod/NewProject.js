@@ -140,7 +140,7 @@ NewProject.Form = React.createClass({displayName: "Form",
 		fd.append("tagline", tagline);
 		fd.append("description", description);
 
-		OI.project(fd, "POST");
+		OI.newProject(fd);
 	},
 	onProjectTypeChanged: function(e) {
 		if (e.target.value == "other") {

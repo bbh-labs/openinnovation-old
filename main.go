@@ -15,18 +15,27 @@ func home(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	apiRouter := mux.NewRouter()
-	apiRouter.HandleFunc("/api/logout", logout)
-	apiRouter.HandleFunc("/api/project", project)
-
 	router := mux.NewRouter()
 	router.HandleFunc("/", home)
 	router.HandleFunc("/login", login)
 	router.HandleFunc("/register", register)
 	router.HandleFunc("/verify", verify)
+
+	apiRouter := mux.NewRouter()
+	apiRouter.HandleFunc("/api/logout", logout)
+	apiRouter.HandleFunc("/api/user", user)
+	apiRouter.HandleFunc("/api/project", project)
 	router.PathPrefix("/api").Handler(negroni.New(
 		negroni.HandlerFunc(apiMiddleware),
 		negroni.Wrap(apiRouter),
+	))
+
+	adminRouter := mux.NewRouter()
+	adminRouter.HandleFunc("/admin/user", adminUser)
+	adminRouter.HandleFunc("/admin/project", adminProject)
+	router.PathPrefix("/admin").Handler(negroni.New(
+		negroni.HandlerFunc(adminMiddleware),
+		negroni.Wrap(adminRouter),
 	))
 
 	n := negroni.Classic()

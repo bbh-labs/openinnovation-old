@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"bbhoi.com/debug"
+	"bbhoi.com/formutil"
 	"bbhoi.com/httputil"
+	"bbhoi.com/response"
 )
 
 const (
@@ -46,6 +48,7 @@ type User interface {
 	JoinProject(projectID int64) error
 
 	IsAuthor(projectID int64) bool
+	IsAdmin() bool
 }
 
 type user struct {
@@ -57,7 +60,7 @@ type user struct {
 	Description      string    `json:"description,omitempty"`
 	AvatarURL        string    `json:"avatarURL,omitempty"`
 	VerificationCode string    `json:"-"`
-	IsAdmin          bool      `json:"isAdmin"`
+	isAdmin          bool      `json:"isAdmin"`
 	UpdatedAt        time.Time `json:"updatedAt,omitempty"`
 	CreatedAt        time.Time `json:"createdAt,omitempty"`
 
@@ -74,6 +77,10 @@ type user struct {
 
 func (u user) ID() int64 {
 	return u.id
+}
+
+func (u user) IsAdmin() bool {
+	return u.isAdmin
 }
 
 func (u user) ShortDescription(n int) string {
@@ -143,7 +150,7 @@ func GetUser(data interface{}) User {
 		&u.Description,
 		&u.AvatarURL,
 		&u.VerificationCode,
-		&u.IsAdmin,
+		&u.isAdmin,
 		&u.UpdatedAt,
 		&u.CreatedAt,
 	); err != nil && err != sql.ErrNoRows {
@@ -181,7 +188,7 @@ func MostActiveUsers(count int64) ([]User, error) {
 			&u.Description,
 			&u.AvatarURL,
 			&u.VerificationCode,
-			&u.IsAdmin,
+			&u.isAdmin,
 			&u.UpdatedAt,
 			&u.CreatedAt,
 		); err != nil {
@@ -221,7 +228,7 @@ func queryUsers(q string, data ...interface{}) ([]User, error) {
 			&u.Title,
 			&u.AvatarURL,
 			&u.VerificationCode,
-			&u.IsAdmin,
+			&u.isAdmin,
 			&u.UpdatedAt,
 			&u.CreatedAt,
 		); err != nil {
@@ -499,4 +506,56 @@ func (u user) JoinProject(projectID int64) error {
 
 func (u user) IsAuthor(projectID int64) bool {
 	return isAuthor(projectID, u.id)
+}
+
+func SetAdmin(w http.ResponseWriter, r *http.Request) {
+	const rawSQL = `
+	UPDATE user_ WHERE id = $1 WHERE is_admin = false
+	SET is_admin = true`
+
+	id, err := formutil.Number(r, "id")
+	if err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	if _, err := db.Exec(rawSQL, id); err != nil {
+		response.ServerError(w, err)
+	}
+}
+
+func UnsetAdmin(w http.ResponseWriter, r *http.Request) {
+	const rawSQL = `
+	UPDATE user_ WHERE id = $1 WHERE is_admin = true
+	SET is_admin = false`
+
+	id, err := formutil.Number(r, "id")
+	if err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	if _, err := db.Exec(rawSQL, id); err != nil {
+		response.ServerError(w, err)
+	}
+}
+
+func GetAdmins(w http.ResponseWriter, r *http.Request) {
+	count, err := formutil.Number(r, "count")
+	if err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	const rawSQL = `
+	SELECT * FROM user_ WHERE is_admin = true
+	LIMIT $1`
+
+	users, err := queryUsers(rawSQL, count)
+	if err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	response.OK(w, users)
 }

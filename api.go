@@ -220,12 +220,8 @@ func mostActiveUsers(w http.ResponseWriter, r *http.Request) {
 // GET: retrieve the user's profile information
 // PUT: update the user's profile information
 // 
-func _user(w http.ResponseWriter, r *http.Request) {
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
+func user(w http.ResponseWriter, r *http.Request) {
+	user := context.Get(r, "user").(store.User)
 
 	switch r.Method {
 	case "PUT":
@@ -404,9 +400,11 @@ func project(w http.ResponseWriter, r *http.Request) {
 		typ := r.FormValue("searchType")
 		switch typ {
 		case "featured":
-			featuredProjects(w, r)
+			store.FeaturedProjects(w, r)
+		case "latest":
+			store.LatestProjects(w, r)
 		default:
-			response.ClientError(w, http.StatusBadRequest)
+			store.GetCompleteProject(w, r)
 		}
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
@@ -434,109 +432,6 @@ func projectJoin(w http.ResponseWriter, r *http.Request) {
 	if err = user.JoinProject(projectID); err != nil {
 		response.ServerError(w, err)
 		return
-	}
-}
-
-// 
-// /project/latest
-// 
-// GET: retrieve the latest projects
-// 
-func projectLatest(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		response.ClientError(w, http.StatusMethodNotAllowed)
-		return
-	}
-
-	count, err := strconv.ParseInt(r.FormValue("count"), 10, 0)
-	if err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	projects, err := store.LatestProjects(count)
-	if err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	response.OK(w, projects)
-}
-
-// 
-// /project/completed
-// 
-// GET: retrieve completed projects
-// 
-func projectCompleted(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		response.ClientError(w, http.StatusMethodNotAllowed)
-		return
-	}
-
-	count, err := strconv.ParseInt(r.FormValue("count"), 10, 0)
-	if err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	projects, err := store.CompletedProjects(count)
-	if err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	response.OK(w, projects)
-}
-
-// 
-// /project/trending
-// 
-// GET: retrieve trending projects
-// 
-func projectTrending(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		response.ClientError(w, http.StatusMethodNotAllowed)
-		return
-	}
-
-	count, err := strconv.ParseInt(r.FormValue("count"), 10, 0)
-	if err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	projects, err := store.TrendingProjects(count)
-	if err != nil {
-		response.ServerError(w, err)
-	}
-
-	response.OK(w, projects)
-}
-
-// 
-// /project/mostviewed
-// 
-// GET: retrieve most viewed projects
-// 
-func projectMostViewed(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		count, err := strconv.ParseInt(r.FormValue("count"), 10, 0)
-		if err != nil {
-			response.ClientError(w, http.StatusBadRequest)
-			return
-		}
-
-		projects, err := store.GetMostViewedProjects(count)
-		if err != nil {
-			response.ServerError(w, err)
-			return
-		}
-
-		response.OK(w, projects)
-	default:
-		response.ClientError(w, http.StatusMethodNotAllowed)
 	}
 }
 
