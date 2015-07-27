@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"bbhoi.com/config"
 	"bbhoi.com/response"
 	"bbhoi.com/session"
 	"bbhoi.com/store"
@@ -14,7 +13,7 @@ import (
 
 // middleware that restricts access to users only
 func apiMiddleware(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	user := session.GetUser(r)
+	user := store.CurrentUser(r)
 	if user != nil && user.Exists() {
 		context.Set(r, "user", user)
 		next(w, r)
@@ -49,50 +48,17 @@ func index(w http.ResponseWriter, r *http.Request) {
 func login(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
-		t := r.FormValue("loginFrom")
-		switch t {
-		default:
-			email := r.FormValue("email")
-			pass := r.FormValue("password")
-
-			// check if email is from BBH
-			if !(email != "aqiank@gmail.com" || email != "veeableful@gmail.com") {
-				if !strings.HasSuffix(email, "@bartleboglehegarty.com") {
-					response.ClientError(w, http.StatusBadRequest)
-					return
-				}
-			}
-
-			// check email and password length
-			if len(email) < config.EmailLength() || len(pass) < config.PasswordLength() {
-				response.ClientError(w, http.StatusBadRequest)
-				return
-			}
-
-			// check if email and password are valid
-			if valid, err := store.ValidLogin(email, pass); err != nil {
-				response.ServerError(w, err)
-				return
-			} else if !valid {
-				response.ClientError(w, http.StatusBadRequest)
-				return
-			}
-
-			// start login session
-			session.Set(w, r, email)
-		}
+		store.Login(w, r)
 	case "GET":
-		// nothing to do
+		user := store.CurrentUser(r)
+		if !user.Exists() {
+			response.ClientError(w, http.StatusForbidden)
+			return
+		}
+		response.OK(w, user)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}
-
-	user := session.GetUser(r)
-	if !user.Exists() {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
-	response.OK(w, user)
 }
 
 // 
@@ -101,13 +67,13 @@ func login(w http.ResponseWriter, r *http.Request) {
 // POST: logs a user out
 // 
 func logout(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
+	switch r.Method {
+	case "POST":
+		session.Clear(w, r)
+		response.OK(w, "Successfully logged out.")
+	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
-		return
 	}
-
-	session.Clear(w, r)
-	response.OK(w, "Successfully logged out.")
 }
 
 // 
@@ -116,40 +82,12 @@ func logout(w http.ResponseWriter, r *http.Request) {
 // POST: register a user
 // 
 func register(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
+	switch r.Method {
+	case "POST":
+		store.Register(w, r)
+	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
-		return
 	}
-
-	// check if user already exists
-	email := r.FormValue("email")
-	if store.HasUserWithEmail(email) {
-		response.OK(w, "User already registered!")
-		return
-	}
-
-	// check if email is from BBH
-	if !(email != "aqiank@gmail.com" || email != "veeableful@gmail.com") {
-		if !strings.HasSuffix(email, "@bartleboglehegarty.com") {
-			response.ClientError(w, http.StatusBadRequest)
-			return
-		}
-	}
-
-	// check email and password length
-	pass := r.FormValue("password")
-	if len(email) < config.EmailLength() || len(pass) < config.PasswordLength() {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	// register the user
-	if err := store.Register(email, pass, email, "", "", ""); err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	response.OK(w, "Successfully registered! Sent verification code to your email.")
 }
 
 // 
@@ -158,27 +96,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 // GET: verify a user
 // 
 func verify(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("email")
-	code := r.FormValue("verificationCode")
-
-	verified := store.IsUserVerified(email)
-	if verified {
-		response.OK(w, "Already verified!")
-		return
-	}
-
-	valid := store.ValidVerificationCode(email, code)
-	if !valid {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	if err := store.VerifyUser(email); err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	http.Redirect(w, r, "/", 302)
+	store.Verify(w, r)
 }
 
 // 
@@ -260,7 +178,7 @@ func project(w http.ResponseWriter, r *http.Request) {
 	case "PUT":
 		user.UpdateProject(w, r)
 	case "GET":
-		typ := r.FormValue("searchType")
+		typ := r.FormValue("type")
 		switch typ {
 		case "featured":
 			store.FeaturedProjects(w, r)
@@ -280,11 +198,11 @@ func project(w http.ResponseWriter, r *http.Request) {
 // POST: send a join project request
 // 
 func projectJoin(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
+	switch r.Method {
+	case "POST":
+		user := context.Get(r, "user").(store.User)
+		user.JoinProject(w, r)
+	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
-		return
 	}
-
-	user := context.Get(r, "user").(store.User)
-	user.JoinProject(w, r)
 }

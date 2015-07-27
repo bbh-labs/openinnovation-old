@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"bbhoi.com/response"
-	"bbhoi.com/session"
 	"bbhoi.com/store"
 
 	"github.com/gorilla/context"
@@ -12,7 +11,7 @@ import (
 
 // middleware that restricts access to admins only
 func adminMiddleware(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	user := session.GetUser(r)
+	user := store.CurrentUser(r)
 	if user.Exists() && user.IsAdmin() {
 		context.Set(r, "user", user)
 		next(w, r)
@@ -30,7 +29,7 @@ func adminMiddleware(w http.ResponseWriter, r *http.Request, next http.HandlerFu
 func adminUser(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "PUT":
-		switch r.FormValue("actionType") {
+		switch r.FormValue("type") {
 		case "setAdmin":
 			store.SetAdmin(w, r)
 		case "unsetAdmin":
@@ -39,7 +38,7 @@ func adminUser(w http.ResponseWriter, r *http.Request) {
 			response.ClientError(w, http.StatusBadRequest)
 		}
 	case "GET":
-		switch r.FormValue("actionType") {
+		switch r.FormValue("type") {
 		default:
 			store.GetAdmins(w, r)
 		}
@@ -58,7 +57,7 @@ func adminUser(w http.ResponseWriter, r *http.Request) {
 func adminProject(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
-		switch r.FormValue("actionType") {
+		switch r.FormValue("type") {
 		case "setFeaturedProject":
 			store.SetFeaturedProject(w, r)
 		case "unsetFeaturedProject":

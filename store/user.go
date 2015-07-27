@@ -1,7 +1,6 @@
 package store
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,6 +11,7 @@ import (
 	"bbhoi.com/formutil"
 	"bbhoi.com/httputil"
 	"bbhoi.com/response"
+	"bbhoi.com/session"
 )
 
 const (
@@ -39,8 +39,6 @@ type User interface {
 	CreatedProjects(w http.ResponseWriter, r *http.Request)
 	InvolvedProjects(w http.ResponseWriter, r *http.Request)
 	CompletedProjects(w http.ResponseWriter, r *http.Request)
-
-	Skills() ([]int64, error)
 
 	CreateProject(w http.ResponseWriter, r *http.Request)
 	UpdateProject(w http.ResponseWriter, r *http.Request)
@@ -84,52 +82,8 @@ func (u user) IsAdmin() bool {
 	return u.isAdmin
 }
 
-func (u user) ShortDescription(n int) string {
-	if n >= len(u.Description) {
-		return u.Description
-	}
-	return u.Description[:n]
-}
-
-func (u user) ChangePassword(newpass string) error {
-	return nil
-}
-
 func (u user) Exists() bool {
 	return u.Email != ""
-}
-
-func HasUserWithEmail(email string) bool {
-	const q = `SELECT COUNT(*) FROM user_ WHERE email = $1`
-
-	var count int64
-	if err := db.QueryRow(q, email).Scan(&count); err != nil {
-		if err != sql.ErrNoRows {
-			debug.Warn(err)
-		}
-		return false
-	}
-	return count > 0
-}
-
-func insertUser(m map[string]string) error {
-	const q = `
-	INSERT INTO user_ (email, password, fullname, title, description, avatar_url, verification_code, is_admin, updated_at, created_at)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, FALSE, now(), now())`
-
-	if _, err := db.Exec(q,
-		m["email"],
-		m["password"],
-		m["fullname"],
-		m["title"],
-		m["description"],
-		m["avatarURL"],
-		m["verificationCode"],
-	); err != nil {
-		return debug.Error(err)
-	}
-
-	return nil
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
@@ -154,11 +108,6 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.OK(w, users[0])
-}
-
-func SearchUsers(term string) ([]User, error) {
-	const q = `SELECT * FROM user_ WHERE fullname LIKE $1`
-	return queryUsers(q, "%"+term+"%")
 }
 
 func queryUsers(q string, data ...interface{}) ([]User, error) {
@@ -343,48 +292,6 @@ func MaxCompletedProjectsCount() int64 {
 
 	return count(q)
 }
-
-func (u user) Skills() ([]int64, error) {
-	const q = `SELECT
-					(SELECT COUNT(*) FROM task WHERE category = "design"),
-					(SELECT COUNT(*) FROM task WHERE category = "copywriting"),
-					(SELECT COUNT(*) FROM task WHERE category = "art-direction"),
-					(SELECT COUNT(*) FROM task WHERE category = "photography"),
-					(SELECT COUNT(*) FROM task WHERE category = "filming"),
-					(SELECT COUNT(*) FROM task WHERE category = "software"),
-					(SELECT COUNT(*) FROM task WHERE category = "planning"),
-					(SELECT COUNT(*) FROM task WHERE category = "management"),
-					(SELECT COUNT(*) FROM task WHERE category = "marketing"),
-					(SELECT COUNT(*) FROM task WHERE category = "pr"),
-					(SELECT COUNT(*) FROM task WHERE category = "production"),
-					(SELECT COUNT(*) FROM task WHERE category = "others")
-			   FROM task
-			   INNER JOIN doer ON task.id = doer.taskID
-			   WHERE doer.userID = $1
-			   GROUP BY category`
-
-	var ss [12]int64
-
-	if err := db.QueryRow(q, u.id).Scan(
-		&ss[0],
-		&ss[1],
-		&ss[2],
-		&ss[3],
-		&ss[4],
-		&ss[5],
-		&ss[6],
-		&ss[7],
-		&ss[8],
-		&ss[9],
-		&ss[10],
-		&ss[11],
-	); err != nil && err != sql.ErrNoRows {
-		return nil, debug.Error(err)
-	}
-
-	return ss[:], nil
-}
-
 
 func (u user) SaveAvatar(w http.ResponseWriter, r *http.Request) {
 	url := fmt.Sprintf("oi-content/profile/img/%d/avatar.png", u.id)
@@ -621,4 +528,12 @@ func GetUserByEmail(email string) (User, error) {
 	}
 
 	return u, nil
+}
+
+func CurrentUser(r *http.Request) User {
+	user, err := GetUserByEmail(session.GetEmail(r))
+	if err != nil {
+		debug.Warn(err)
+	}
+	return user
 }
