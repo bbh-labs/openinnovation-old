@@ -43,8 +43,8 @@ type User interface {
 
 	Skills() ([]int64, error)
 
-	CreateProject(w http.ResponseWriter, r *http.Request) (int64, error)
-	UpdateProject(w http.ResponseWriter, r *http.Request) error
+	CreateProject(w http.ResponseWriter, r *http.Request)
+	UpdateProject(w http.ResponseWriter, r *http.Request)
 	JoinProject(projectID int64) error
 
 	IsAuthor(projectID int64) bool
@@ -403,26 +403,30 @@ func (u user) SaveAvatar(w http.ResponseWriter, r *http.Request) (*multipart.Fil
 	return header, nil
 }
 
-func (u user) CreateProject(w http.ResponseWriter, r *http.Request) (int64, error) {
+func (u user) CreateProject(w http.ResponseWriter, r *http.Request) {
 	title := r.FormValue("title")
 	if title == "" {
-		return 0, nil
+		response.ClientError(w, http.StatusBadRequest)
+		return
 	}
 
 	tagline := r.FormValue("tagline")
 	if tagline == "" {
-		return 0, nil
+		response.ClientError(w, http.StatusBadRequest)
+		return
 	}
 
 	description := r.FormValue("description")
 	if description == "" {
-		return 0, nil
+		response.ClientError(w, http.StatusBadRequest)
+		return
 	}
 
 	// basic project info
 	projectID, err := insertProject(u.id, title, tagline, description)
 	if err != nil {
-		return 0, debug.Error(err)
+		response.ServerError(w, err)
+		return
 	}
 
 	// image
@@ -435,48 +439,52 @@ func (u user) CreateProject(w http.ResponseWriter, r *http.Request) (int64, erro
 		goto error
 	}
 
-	return projectID, nil
+	response.OK(w, projectID)
+	return
 
 error:
-	if err2 := u.deleteProject(projectID); err2 != nil {
-		debug.Warn(err2)
+	if err := u.deleteProject(projectID); err != nil {
+		debug.Warn(err)
 	}
-	return 0, debug.Error(err)
+	response.ServerError(w, err)
 }
 
-func (u user) UpdateProject(w http.ResponseWriter, r *http.Request) error {
+func (u user) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	title := r.FormValue("projectTitle")
 
 	// title can't be empty
 	if title == "" {
-		return nil
+		response.ClientError(w, http.StatusBadRequest)
+		return
 	}
 
 	description := r.FormValue("projectDescription")
 
 	projectID, err := strconv.ParseInt(r.FormValue("projectID"), 10, 0)
 	if err != nil {
-		return debug.Error(err)
+		response.ServerError(w, err)
+		return
 	}
 
 	// basic project info
 	if err = updateProject(projectID, title, description); err != nil {
-		return debug.Error(err)
+		response.ServerError(w, err)
+		return
 	}
 
 	// image
 	url := fmt.Sprintf("oi-content/project/img/%d/cover", projectID)
 	header, err := httputil.SaveFileWithExtension(w, r, "cover", url)
 	if err != nil {
-		return debug.Error(err)
+		response.ServerError(w, err)
+		return
 	}
 	if header != nil {
 		if err = updateProjectImage(projectID, url); err != nil {
-			return debug.Error(err)
+			response.ServerError(w, err)
+			return
 		}
 	}
-
-	return nil
 }
 
 func (u user) deleteProject(projectID int64) error {

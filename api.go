@@ -380,22 +380,9 @@ func project(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "POST":
-		projectID, err := user.CreateProject(w, r)
-		if err != nil {
-			response.ServerError(w, err)
-			return
-		}
-		if projectID == 0 {
-			response.ClientError(w, http.StatusBadRequest)
-			return
-		}
-		response.OK(w, projectID)
+		user.CreateProject(w, r)
 	case "PUT":
-		if err := user.UpdateProject(w, r); err != nil {
-			response.ServerError(w, err)
-			return
-		}
-		response.OK(w, "Successfully updated the project")
+		user.UpdateProject(w, r)
 	case "GET":
 		typ := r.FormValue("searchType")
 		switch typ {
