@@ -133,15 +133,26 @@ func LatestProjects(w http.ResponseWriter, r *http.Request) {
 	SELECT * FROM project
 	ORDER BY created_at DESC LIMIT $1`
 
-	var count int64
-	var err error
+	const rawSQL2 = `
+	SELECT * FROM project
+	WHERE title ~* $1
+	ORDER BY created_at DESC LIMIT $2`
 
-	if count, err = formutil.Number(r, "count"); err != nil {
+	count, err := formutil.Number(r, "count")
+	if err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
 
-	projects, err := queryProjects(rawSQL, count)
+	var projects []Project
+
+	title := r.FormValue("title")
+	if title != "" {
+		title = ".*" + title + ".*"
+		projects, err = queryProjects(rawSQL2, title, count)
+	} else {
+		projects, err = queryProjects(rawSQL, count)
+	}
 	if err != nil {
 		response.ServerError(w, err)
 		return

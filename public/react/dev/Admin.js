@@ -51,6 +51,12 @@ Admin.Content.LatestProjects = React.createClass({
 		return (
 			<div className="row">
 				<h5>Latest Projects</h5>
+				<div className="row">
+					<div className="input-field col s3">
+						<input id="latest-project-title" type="text" onChange={this.handleChange} />
+						<label htmlFor="latest-project-title">Project Title</label>
+					</div>
+				</div>
 				<ul className="collection">
 					{this.projectElements()}
 				</ul>
@@ -63,5 +69,13 @@ Admin.Content.LatestProjects = React.createClass({
 				<li className="collection-item">{el.title}</li>
 			)
 		});
+	},
+	handleChange: function(e) {
+		OI.latestProjects({
+			title: e.target.value,
+			count: 10,
+		});
+
+		e.preventDefault();
 	},
 });

@@ -51,6 +51,12 @@ Admin.Content.LatestProjects = React.createClass({displayName: "LatestProjects",
 		return (
 			React.createElement("div", {className: "row"}, 
 				React.createElement("h5", null, "Latest Projects"), 
+				React.createElement("div", {className: "row"}, 
+					React.createElement("div", {className: "input-field col s3"}, 
+						React.createElement("input", {id: "latest-project-title", type: "text", onChange: this.handleChange}), 
+						React.createElement("label", {htmlFor: "latest-project-title"}, "Project Title")
+					)
+				), 
 				React.createElement("ul", {className: "collection"}, 
 					this.projectElements()
 				)
@@ -63,5 +69,13 @@ Admin.Content.LatestProjects = React.createClass({displayName: "LatestProjects",
 				React.createElement("li", {className: "collection-item"}, el.title)
 			)
 		});
+	},
+	handleChange: function(e) {
+		OI.latestProjects({
+			title: e.target.value,
+			count: 10,
+		});
+
+		e.preventDefault();
 	},
 });
