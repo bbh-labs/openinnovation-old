@@ -62,4 +62,20 @@ var OI = {
 			data: m(data, {type: "latest"}),
 		});
 	},
+	project: function(data) {
+		this.api("project", {
+			url: "/api/project",
+			method: "GET",
+			dataType: "json",
+			data: data,
+		});
+	},
+	updateProject: function(data) {
+		this.api("updateProject", {
+			url: "/api/project",
+			method: "PUT",
+			dataType: "json",
+			data: data,
+		});
+	},
 };

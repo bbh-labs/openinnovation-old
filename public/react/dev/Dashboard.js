@@ -5,9 +5,11 @@ var Dashboard = React.createClass({
 				<Header />
 				<main>
 					<FeaturedProjects />
-					<DailyUpdates />
-					<LatestProjects />
-					<TasksOfTheDay />
+					<div className="container">
+						<DailyUpdates />
+						<LatestProjects />
+						<TasksOfTheDay />
+					</div>
 				</main>
 				<Footer />
 			</div>

@@ -36,23 +36,25 @@ func SaveFile(w http.ResponseWriter, r *http.Request, key, destination string) (
 	return header, nil
 }
 
-func SaveFileWithExtension(w http.ResponseWriter, r *http.Request, key, destination string) (*multipart.FileHeader, error) {
+func SaveFileWithExtension(w http.ResponseWriter, r *http.Request, key, destination string) (string, *multipart.FileHeader, error) {
 	if err := r.ParseMultipartForm(MultipartMaxMemory); err != nil {
-		return nil, debug.Error(err)
+		return "", nil, debug.Error(err)
 	}
 
 	files := r.MultipartForm.File[key]
 	if len(files) == 0 {
 		response.ClientError(w, http.StatusBadRequest)
-		return nil, nil
+		return "", nil, nil
 	}
 
 	header := files[0]
+	finalURL := destination + path.Ext(header.Filename)
 
-	if err := saveFile(header, destination + path.Ext(header.Filename)); err != nil {
-		return header, err
+	if err := saveFile(header, finalURL); err != nil {
+		return "", header, err
 	}
-	return header, nil
+
+	return finalURL, header, nil
 }
 
 func saveFile(header *multipart.FileHeader, destination string) error {

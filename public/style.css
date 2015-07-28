@@ -6,6 +6,10 @@ header > nav {
 	margin-bottom: 0 !important;
 }
 
+.no-outline {
+	outline: none;
+}
+
 .intro header {
 	width: 100%;
 	position: absolute;

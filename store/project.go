@@ -1,8 +1,10 @@
 package store
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"bbhoi.com/debug"
@@ -26,57 +28,112 @@ const (
 )
 
 const (
+	Folder = `public`
 	ProjectImageURL = `oi-content/project/%d/image`
 )
 
 type Project struct {
-	ID          int64     `json:"id,omitempty"`
-	AuthorID    int64     `json:"authorID,omitempty"`
-	Title       string    `json:"title,omitempty"`
-	Tagline     string    `json:"tagline,omitempty"`
-	Description string    `json:"description,omitempty"`
-	ImageURL    string    `json:"coverURL,omitempty"`
+	ID          int64     `json:"id"`
+	AuthorID    int64     `json:"authorID"`
+	Title       string    `json:"title"`
+	Tagline     string    `json:"tagline"`
+	Description string    `json:"description"`
+	ImageURL    string    `json:"imageURL"`
 	ViewCount   int64     `json:"viewCount"`
 	Status      string    `json:"status"`
-	UpdatedAt   time.Time `json:"updatedAt,omitempty"`
-	CreatedAt   time.Time `json:"createdAt,omitempty"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+	CreatedAt   time.Time `json:"createdAt"`
 
 	Author     User        `json:"author"`
 }
 
-func insertProject(authorID int64, title, tagline, description string) (int64, error) {
+func insertProject(params map[string]string) (int64, error) {
 	const rawSQL = `
 	INSERT INTO project (author_id, title, tagline, description, image_url, view_count, status, updated_at, created_at)
-	VALUES ($1, $2, $3, $4, '', 0, 'concept', now(), now()) RETURNING id`
+	VALUES ($1, $2, $3, $4, '', 0, 'concept', now(), now())
+	RETURNING id`
+
+	var parser Parser
+	authorID := parser.Int(params["authorID"])
+	if parser.Err != nil {
+		return 0, debug.Error(parser.Err)
+	}
+
+	title := params["title"]
+	tagline := params["tagline"]
+	description := params["description"]
 
 	var id int64
 	if err := db.QueryRow(rawSQL, authorID, title, tagline, description).Scan(&id); err != nil {
 		return 0, debug.Error(err)
 	}
+
 	return id, nil
 }
 
-func updateProject(projectID int64, title, description string) error {
-	const rawSQL = `UPDATE project SET title = $1, description = $2, updated_at = now() WHERE id = $3`
+func updateProject(params map[string]string) error {
+	const rawSQL = `UPDATE project SET title = $1, tagline = $2, description = $3, updated_at = now() WHERE id = $4`
+	
+	var parser Parser
+	projectID := parser.Int("projectID")
+	if parser.Err != nil {
+		return debug.Error(parser.Err)
+	}
 
-	if _, err := db.Exec(rawSQL, title, description, projectID); err != nil {
+	title := params["title"]
+	tagline := params["tagline"]
+	description := params["description"]
+
+	if _, err := db.Exec(rawSQL, title, tagline, description, projectID); err != nil {
 		return debug.Error(err)
 	}
+
+	return nil
+}
+
+func updateProjectTitle(projectID int64, title string) error {
+	const rawSQL = `UPDATE project SET title = $1 WHERE id = $2`
+
+	if _, err := db.Exec(rawSQL, title, projectID); err != nil {
+		return debug.Error(err)
+	}
+
+	return nil
+}
+
+func updateProjectTagline(projectID int64, tagline string) error {
+	const rawSQL = `UPDATE project SET tagline = $1 WHERE id = $2`
+
+	if _, err := db.Exec(rawSQL, tagline, projectID); err != nil {
+		return debug.Error(err)
+	}
+
+	return nil
+}
+
+func updateProjectDescription(projectID int64, description string) error {
+	const rawSQL = `UPDATE project SET description = $1 WHERE id = $2`
+
+	if _, err := db.Exec(rawSQL, description, projectID); err != nil {
+		return debug.Error(err)
+	}
+
 	return nil
 }
 
 func saveProjectImage(w http.ResponseWriter, r *http.Request, projectID int64) (bool, error) {
 	url := fmt.Sprintf(ProjectImageURL, projectID)
 
-	header, err := httputil.SaveFileWithExtension(w, r, "image", url)
+	os.Chdir(Folder)
+
+	finalURL, header, err := httputil.SaveFileWithExtension(w, r, "image", url)
 	if err != nil || header == nil {
 		return false, nil
 	}
-	if err = updateProjectImage(projectID, url); err != nil {
-		return false, debug.Error(err)
-	}
 
-	if err := updateProjectImage(projectID, url); err != nil {
+	os.Chdir("..")
+
+	if err := updateProjectImage(projectID, finalURL); err != nil {
 		return false, debug.Error(err)
 	}
 
@@ -93,7 +150,7 @@ func updateProjectImage(projectID int64, imageURL string) error {
 }
 
 func getProject(projectID int64) (Project, error) {
-	const rawSQL = `SELECT * FROM project WHERE id = ?`
+	const rawSQL = `SELECT * FROM project WHERE id = $1`
 
 	p := Project{}
 	if err := db.QueryRow(rawSQL, projectID).Scan(
@@ -107,7 +164,7 @@ func getProject(projectID int64) (Project, error) {
 		&p.Status,
 		&p.UpdatedAt,
 		&p.CreatedAt,
-	); err != nil {
+	); err != nil && err != sql.ErrNoRows {
 		return p, debug.Error(err)
 	}
 
@@ -237,7 +294,7 @@ func queryProjectsWithMembers(rawSQL string, data ...interface{}) ([]Project, er
 func isAuthor(projectID, userID int64) bool {
 	const rawSQL = `
 	SELECT author_id FROM project
-	WHERE project_id WHERE $1`
+	WHERE id = $1`
 
 	var authorID int64
 	if err := db.QueryRow(rawSQL, projectID).Scan(&authorID); err != nil {

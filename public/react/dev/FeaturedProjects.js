@@ -1,11 +1,30 @@
 var FeaturedProjects = React.createClass({
+	getInitialState: function() {
+		return {projects: []};
+	},
 	componentDidMount: function() {
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "latestProjectsDone":
+				this.setState({projects: payload.data.data});
+				break;
+			case "latestProjectsFail":
+				Materialize.toast("Failed to load featured projects", 3000, "red white-text");
+				break;
+			}
+		}.bind(this));
+
+		OI.latestProjects({count: 3});
+	},
+	componentDidUpdate: function() {
 		var slides = React.findDOMNode(this.refs.featuredProjects);
 		$(slides).owlCarousel({
 			items: 1,
-			loop: true,
 			autoplay: true,
 		});
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
 		return (
@@ -15,7 +34,7 @@ var FeaturedProjects = React.createClass({
 		)
 	},
 	projectElements: function() {
-		return buildElements(PROJECTS, function(i, p) {
+		return buildElements(this.state.projects, function(i, p) {
 			return <FeaturedProjects.Item project={p} />
 		});
 	},
@@ -28,9 +47,9 @@ FeaturedProjects.Item = React.createClass({
 		return (
 			<div className="featured-project valign-wrapper" style={style}>
 				<div className="valign">
-					<h1><strong>{p.name}</strong></h1>
+					<h1><strong>{p.title}</strong></h1>
 					<h5>{p.tagline}</h5>
-					<Link to="project" className="waves-effect waves-light btn">View Project</Link>
+					<Link to="project" params={{projectID: p.id}} className="waves-effect waves-light btn">View Project</Link>
 				</div>
 			</div>
 		)

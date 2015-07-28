@@ -55,6 +55,7 @@ type User interface {
 
 type user struct {
 	id               int64     `json:"id,omitempty"`
+	idStr            string    `json:"idStr,omitempty"`
 	Email            string    `json:"email,omitempty"`
 	Password         string    `json:"-"`
 	Fullname         string    `json:"fullname,omitempty"`
@@ -141,6 +142,8 @@ func queryUsers(q string, data ...interface{}) ([]User, error) {
 		); err != nil {
 			return nil, debug.Error(err)
 		}
+
+		u.idStr = strconv.FormatInt(u.id, 10)
 
 		us = append(us, u)
 	}
@@ -324,19 +327,16 @@ func (u user) CreateProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tagline := r.FormValue("tagline")
-	if tagline == "" {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
 	description := r.FormValue("description")
-	if description == "" {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
 
 	// basic project info
-	projectID, err := insertProject(u.id, title, tagline, description)
+	projectID, err := insertProject(map[string]string{
+			"authorID": u.idStr,
+			"title": title,
+			"tagline": tagline,
+			"description": description,
+	})
+
 	if err != nil {
 		response.ServerError(w, err)
 		return
@@ -350,10 +350,7 @@ func (u user) CreateProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// image
-	if ok, err = saveProjectImage(w, r, projectID); err != nil {
-		goto error
-	} else if !ok {
-		response.ClientError(w, http.StatusBadRequest)
+	if ok, err = saveProjectImage(w, r, projectID); err != nil || !ok {
 		goto error
 	}
 
@@ -368,35 +365,37 @@ error:
 }
 
 func (u user) UpdateProject(w http.ResponseWriter, r *http.Request) {
-	title := r.FormValue("projectTitle")
+	var parser Parser
+	var err error
 
-	// title can't be empty
-	if title == "" {
+	projectID := parser.Int(r.FormValue("projectID"))
+	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
 
-	description := r.FormValue("projectDescription")
-
-	projectID, err := strconv.ParseInt(r.FormValue("projectID"), 10, 0)
-	if err != nil {
-		response.ServerError(w, err)
+	if !u.IsAuthor(projectID) {
+		response.ClientError(w, http.StatusForbidden)
 		return
 	}
 
-	// basic project info
-	if err = updateProject(projectID, title, description); err != nil {
-		response.ServerError(w, err)
-		return
-	}
+	for k, v := range r.Form {
+		if len(v) == 0 {
+			continue
+		}
 
-	// image
-	if ok, err := saveProjectImage(w, r, projectID); err != nil {
-		response.ServerError(w, err)
-		return
-	} else if !ok {
-		response.ClientError(w, http.StatusBadRequest)
-		return
+		switch k {
+		case "title":
+			err = updateProjectTitle(projectID, v[0])
+		case "tagline":
+			err = updateProjectTagline(projectID, v[0])
+		case "description":
+			err = updateProjectDescription(projectID, v[0])
+		}
+		if err != nil {
+			response.ServerError(w, err)
+			return
+		}
 	}
 
 	response.OK(w, nil)
@@ -517,7 +516,7 @@ func GetUserByID(userID int64) (User, error) {
 		&u.isAdmin,
 		&u.UpdatedAt,
 		&u.CreatedAt,
-	); err != nil {
+	); err != nil && err != sql.ErrNoRows {
 		return nil, debug.Error(err)
 	}
 
@@ -545,6 +544,8 @@ func GetUserByEmail(email string) (User, error) {
 	); err != nil && err != sql.ErrNoRows {
 		return nil, debug.Error(err)
 	}
+
+	u.idStr = strconv.FormatInt(u.id, 10)
 
 	return u, nil
 }

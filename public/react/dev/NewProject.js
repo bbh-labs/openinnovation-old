@@ -14,6 +14,7 @@ var NewProject = React.createClass({
 });
 
 NewProject.Cover = React.createClass({
+	mixins: [ Navigation ],
 	componentDidMount: function() {
 		var dropzone = React.findDOMNode(this);
 		$(dropzone).dropzone({
@@ -29,12 +30,32 @@ NewProject.Cover = React.createClass({
 						type: "new-project-image-file",
 						file: file,
 					});
-					console.log("test");
                     dropzone.style.background = "url(" + e.target.result + ") center / cover";
                 }.bind(this);
                 reader.readAsDataURL(file);
             }.bind(this),
 		});
+
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "newProjectDone":
+				this.transitionTo("project", {projectID: payload.data.data});
+				break;
+			case "newProjectFail":
+				switch (payload.data.status) {
+				default:
+					Materialize.toast(payload.data.responseText, 3000, "red white-text");
+					break;
+				case 500:
+					Materialize.toast("Something went wrong when creating the new project..", 3000, "red white-text");
+					break;
+				}
+				break;
+			}
+		}.bind(this));
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
 		return (

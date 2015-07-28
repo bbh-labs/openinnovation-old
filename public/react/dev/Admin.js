@@ -32,7 +32,7 @@ Admin.Content.LatestProjects = React.createClass({
 		return {projects: []};
 	},
 	componentDidMount: function() {
-		dispatcher.register(function(payload) {
+		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
 			case "latestProjectsDone":
 				this.setState({projects: payload.data.data});
@@ -46,6 +46,9 @@ Admin.Content.LatestProjects = React.createClass({
 		OI.latestProjects({
 			count: 10,
 		});
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
 		return (

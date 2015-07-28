@@ -1,12 +1,35 @@
 var Project = React.createClass({
-	mixins: [ State ],
+	mixins: [ State, Navigation ],
+	getInitialState: function() {
+		return {project: null};
+	},
+	componentDidMount: function() {
+		OI.project({
+			projectID: this.getParams().projectID,
+		});
+
+		dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "projectDone":
+				this.setState({project: payload.data.data});
+				break;
+			case "projectFail":
+				this.transitionTo("dashboard");
+				break;
+			}
+		}.bind(this));
+	},
 	render: function() {
+		var project = this.state.project;
+		if (!project) {
+			return <div/>
+		}
 		return (
 			<div className="project">
 				<Header />
 				<main>
-					<Project.Cover />
-					<Project.Content />
+					<Project.Cover project={project} />
+					<Project.Content project={project} />
 				</main>
 			</div>
 		)
@@ -18,19 +41,30 @@ Project.Cover = React.createClass({
 		$(React.findDOMNode(this.refs.parallax)).parallax();
 	},
 	render: function() {
+		var project = this.props.project;
 		return (
 			<div className="parallax-container">
 				<div ref="parallax" className="parallax">
-					<img src="images/1.jpg" />
+					<img src={project.imageURL} />
 				</div>
 				<div className="parallax-overlay valign-wrapper">
 					<div className="valign">
-						<h1 className="text-center">Test</h1>
-						<h4 className="text-center">Lorem ipsum dolor sit amet consectetur.</h4>
+						<Project.Cover.Title project={project} />
+						<h4 className="text-center">{project.tagline}</h4>
 					</div>
 				</div>
 			</div>
 		)
+	},
+});
+
+Project.Cover.Title = React.createClass({
+	componentDidMount: function() {
+		$(React.findDOMNode(this.refs.title));
+	},
+	render: function() {
+		var project = this.props.project;
+		return <h1 className="text-center">{project.title}</h1>
 	},
 });
 
@@ -39,6 +73,7 @@ Project.Content = React.createClass({
 		$(React.findDOMNode(this.refs.tabs)).tabs();
 	},
 	render: function() {
+		var project = this.props.project;
 		return (
 			<div className="row container">
 				<div className="col s12">
@@ -49,7 +84,7 @@ Project.Content = React.createClass({
 						<li className="tab col s3"><a href="#project-collaborators">Collaborators</a></li>
 					</ul>
 				</div>
-				<Project.Overview />
+				<Project.Overview project={project}/>
 				<Project.Tasks />
 				<Project.Milestones />
 				<Project.Collaborators />
@@ -59,17 +94,25 @@ Project.Content = React.createClass({
 });
 
 Project.Overview = React.createClass({
+	getInitialState: function() {
+		return {editMode: false};
+	},
 	render: function() {
+		var project = this.props.project;
+		var editMode = this.state.editMode;
 		return (
 			<div id="project-overview" className="col s12">
 				<div className="main col s12 m8 l9">
-					<div className="card">
+					<div className={classNames("card", editMode && "blue white-text")}>
 						<div className="card-content">
-							<h5>Description <a href="#"><i className="material-icons right">mode edit</i></a></h5>
-							<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus efficitur tempus nisi eu iaculis. Donec eget bibendum ante. Suspendisse cursus eu urna at finibus. Fusce quis interdum massa. Aenean sit amet nulla eu nulla congue sagittis at eu sapien. Nam ultricies ex eu enim faucibus pretium. Nam et nisi eu nibh egestas finibus. Duis vel consectetur metus. Vivamus metus tellus, pretium at pellentesque quis, tincidunt sit amet lectus. Etiam quis nunc ut magna dapibus tincidunt. Mauris non magna ante. Nam ullamcorper, metus sit amet cursus dapibus, sapien augue imperdiet nisi, et auctor lectus neque quis risus. Suspendisse posuere tincidunt ipsum sit amet posuere. Proin elementum, quam a vestibulum semper, elit mi convallis sem, maximus vulputate tortor nisi finibus magna. Etiam sit amet risus vitae eros auctor consectetur.
-
-							Duis tempus erat tortor, a dapibus quam dapibus a. Aenean efficitur orci ac posuere dignissim. Sed aliquam erat a neque semper, et pretium felis laoreet. Integer nec nunc nec ante porta placerat. Cras eu dolor felis. Donec facilisis nec felis blandit porttitor. Suspendisse molestie accumsan tortor varius vestibulum. Sed placerat lobortis neque. Etiam at turpis ac orci vulputate consequat. Praesent accumsan efficitur diam, ut sollicitudin mauris.
-							</p>
+							<h5>Description
+								<a href="#" onClick={this.handleClick}>
+									<i className={classNames("material-icons right", editMode && "white-text")}>
+										{editMode ? "done" : "mode edit"}
+									</i>
+								</a>
+							</h5>
+							{this.descriptionElement()}
 						</div>
 					</div>
 				</div>
@@ -86,6 +129,25 @@ Project.Overview = React.createClass({
 				</div>
 			</div>
 		)
+	},
+	handleClick: function(e) {
+		var editMode = this.state.editMode;
+		if (editMode) {
+			var description = React.findDOMNode(this.refs.description).innerHTML;
+			OI.updateProject({
+				projectID: this.props.project.id,
+				description: description,
+			});
+		}
+		this.setState({editMode: !editMode});
+	
+		e.preventDefault();
+	},
+	descriptionElement: function() {
+		if (this.state.editMode) {
+			return <p className="no-outline" ref="description" contentEditable>{this.props.project.description}</p>
+		}
+		return <p ref="description">{this.props.project.description}</p>
 	},
 });
 

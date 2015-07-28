@@ -1,12 +1,35 @@
 var Project = React.createClass({displayName: "Project",
-	mixins: [ State ],
+	mixins: [ State, Navigation ],
+	getInitialState: function() {
+		return {project: null};
+	},
+	componentDidMount: function() {
+		OI.project({
+			projectID: this.getParams().projectID,
+		});
+
+		dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "projectDone":
+				this.setState({project: payload.data.data});
+				break;
+			case "projectFail":
+				this.transitionTo("dashboard");
+				break;
+			}
+		}.bind(this));
+	},
 	render: function() {
+		var project = this.state.project;
+		if (!project) {
+			return React.createElement("div", null)
+		}
 		return (
 			React.createElement("div", {className: "project"}, 
 				React.createElement(Header, null), 
 				React.createElement("main", null, 
-					React.createElement(Project.Cover, null), 
-					React.createElement(Project.Content, null)
+					React.createElement(Project.Cover, {project: project}), 
+					React.createElement(Project.Content, {project: project})
 				)
 			)
 		)
@@ -18,19 +41,30 @@ Project.Cover = React.createClass({displayName: "Cover",
 		$(React.findDOMNode(this.refs.parallax)).parallax();
 	},
 	render: function() {
+		var project = this.props.project;
 		return (
 			React.createElement("div", {className: "parallax-container"}, 
 				React.createElement("div", {ref: "parallax", className: "parallax"}, 
-					React.createElement("img", {src: "images/1.jpg"})
+					React.createElement("img", {src: project.imageURL})
 				), 
 				React.createElement("div", {className: "parallax-overlay valign-wrapper"}, 
 					React.createElement("div", {className: "valign"}, 
-						React.createElement("h1", {className: "text-center"}, "Test"), 
-						React.createElement("h4", {className: "text-center"}, "Lorem ipsum dolor sit amet consectetur.")
+						React.createElement(Project.Cover.Title, {project: project}), 
+						React.createElement("h4", {className: "text-center"}, project.tagline)
 					)
 				)
 			)
 		)
+	},
+});
+
+Project.Cover.Title = React.createClass({displayName: "Title",
+	componentDidMount: function() {
+		$(React.findDOMNode(this.refs.title));
+	},
+	render: function() {
+		var project = this.props.project;
+		return React.createElement("h1", {className: "text-center"}, project.title)
 	},
 });
 
@@ -39,6 +73,7 @@ Project.Content = React.createClass({displayName: "Content",
 		$(React.findDOMNode(this.refs.tabs)).tabs();
 	},
 	render: function() {
+		var project = this.props.project;
 		return (
 			React.createElement("div", {className: "row container"}, 
 				React.createElement("div", {className: "col s12"}, 
@@ -49,7 +84,7 @@ Project.Content = React.createClass({displayName: "Content",
 						React.createElement("li", {className: "tab col s3"}, React.createElement("a", {href: "#project-collaborators"}, "Collaborators"))
 					)
 				), 
-				React.createElement(Project.Overview, null), 
+				React.createElement(Project.Overview, {project: project}), 
 				React.createElement(Project.Tasks, null), 
 				React.createElement(Project.Milestones, null), 
 				React.createElement(Project.Collaborators, null)
@@ -59,17 +94,25 @@ Project.Content = React.createClass({displayName: "Content",
 });
 
 Project.Overview = React.createClass({displayName: "Overview",
+	getInitialState: function() {
+		return {editMode: false};
+	},
 	render: function() {
+		var project = this.props.project;
+		var editMode = this.state.editMode;
 		return (
 			React.createElement("div", {id: "project-overview", className: "col s12"}, 
 				React.createElement("div", {className: "main col s12 m8 l9"}, 
-					React.createElement("div", {className: "card"}, 
+					React.createElement("div", {className: classNames("card", editMode && "blue white-text")}, 
 						React.createElement("div", {className: "card-content"}, 
-							React.createElement("h5", null, "Description ", React.createElement("a", {href: "#"}, React.createElement("i", {className: "material-icons right"}, "mode edit"))), 
-							React.createElement("p", null, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus efficitur tempus nisi eu iaculis. Donec eget bibendum ante. Suspendisse cursus eu urna at finibus. Fusce quis interdum massa. Aenean sit amet nulla eu nulla congue sagittis at eu sapien. Nam ultricies ex eu enim faucibus pretium. Nam et nisi eu nibh egestas finibus. Duis vel consectetur metus. Vivamus metus tellus, pretium at pellentesque quis, tincidunt sit amet lectus. Etiam quis nunc ut magna dapibus tincidunt. Mauris non magna ante. Nam ullamcorper, metus sit amet cursus dapibus, sapien augue imperdiet nisi, et auctor lectus neque quis risus. Suspendisse posuere tincidunt ipsum sit amet posuere. Proin elementum, quam a vestibulum semper, elit mi convallis sem, maximus vulputate tortor nisi finibus magna. Etiam sit amet risus vitae eros auctor consectetur." + ' ' +
-
-							"Duis tempus erat tortor, a dapibus quam dapibus a. Aenean efficitur orci ac posuere dignissim. Sed aliquam erat a neque semper, et pretium felis laoreet. Integer nec nunc nec ante porta placerat. Cras eu dolor felis. Donec facilisis nec felis blandit porttitor. Suspendisse molestie accumsan tortor varius vestibulum. Sed placerat lobortis neque. Etiam at turpis ac orci vulputate consequat. Praesent accumsan efficitur diam, ut sollicitudin mauris."
-							)
+							React.createElement("h5", null, "Description", 
+								React.createElement("a", {href: "#", onClick: this.handleClick}, 
+									React.createElement("i", {className: classNames("material-icons right", editMode && "white-text")}, 
+										editMode ? "done" : "mode edit"
+									)
+								)
+							), 
+							this.descriptionElement()
 						)
 					)
 				), 
@@ -86,6 +129,25 @@ Project.Overview = React.createClass({displayName: "Overview",
 				)
 			)
 		)
+	},
+	handleClick: function(e) {
+		var editMode = this.state.editMode;
+		if (editMode) {
+			var description = React.findDOMNode(this.refs.description).innerHTML;
+			OI.updateProject({
+				projectID: this.props.project.id,
+				description: description,
+			});
+		}
+		this.setState({editMode: !editMode});
+	
+		e.preventDefault();
+	},
+	descriptionElement: function() {
+		if (this.state.editMode) {
+			return React.createElement("p", {className: "no-outline", ref: "description", contentEditable: true}, this.props.project.description)
+		}
+		return React.createElement("p", {ref: "description"}, this.props.project.description)
 	},
 });
 
