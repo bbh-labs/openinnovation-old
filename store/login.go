@@ -67,7 +67,9 @@ func validLogin(email, password string) (bool, error) {
 		&u.Title,
 		&u.Description,
 		&u.AvatarURL,
+		&u.Interests,
 		&u.VerificationCode,
+		&u.isAdmin,
 		&u.UpdatedAt,
 		&u.CreatedAt,
 	); err != nil {

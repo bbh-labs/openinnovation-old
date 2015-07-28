@@ -5,7 +5,7 @@ import (
 
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
-	"github.com/PuerkitoBio/throttled"
+	"github.com/throttled/throttled"
 
 	_ "bbhoi.com/store"
 )
@@ -35,15 +35,15 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	router := mux.NewRouter()
-	router.Handle("/", ht(home))
-	router.Handle("/login", ht(login))
-	router.Handle("/register", ht(register))
+	router.Handle("/", lt(home))
+	router.Handle("/login", mt(login))
+	router.Handle("/register", mt(register))
 	router.Handle("/verify", ht(verify))
 
 	apiRouter := mux.NewRouter()
-	apiRouter.Handle("/api/logout", ht(logout))
-	apiRouter.Handle("/api/user", ht(user))
-	apiRouter.Handle("/api/project", ht(project))
+	apiRouter.Handle("/api/logout", mt(logout))
+	apiRouter.Handle("/api/user", mt(user))
+	apiRouter.Handle("/api/project", mt(project))
 	router.PathPrefix("/api").Handler(negroni.New(
 		negroni.HandlerFunc(apiMiddleware),
 		negroni.Wrap(apiRouter),

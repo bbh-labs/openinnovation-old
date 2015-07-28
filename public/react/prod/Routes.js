@@ -7,7 +7,8 @@ var routes = (
 		React.createElement(Route, {handler: Dashboard, name: "dashboard"}), 
 		React.createElement(Route, {handler: Project, name: "project"}), 
 		React.createElement(Route, {handler: NewProject, name: "new-project"}), 
-		React.createElement(Route, {handler: Profile, name: "profile"})
+		React.createElement(Route, {handler: Profile, name: "profile"}), 
+		React.createElement(Route, {handler: Admin, name: "admin"})
 	)
 );
 

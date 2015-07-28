@@ -32,18 +32,16 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check if email is from BBH
-	if !(email != "aqiank@gmail.com" || email != "veeableful@gmail.com") {
-		if !strings.HasSuffix(email, "@bartleboglehegarty.com") {
-			response.ClientError(w, http.StatusBadRequest)
-			return
-		}
+	if !((email == "aqiank@gmail.com" || email == "veeableful@gmail.com") || strings.HasSuffix(email, "@bartleboglehegarty.com")) {
+		response.ClientError(w, http.StatusBadRequest)
+		return
 	}
 
 	// check email and password length
 	pass := r.FormValue("password")
 	if len(email) < config.EmailLength() || len(pass) < config.PasswordLength() {
 		response.ClientError(w, http.StatusBadRequest)
-		return
+		  return
 	}
 
 	// register the user
@@ -80,9 +78,10 @@ func register(email, password, fullname, title, description, avatarURL string) e
 		return debug.Error(err)
 	}
 
-	if err := sendVerificationEmail(email, verificationCode); err != nil {
-		return debug.Error(err)
-	}
+	// FIXME: send verification email
+	// if err := sendVerificationEmail(email, verificationCode); err != nil {
+	// 	return debug.Error(err)
+	// }
 
 	return nil
 }
@@ -151,8 +150,8 @@ func hasUserWithEmail(email string) bool {
 
 func insertUser(m map[string]string) error {
 	const q = `
-	INSERT INTO user_ (email, password, fullname, title, description, avatar_url, verification_code, is_admin, updated_at, created_at)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, FALSE, now(), now())`
+	INSERT INTO user_ (email, password, fullname, title, description, avatar_url, interests, verification_code, is_admin, updated_at, created_at)
+	VALUES ($1, $2, $3, $4, $5, $6, '{"test"}', $7, FALSE, now(), now())`
 
 	if _, err := db.Exec(q,
 		m["email"],
@@ -161,7 +160,8 @@ func insertUser(m map[string]string) error {
 		m["title"],
 		m["description"],
 		m["avatarURL"],
-		m["verificationCode"],
+		"verified",
+		//FIXME: m["verificationCode"],
 	); err != nil {
 		return debug.Error(err)
 	}

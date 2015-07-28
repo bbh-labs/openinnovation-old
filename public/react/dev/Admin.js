@@ -13,30 +13,51 @@ var Admin = React.createClass({
 });
 
 Admin.Content = React.createClass({
+	render: function() {
+		return (
+			<div className="row">
+				<div className="container">
+					<div className="projects">
+						<Admin.Content.LatestProjects />
+					</div>
+				</div>
+			</div>
+		)
+	},
+});
+
+Admin.Content.LatestProjects = React.createClass({
+	mixins: [ Navigation ],
+	getInitialState: function() {
+		return {projects: []};
+	},
 	componentDidMount: function() {
 		dispatcher.register(function(payload) {
 			switch (payload.type) {
-			case "featuredProjectsDone":
-				this.setState({projects: payload.data}); break;
+			case "latestProjectsDone":
+				this.setState({projects: payload.data.data});
+				break;
+			case "latestProjectsFail":
+				this.transitionTo("dashboard");
+				break;
 			}
 		}.bind(this));
 
-		OI.featuredProjects({
+		OI.latestProjects({
 			count: 10,
 		});
 	},
 	render: function() {
 		return (
 			<div className="row">
-				<div className="featured-projects">
-					<ul className="collection">
-						{this.featuredProjectElements()}
-					</ul>
-				</div>
+				<h5>Latest Projects</h5>
+				<ul className="collection">
+					{this.projectElements()}
+				</ul>
 			</div>
 		)
 	},
-	featuredProjectElements: function() {
+	projectElements: function() {
 		return buildElements(this.state.projects, function(i, el) {
 			return (
 				<li className="collection-item">{el.title}</li>

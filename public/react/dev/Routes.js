@@ -8,6 +8,7 @@ var routes = (
 		<Route handler={Project} name="project" />
 		<Route handler={NewProject} name="new-project" />
 		<Route handler={Profile} name="profile" />
+		<Route handler={Admin} name="admin" />
 	</Route>
 );
 

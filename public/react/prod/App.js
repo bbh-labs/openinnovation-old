@@ -13,10 +13,10 @@ var App = React.createClass({displayName: "App",
 				break;
 			case "registerDone":
 				this.transitionTo("login");
-				Materialize.toast(resp.message, 3000);
+				Materialize.toast(payload.data.message, 3000);
 				break;
 			case "registerFail":
-				Materialize.toast(resp.responseText, 1000, "red");
+				Materialize.toast(payload.data.responseText, 1000, "red");
 				break;
 			case "logoutDone":
 				this.transitionTo("intro");

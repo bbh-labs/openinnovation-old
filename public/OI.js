@@ -11,7 +11,7 @@ var OI = {
 	api: function(name, data, done, fail) {
 		if (!done) done = notifyApp(name + "Done");
 		if (!fail) fail = notifyApp(name + "Fail");
-		$.ajax(data).done(done).fail(done);
+		$.ajax(data).done(done).fail(fail);
 	},
 	login: function(data) {
 		this.api("login", {
@@ -51,15 +51,15 @@ var OI = {
 			url: "/api/project",
 			method: "GET",
 			dataType: "json",
-			data: m(data, {searchType: "featured"}),
+			data: m(data, {type: "featured"}),
 		});
 	},
 	latestProjects: function(data) {
-		this.api("featuredProjects", {
+		this.api("latestProjects", {
 			url: "/api/project",
 			method: "GET",
 			dataType: "json",
-			data: m(data, {searchType: "latest"}),
+			data: m(data, {type: "latest"}),
 		});
 	},
 };

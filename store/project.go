@@ -1,11 +1,13 @@
 package store
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
 	"bbhoi.com/debug"
 	"bbhoi.com/formutil"
+	"bbhoi.com/httputil"
 	"bbhoi.com/response"
 )
 
@@ -23,15 +25,20 @@ const (
 	created_at timestamp NOT NULL`
 )
 
+const (
+	ProjectImageURL = `oi-content/project/%d/image`
+)
+
 type Project struct {
 	ID          int64     `json:"id,omitempty"`
 	AuthorID    int64     `json:"authorID,omitempty"`
 	Title       string    `json:"title,omitempty"`
+	Tagline     string    `json:"tagline,omitempty"`
 	Description string    `json:"description,omitempty"`
 	ImageURL    string    `json:"coverURL,omitempty"`
 	ViewCount   int64     `json:"viewCount"`
 	Status      string    `json:"status"`
-	Recommended bool      `json:"recommended,omitempty"`
+	UpdatedAt   time.Time `json:"updatedAt,omitempty"`
 	CreatedAt   time.Time `json:"createdAt,omitempty"`
 
 	Author     User        `json:"author"`
@@ -50,12 +57,30 @@ func insertProject(authorID int64, title, tagline, description string) (int64, e
 }
 
 func updateProject(projectID int64, title, description string) error {
-	const rawSQL = `UPDATE project SET title = $1, description = $2 WHERE id = $3`
+	const rawSQL = `UPDATE project SET title = $1, description = $2, updated_at = now() WHERE id = $3`
 
 	if _, err := db.Exec(rawSQL, title, description, projectID); err != nil {
 		return debug.Error(err)
 	}
 	return nil
+}
+
+func saveProjectImage(w http.ResponseWriter, r *http.Request, projectID int64) (bool, error) {
+	url := fmt.Sprintf(ProjectImageURL, projectID)
+
+	header, err := httputil.SaveFileWithExtension(w, r, "image", url)
+	if err != nil || header == nil {
+		return false, nil
+	}
+	if err = updateProjectImage(projectID, url); err != nil {
+		return false, debug.Error(err)
+	}
+
+	if err := updateProjectImage(projectID, url); err != nil {
+		return false, debug.Error(err)
+	}
+
+	return true, nil
 }
 
 func updateProjectImage(projectID int64, imageURL string) error {
@@ -75,11 +100,12 @@ func getProject(projectID int64) (Project, error) {
 		&p.ID,
 		&p.AuthorID,
 		&p.Title,
+		&p.Tagline,
 		&p.Description,
 		&p.ImageURL,
 		&p.ViewCount,
 		&p.Status,
-		&p.Recommended,
+		&p.UpdatedAt,
 		&p.CreatedAt,
 	); err != nil {
 		return p, debug.Error(err)
@@ -105,7 +131,7 @@ func TrendingProjects(count int64) ([]Project, error) {
 func LatestProjects(w http.ResponseWriter, r *http.Request) {
 	const rawSQL = `
 	SELECT * FROM project
-	ORDER BY createdAt DESC LIMIT $1`
+	ORDER BY created_at DESC LIMIT $1`
 
 	var count int64
 	var err error
@@ -115,7 +141,7 @@ func LatestProjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	projects, err :=  queryProjects(rawSQL, count)
+	projects, err := queryProjects(rawSQL, count)
 	if err != nil {
 		response.ServerError(w, err)
 		return
@@ -148,11 +174,12 @@ func queryProjects(rawSQL string, data ...interface{}) ([]Project, error) {
 			&p.ID,
 			&p.AuthorID,
 			&p.Title,
+			&p.Tagline,
 			&p.Description,
 			&p.ImageURL,
 			&p.ViewCount,
 			&p.Status,
-			&p.Recommended,
+			&p.UpdatedAt,
 			&p.CreatedAt,
 		); err != nil {
 			return nil, debug.Error(err)
@@ -179,11 +206,12 @@ func queryProjectsWithMembers(rawSQL string, data ...interface{}) ([]Project, er
 			&p.ID,
 			&p.AuthorID,
 			&p.Title,
+			&p.Tagline,
 			&p.Description,
 			&p.ImageURL,
 			&p.ViewCount,
 			&p.Status,
-			&p.Recommended,
+			&p.UpdatedAt,
 			&p.CreatedAt,
 		); err != nil {
 			return nil, debug.Error(err)

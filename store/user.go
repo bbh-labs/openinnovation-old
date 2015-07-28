@@ -1,6 +1,7 @@
 package store
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
@@ -60,6 +61,7 @@ type user struct {
 	Title            string    `json:"title,omitempty"`
 	Description      string    `json:"description,omitempty"`
 	AvatarURL        string    `json:"avatarURL,omitempty"`
+	Interests        []byte    `json:"interests,omitempty"`
 	VerificationCode string    `json:"-"`
 	isAdmin          bool      `json:"isAdmin"`
 	UpdatedAt        time.Time `json:"updatedAt,omitempty"`
@@ -131,6 +133,7 @@ func queryUsers(q string, data ...interface{}) ([]User, error) {
 			&u.Description,
 			&u.Title,
 			&u.AvatarURL,
+			&u.Interests,
 			&u.VerificationCode,
 			&u.isAdmin,
 			&u.UpdatedAt,
@@ -146,7 +149,7 @@ func queryUsers(q string, data ...interface{}) ([]User, error) {
 }
 
 func (u user) Update(w http.ResponseWriter, r *http.Request) {
-	const q = `UPDATE user_ SET nicename = $1, title = $2, description = $3 WHERE id = $4`
+	const q = `UPDATE user_ SET nicename = $1, title = $2, description = $3, updated_at = now() WHERE id = $4`
 
 	name := r.FormValue("name")
 	title := r.FormValue("title")
@@ -160,7 +163,7 @@ func (u user) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u user) UpdateInterests(w http.ResponseWriter, r *http.Request) {
-	const q = `UPDATE user_ SET interests = $1 WHERE id = $2`
+	const q = `UPDATE user_ SET interests = $1, updated_at = now() WHERE id = $2`
 
 	interests := strings.Split(r.FormValue("interests"), ",")
 
@@ -173,7 +176,7 @@ func (u user) UpdateInterests(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u user) updateAvatarURL(url string) error {
-	const q = `UPDATE user_ SET avatarURL = $1 WHERE id = $2`
+	const q = `UPDATE user_ SET avatarURL = $1, updated_at = now() WHERE id = $2`
 
 	if _, err := db.Exec(q, url, u.id); err != nil {
 		return debug.Error(err)
@@ -339,13 +342,18 @@ func (u user) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// image
-	url := fmt.Sprintf("oi-content/project/img/%d/cover", projectID)
-	header, err := httputil.SaveFileWithExtension(w, r, "image", url)
-	if err != nil || header == nil {
+	var ok bool
+
+	// add author to project user list
+	if err = addProjectUser(projectID, u.id); err != nil {
 		goto error
 	}
-	if err = updateProjectImage(projectID, url); err != nil {
+
+	// image
+	if ok, err = saveProjectImage(w, r, projectID); err != nil {
+		goto error
+	} else if !ok {
+		response.ClientError(w, http.StatusBadRequest)
 		goto error
 	}
 
@@ -383,30 +391,37 @@ func (u user) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// image
-	url := fmt.Sprintf("oi-content/project/img/%d/cover", projectID)
-	header, err := httputil.SaveFileWithExtension(w, r, "cover", url)
-	if err != nil {
+	if ok, err := saveProjectImage(w, r, projectID); err != nil {
 		response.ServerError(w, err)
 		return
+	} else if !ok {
+		response.ClientError(w, http.StatusBadRequest)
+		return
 	}
-	if header != nil {
-		if err = updateProjectImage(projectID, url); err != nil {
-			response.ServerError(w, err)
-			return
-		}
-	}
+
+	response.OK(w, nil)
 }
 
 func (u user) deleteProject(projectID int64) error {
-	const q = `DELETE FROM project WHERE id = $1`
+	const rawSQL = `DELETE FROM project WHERE id = $1`
 
-	if _, err := db.Exec(q, projectID); err != nil {
+	// delete project
+	if _, err := db.Exec(rawSQL, projectID); err != nil {
 		return debug.Error(err)
 	}
 
-	if err := os.RemoveAll(fmt.Sprintf("oi-content/project/img/%d", projectID)); err != nil {
+	const rawSQL2 = `DELETE FROM project_user WHERE project_id = $1`
+
+	// delete project users
+	if _, err := db.Exec(rawSQL2, projectID); err != nil {
 		return debug.Error(err)
 	}
+
+	// delete project image
+	if err := os.RemoveAll(fmt.Sprintf("oi-content/project/%d", projectID)); err != nil {
+		return debug.Error(err)
+	}
+
 	return nil
 }
 
@@ -497,6 +512,7 @@ func GetUserByID(userID int64) (User, error) {
 		&u.Description,
 		&u.Title,
 		&u.AvatarURL,
+		&u.Interests,
 		&u.VerificationCode,
 		&u.isAdmin,
 		&u.UpdatedAt,
@@ -521,11 +537,12 @@ func GetUserByEmail(email string) (User, error) {
 		&u.Description,
 		&u.Title,
 		&u.AvatarURL,
+		&u.Interests,
 		&u.VerificationCode,
 		&u.isAdmin,
 		&u.UpdatedAt,
 		&u.CreatedAt,
-	); err != nil {
+	); err != nil && err != sql.ErrNoRows {
 		return nil, debug.Error(err)
 	}
 

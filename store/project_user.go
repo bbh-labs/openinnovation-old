@@ -3,6 +3,7 @@ package store
 import (
 	"net/http"
 
+	"bbhoi.com/debug"
 	"bbhoi.com/formutil"
 	"bbhoi.com/response"
 )
@@ -64,10 +65,21 @@ func (u user) AddProjectUser(w http.ResponseWriter, r *http.Request) {
 	const rawSQL = `
 	INSERT INTO project_user (project_id, user_id) VALUES ($1, $2)`
 
-	if _, err := db.Exec(rawSQL, projectID, userID); err != nil {
+	if err := addProjectUser(projectID, userID); err != nil {
 		response.ServerError(w, err)
 		return
 	}
 
 	response.OK(w, nil)
+}
+
+func addProjectUser(projectID, userID int64) error {
+	const rawSQL = `
+	INSERT INTO project_user (project_id, user_id) VALUES ($1, $2)`
+
+	if _, err := db.Exec(rawSQL, projectID, userID); err != nil {
+		return debug.Error(err)
+	}
+
+	return nil
 }
