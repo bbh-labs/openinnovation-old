@@ -27,6 +27,9 @@ var Project = React.createClass({displayName: "Project",
 			case "newTaskFail":
 				Materialize.toast("Failed to create new task!", 3000, "red white-text");
 				break;
+			case "deleteTaskFail":
+				Materialize.toast("Failed to delete existing task!", 3000, "red white-text");
+				break;
 			case "getProjectTasksDone":
 				var project = this.state.project;
 				if (!project) {

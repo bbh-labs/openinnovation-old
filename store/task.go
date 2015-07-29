@@ -3,6 +3,7 @@ package store
 import (
 	"database/sql"
 	"net/http"
+	"strings"
 	"time"
 
 	"bbhoi.com/debug"
@@ -39,6 +40,7 @@ type task struct {
 	CreatedAt   time.Time   `json:"createdAt"`
 
 	Author      User        `json:"author"`
+	TagsArray   []string    `json:"tags_array"`
 }
 
 type insertTaskParams struct {
@@ -97,9 +99,10 @@ type deleteTaskParams struct {
 }
 
 func deleteTask(params deleteTaskParams) error {
+	var parser Parser
+
 	const rawSQL = `DELETE FROM task WHERE id = $1`
 
-	var parser Parser
 	taskID := parser.Int(params.taskID)
 	if parser.Err != nil {
 		return debug.Error(parser.Err)
@@ -134,14 +137,35 @@ func GetTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func getTask(taskID int64) (Task, error) {
+	var t task
+	var err error
+
 	const rawSQL = `
 	SELECT * FROM task
 	ORDER BY created_at DESC LIMIT 1`
 
-	var t task
-	if err := db.QueryRow(rawSQL, taskID).Scan(&t); err != nil && err != sql.ErrNoRows {
+	if err = db.QueryRow(rawSQL, taskID).Scan(
+			&t.ID,
+			&t.AuthorID,
+			&t.ProjectID,
+			&t.Title,
+			&t.Description,
+			&t.Status,
+			&t.Tags,
+			&t.StartDate,
+			&t.EndDate,
+			&t.UpdatedAt,
+			&t.CreatedAt,
+	); err != nil && err != sql.ErrNoRows {
 		return nil, err
 	}
+
+	if t.Author, err = getUser(t.AuthorID); err != nil {
+		return nil, debug.Error(err)
+	}
+
+	t.TagsArray = strings.Split(t.Tags, ",")
+
 
 	return t, nil
 }
@@ -238,6 +262,8 @@ func queryTasks(rawSQL string, data ...interface{}) ([]Task, error) {
 		if t.Author, err = getUser(t.AuthorID); err != nil {
 			return nil, debug.Error(err)
 		}
+
+		t.TagsArray = strings.Split(t.Tags, ",")
 
 		ts = append(ts, t)
 	}

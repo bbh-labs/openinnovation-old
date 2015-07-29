@@ -125,7 +125,10 @@ func updateProjectDescription(projectID int64, description string) error {
 func saveProjectImage(w http.ResponseWriter, r *http.Request, projectID int64) (bool, error) {
 	url := fmt.Sprintf(ProjectImageURL, projectID)
 
-	os.Chdir(Folder)
+	// FIXME: there must be some other way changing directory
+	if err := os.Chdir(Folder); err != nil {
+		return false, debug.Error(err)
+	}
 
 	finalURL, header, err := httputil.SaveFileWithExtension(w, r, "image", url)
 	if err != nil || header == nil {
