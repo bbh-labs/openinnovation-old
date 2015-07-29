@@ -46,8 +46,10 @@ type User interface {
 	CreateProject(w http.ResponseWriter, r *http.Request)
 	UpdateProject(w http.ResponseWriter, r *http.Request)
 	JoinProject(w http.ResponseWriter, r *http.Request)
-
 	AddProjectUser(w http.ResponseWriter, r *http.Request)
+	
+	CreateTask(w http.ResponseWriter, r *http.Request)
+	DeleteTask(w http.ResponseWriter, r *http.Request)
 
 	IsAuthor(projectID int64) bool
 	IsAdmin() bool
@@ -117,7 +119,20 @@ func getUser(userID int64) (User, error) {
 	SELECT * FROM user_ WHERE id = $1 LIMIT 1`
 
 	var u user
-	if err := db.QueryRow(rawSQL, userID).Scan(&u); err != nil && err != sql.ErrNoRows {
+	if err := db.QueryRow(rawSQL, userID).Scan(
+			&u.id,
+			&u.Email,
+			&u.Password,
+			&u.Fullname,
+			&u.Description,
+			&u.Title,
+			&u.AvatarURL,
+			&u.Interests,
+			&u.VerificationCode,
+			&u.isAdmin,
+			&u.UpdatedAt,
+			&u.CreatedAt,
+	); err != nil && err != sql.ErrNoRows {
 		return nil, err
 	}
 
@@ -453,6 +468,52 @@ func (u user) JoinProject(w http.ResponseWriter, r *http.Request) {
 
 func (u user) IsAuthor(projectID int64) bool {
 	return isAuthor(projectID, u.id)
+}
+
+func (u user) CreateTask(w http.ResponseWriter, r *http.Request) {
+	var taskID int64
+	var err error
+
+	if taskID, err = insertTask(insertTaskParams{
+		authorID: u.id,
+		projectID: r.FormValue("projectID"),
+		title: r.FormValue("title"),
+		description: r.FormValue("description"),
+		status: "notdone",
+		tags: r.FormValue("tags"),
+		startDate: r.FormValue("startDate"),
+		endDate: r.FormValue("endDate"),
+	}); err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	response.OK(w, taskID)
+}
+
+func (u user) DeleteTask(w http.ResponseWriter, r *http.Request) {
+	var parser Parser
+
+	projectID := parser.Int(r.FormValue("projectID"))
+	if parser.Err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	// check if user is member of the project
+	if !isMember(projectID, u.id) {
+		response.ClientError(w, http.StatusForbidden)
+		return
+	}
+
+	if err := deleteTask(deleteTaskParams{
+		taskID: r.FormValue("taskID"),
+	}); err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	response.OK(w, nil)
 }
 
 func SetAdmin(w http.ResponseWriter, r *http.Request) {

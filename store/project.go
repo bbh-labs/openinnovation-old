@@ -312,6 +312,22 @@ func isAuthor(projectID, userID int64) bool {
 	return authorID == userID
 }
 
+func isMember(projectID, userID int64) bool {
+	const rawSQL = `
+	SELECT COUNT(*) FROM project_user
+	WHERE project_id = $1 AND user_id = $2`
+
+	var count int64
+	if err := db.QueryRow(rawSQL, projectID, userID).Scan(&count); err != nil {
+		if err != sql.ErrNoRows {
+			debug.Warn(err)
+		}
+		return false
+	}
+
+	return true
+}
+
 func GetProject(w http.ResponseWriter, r *http.Request) {
 	projectID, err := formutil.Number(r, "projectID")
 	if err != nil {

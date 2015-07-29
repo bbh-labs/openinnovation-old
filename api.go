@@ -213,6 +213,8 @@ func projectJoin(w http.ResponseWriter, r *http.Request) {
 // GET: get tasks
 //
 func task(w http.ResponseWriter, r *http.Request) {
+	user := context.Get(r, "user").(store.User)
+
 	switch r.Method {
 	case "GET":
 		typ := r.FormValue("type")
@@ -224,6 +226,10 @@ func task(w http.ResponseWriter, r *http.Request) {
 		default:
 			store.GetTask(w, r)
 		}
+	case "POST":
+		user.CreateTask(w, r)
+	case "DELETE":
+		user.DeleteTask(w, r)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}

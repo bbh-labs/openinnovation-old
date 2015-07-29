@@ -14,11 +14,10 @@ const createTaskSQL = `
 id serial NOT NULL,
 author_id int NOT NULL,
 project_id int NOT NULL,
-parent_id int NOT NULL,
 title text NOT NULL,
 description text NOT NULL,
 status text NOT NULL,
-tags text[],
+tags text,
 start_date timestamp NOT NULL,
 end_date timestamp NOT NULL,
 updated_at timestamp NOT NULL,
@@ -27,56 +26,62 @@ created_at timestamp NOT NULL`
 type Task interface {}
 
 type task struct {
-	ID          int64     `json:"id"`
-	AuthorID    int64     `json:"authorID"`
-	ProjectID   int64     `json:"projectID"`
-	ParentID    int64     `json:"parentID"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Status      string    `json:"status"`
-	Tags        []string    `json:"tags"`
-	StartDate   time.Time `json:"startDate"`
-	EndDate     time.Time `json:"endDate"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-	CreatedAt   time.Time `json:"createdAt"`
+	ID          int64       `json:"id"`
+	AuthorID    int64       `json:"authorID"`
+	ProjectID   int64       `json:"projectID"`
+	Title       string      `json:"title"`
+	Description string      `json:"description"`
+	Status      string      `json:"status"`
+	Tags        string      `json:"tags"`
+	StartDate   time.Time   `json:"startDate"`
+	EndDate     time.Time   `json:"endDate"`
+	UpdatedAt   time.Time   `json:"updatedAt"`
+	CreatedAt   time.Time   `json:"createdAt"`
 
-	Author     User       `json:"author"`
+	Author      User        `json:"author"`
 }
 
-func insertTask(params map[string]string) (int64, error) {
+type insertTaskParams struct {
+	authorID int64
+	projectID string
+	title string
+	description string
+	status string
+	tags string
+	startDate string
+	endDate string
+}
+
+func insertTask(params insertTaskParams) (int64, error) {
 	const rawSQL = `
-	INSERT INTO task (author_id, project_id, parent_id, title, description, status,
+	INSERT INTO task (author_id, project_id, title, description, status,
 					  tags, start_date, end_date, updated_at, created_at)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now(), now())
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now(), now())
 	RETURNING id`
 
 	var parser Parser
-	authorID := parser.Int(params["authorID"])
-	projectID := parser.Int(params["projectID"])
-	parentID := parser.Int(params["parentID"])
+	projectID := parser.Int(params.projectID)
+	startDate := parser.Time(params.startDate)
+	endDate := parser.Time(params.endDate)
 	if parser.Err != nil {
 		return 0, debug.Error(parser.Err)
 	}
 
-	startDate := parser.Time(params["start_date"])
-	endDate := parser.Time(params["end_date"])
-	if parser.Err != nil {
-		return 0, debug.Error(parser.Err)
-	}
-
-	title := params["title"]
-	tagline := params["tagline"]
-	description := params["description"]
+	authorID := params.authorID
+	title := params.title
+	description := params.description
+	status := params.status
+	tags := params.tags
 
 	var id int64
 	if err := db.QueryRow(
 			rawSQL,
 			authorID,
 			projectID,
-			parentID,
 			title,
-			tagline,
 			description,
+			status,
+			tags,
 			startDate,
 			endDate,
 	).Scan(&id); err != nil {
@@ -84,6 +89,27 @@ func insertTask(params map[string]string) (int64, error) {
 	}
 
 	return id, nil
+}
+
+type deleteTaskParams struct {
+	userID int64
+	taskID string
+}
+
+func deleteTask(params deleteTaskParams) error {
+	const rawSQL = `DELETE FROM task WHERE id = $1`
+
+	var parser Parser
+	taskID := parser.Int(params.taskID)
+	if parser.Err != nil {
+		return debug.Error(parser.Err)
+	}
+
+	if _, err := db.Exec(rawSQL, taskID); err != nil {
+		return debug.Error(err)
+	}
+
+	return nil
 }
 
 func GetTask(w http.ResponseWriter, r *http.Request) {
@@ -197,7 +223,6 @@ func queryTasks(rawSQL string, data ...interface{}) ([]Task, error) {
 			&t.ID,
 			&t.AuthorID,
 			&t.ProjectID,
-			&t.ParentID,
 			&t.Title,
 			&t.Description,
 			&t.Status,

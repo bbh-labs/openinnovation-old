@@ -86,4 +86,19 @@ var OI = {
 			data: data,
 		});
 	},
+	deleteTask: function(data) {
+		this.api("deleteTask", {
+			url: "/api/task?taskID=" + data.taskID + "&projectID=" + data.projectID,
+			method: "DELETE",
+			dataType: "json"
+		});
+	},
+	getProjectTasks: function(data) {
+		this.api("getProjectTasks", {
+			url: "/api/task",
+			method: "GET",
+			dataType: "json",
+			data: m(data, {type: "project"}),
+		});
+	},
 };

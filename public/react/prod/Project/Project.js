@@ -16,6 +16,25 @@ var Project = React.createClass({displayName: "Project",
 			case "projectFail":
 				this.transitionTo("dashboard");
 				break;
+			case "newTaskDone":
+			case "deleteTaskDone":
+				var project = this.state.project;
+				if (!project) {
+					return;
+				}
+				OI.getProjectTasks({projectID: project.id});
+				break;
+			case "newTaskFail":
+				Materialize.toast("Failed to create new task!", 3000, "red white-text");
+				break;
+			case "getProjectTasksDone":
+				var project = this.state.project;
+				if (!project) {
+					return;
+				}
+				project.tasks = payload.data.data;
+				this.setState({project: project});
+				break;
 			}
 		}.bind(this));
 	},

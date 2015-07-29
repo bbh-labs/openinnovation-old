@@ -5,6 +5,7 @@ Project.Tasks = React.createClass({
 		});
 	},
 	render: function() {
+		var project = this.props.project;
 		return (
 			<div id="project-tasks" className="col s12">
 				<div className="main col l9">
@@ -32,8 +33,8 @@ Project.Tasks = React.createClass({
 						</select>
 					</div>
 					<div className="col s12">
-						<Project.Tasks.Modal id="create-task" readOnly={false} />
-						<Project.Tasks.Modal id="view-task" readOnly={true} />
+						<Project.Tasks.Modal id="create-task" readOnly={false} project={project} />
+						<Project.Tasks.Modal id="view-task" readOnly={true} project={project} />
 						<ul className="collection">
 							{this.taskElements()}
 						</ul>
@@ -41,7 +42,6 @@ Project.Tasks = React.createClass({
 					<div className="col s12">
 						<button className="btn waves-effect waves-light modal-trigger col s12 m4"
 								ref="modalTrigger"
-								onClick={this.handleClick}
 								data-target="create-task">
 							Add Task
 						</button>
@@ -67,10 +67,6 @@ Project.Tasks = React.createClass({
 			return <Project.Tasks.Item task={t} />
 		});
 	},
-	handleClick: function(e) {
-
-		e.preventDefault();
-	},
 });
 
 Project.Tasks.Item = React.createClass({
@@ -82,12 +78,16 @@ Project.Tasks.Item = React.createClass({
 	render: function() {
 		var task = this.props.task;
 		return (
-			<button data-target="view-task" className="collection-item modal-trigger" onClick={this.handleClick}>
+			<a href="#view-task" className="collection-item modal-trigger" onClick={this.handleClick}>
 				{task.title}
-			</button>
+			</a>
 		)
 	},
 	handleClick: function(e) {
+		dispatcher.dispatch({
+			type: "viewTask",
+			data: this.props.task,
+		});
 		e.preventDefault();
 	},
 });
@@ -96,8 +96,24 @@ Project.Tasks.Modal = React.createClass({
 	componentDidMount: function() {
 		var tags = React.findDOMNode(this.refs.tags);
 		$(tags).tagsInput();
+
+		if (this.props.readOnly) {
+			this.dispatchID = dispatcher.register(function(payload) {
+				switch (payload.type) {
+				case "viewTask":
+					this.loadTask(payload.data);
+					break;
+				}
+			}.bind(this));
+		}
+	},
+	componentWillUnmount: function() {
+		if (this.props.readOnly) {
+			dispatcher.unregister(this.dispatchID);
+		}
 	},
 	render: function() {
+		var project = this.props.project;
 		var type = this.props.type;
 		return (
 			<form id={this.props.id} className="modal" onSubmit={this.handleSubmit}>
@@ -120,12 +136,19 @@ Project.Tasks.Modal = React.createClass({
 							<label htmlFor="task-end-date">End Date</label>
 						</div>
 						<div className="input-field col s12">
-							<input name="tags" ref="tags" />
+							<input name="tags" ref="tags" readOnly={this.props.readOnly} />
 						</div>
-					</form>
+						<input name="taskID" type="hidden" />
+						<input name="projectID" type="hidden" value={project.id} />
+					</div>
 				</div>
 				<div className="modal-footer">
-					<button type="submit" className="modal-action modal-close waves-effect waves-green btn-flat">Done</button>
+					{
+						this.props.readOnly ?
+						<button className="btn modal-action modal-close waves-effect waves-green left red white-text" onClick={this.handleDelete}>Delete</button> :
+						""
+					}
+					<button type="submit" className="btn modal-action modal-close waves-effect waves-green right blue white-text">Done</button>
 				</div>
 			</form>
 		)
@@ -137,7 +160,30 @@ Project.Tasks.Modal = React.createClass({
 			return;
 		}
 
+		var form = React.findDOMNode(this);
 		OI.newTask($(form).serialize());
+	},
+	handleDelete: function(e) {
+		e.preventDefault();
+
+		if (!this.props.readOnly) {
+			return;
+		}
+
+		var form = React.findDOMNode(this);
+		OI.deleteTask({
+			projectID: form.elements["projectID"].value,
+			taskID: form.elements["taskID"].value,
+		});
+	},
+	loadTask: function(task) {
+		var form = React.findDOMNode(this);
+		form.elements["taskID"].value = task.id;
+		form.elements["title"].value = task.title;
+		form.elements["description"].value = task.description;
+		form.elements["startDate"].value = task.startDate;
+		form.elements["endDate"].value = task.endDate;
+		form.elements["tags"].value = task.tags;
 	},
 });
 
