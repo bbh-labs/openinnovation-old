@@ -16,6 +16,8 @@ var Project = React.createClass({
 			case "projectFail":
 				this.transitionTo("dashboard");
 				break;
+			case "newTaskDone":
+				break;
 			}
 		}.bind(this));
 	},
@@ -84,10 +86,10 @@ Project.Content = React.createClass({
 						<li className="tab col s3"><a href="#project-collaborators">Collaborators</a></li>
 					</ul>
 				</div>
-				<Project.Overview project={project}/>
-				<Project.Tasks />
-				<Project.Milestones />
-				<Project.Collaborators />
+				<Project.Overview project={project} />
+				<Project.Tasks project={project} />
+				<Project.Milestones project={project} />
+				<Project.Collaborators project={project} />
 			</div>
 		)
 	},
@@ -148,107 +150,6 @@ Project.Overview = React.createClass({
 			return <p className="no-outline" ref="description" contentEditable>{this.props.project.description}</p>
 		}
 		return <p ref="description">{this.props.project.description}</p>
-	},
-});
-
-Project.Tasks = React.createClass({
-	render: function() {
-		return (
-			<div id="project-tasks" className="col s12">
-				<div className="main col l9">
-					<div className="input-field col s12 m3">
-						<input id="task-search" type="text" required />
-						<label htmlFor="task-search">Search</label>
-					</div>
-					<div className="input-field col s12 m3">
-						<select className="browser-default">
-							<option value="" selected>Any type</option>
-							<option value="artist">Artist</option>
-							<option value="copywriter">Copywriter</option>
-							<option value="designer">Designer</option>
-							<option value="engineer">Engineer</option>
-							<option value="manager">Manager</option>
-							<option value="planner">Planner</option>
-							<option value="producer">Producer</option>
-						</select>
-					</div>
-					<div className="input-field col s12 m3">
-						<select className="browser-default">
-							<option value="" selected>Any urgency</option>
-							<option value="relaxed">Least urgent first</option>
-							<option value="urgent">Most urgent first</option>
-						</select>
-					</div>
-					<div className="col s12">
-						<Project.Tasks.ViewModal />
-						<ul className="collection">
-							<Project.Tasks.Item />
-							<Project.Tasks.Item />
-							<Project.Tasks.Item />
-						</ul>
-					</div>
-					<div className="col s12">
-						<button className="btn waves-effect waves-light col s12 m4">Add Task</button>
-					</div>
-				</div>
-				<div className="sidebar col s12 m4 l3">
-					<div className="card small">
-						<div className="card-image">
-							<h5 className="card-title">Completed</h5>
-						</div>
-						<div className="card-content">
-							<h1>40/56</h1>
-							<p>tasks</p>
-						</div>
-					</div>
-				</div>
-			</div>
-		)
-	},
-});
-
-Project.Tasks.Item = React.createClass({
-	render: function() {
-		return (
-			<a href="#view-task" className="collection-item modal-trigger" onClick={this.handleClick}>Test</a>
-		)
-	},
-	handleClick: function(e) {
-		$("#view-task").openModal();
-
-		e.preventDefault();
-	},
-});
-
-Project.Tasks.ViewModal = React.createClass({
-	componentDidMount: function() {
-		$(React.findDOMNode(this)).leanModal({
-			dismissable: true,
-			opacity: 5,
-			in_duration: 300,
-			out_duration: 200,
-		});
-	},
-	render: function() {
-		return (
-			<div id="view-task" className="modal">
-				<div className="modal-content">
-					<form className="row">
-						<div className="input-field col s12">
-							<input placeholder="Title" id="view-task-title" type="text" className="validate" />
-							<label htmlFor="view-task-title">Title</label>
-						</div>
-						<div className="input-field col s12">
-							<textarea id="view-task-description" className="materialize-textarea"></textarea>
-							<label htmlFor="view-task-description">Description</label>
-						</div>
-					</form>
-				</div>
-				<div className="modal-footer">
-					<a href="#" className="modal-action modal-close waves-effect waves-green btn-flat">Done</a>
-				</div>
-			</div>
-		)
 	},
 });
 
@@ -375,8 +276,8 @@ Project.Collaborators = React.createClass({
 						<label htmlFor="task-search">Search</label>
 					</div>
 					<div className="input-field col s12 m4">
-						<select className="browser-default">
-							<option value="" selected>Any type</option>
+						<select className="browser-default" defaultValue="">
+							<option value="">Any type</option>
 							<option value="artist">Artist</option>
 							<option value="copywriter">Copywriter</option>
 							<option value="designer">Designer</option>

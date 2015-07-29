@@ -34,7 +34,7 @@ type task struct {
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
 	Status      string    `json:"status"`
-	Tags        []byte    `json:"tags"`
+	Tags        []string    `json:"tags"`
 	StartDate   time.Time `json:"startDate"`
 	EndDate     time.Time `json:"endDate"`
 	UpdatedAt   time.Time `json:"updatedAt"`
@@ -45,9 +45,8 @@ type task struct {
 
 func insertTask(params map[string]string) (int64, error) {
 	const rawSQL = `
-	INSERT INTO task (author_id, project_id, parent_id, title, tagline
-	                  description, status, tags, start_date, end_date,
-					  updated_at, created_at)
+	INSERT INTO task (author_id, project_id, parent_id, title, description, status,
+					  tags, start_date, end_date, updated_at, created_at)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now(), now())
 	RETURNING id`
 
@@ -121,19 +120,44 @@ func getTask(taskID int64) (Task, error) {
 	return t, nil
 }
 
-func LatestTasks(w http.ResponseWriter, r *http.Request) {
+func GetTasks(w http.ResponseWriter, r *http.Request) {
+	var parser Parser
+
+	projectID := parser.Int(r.FormValue("projectID"))
+	if parser.Err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	tasks, err := getTasks(projectID)
+	if err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	response.OK(w, tasks)
+}
+
+func getTasks(projectID int64) ([]Task, error) {
 	const rawSQL = `
 	SELECT * FROM task
 	WHERE project_id = $1
-	ORDER BY created_at DESC LIMIT $2`
+	ORDER BY created_at DESC`
+
+	return queryTasks(rawSQL, projectID)
+}
+
+func LatestTasks(w http.ResponseWriter, r *http.Request) {
+	const rawSQL = `
+	SELECT * FROM task
+	ORDER BY created_at DESC LIMIT $1`
 
 	const rawSQL2 = `
 	SELECT * FROM task
-	WHERE project_id = $1 AND title ~* $2
-	ORDER BY created_at DESC LIMIT $3`
+	WHERE title ~* $1
+	ORDER BY created_at DESC LIMIT $2`
 
 	var parser Parser
-	projectID := parser.Int(r.FormValue("projectID"))
 	count := parser.Int(r.FormValue("count"))
 	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
@@ -146,9 +170,9 @@ func LatestTasks(w http.ResponseWriter, r *http.Request) {
 	title := r.FormValue("title")
 	if title != "" {
 		title = ".*" + title + ".*"
-		tasks, err = queryTasks(rawSQL2, projectID, title, count)
+		tasks, err = queryTasks(rawSQL2, title, count)
 	} else {
-		tasks, err = queryTasks(rawSQL, projectID, count)
+		tasks, err = queryTasks(rawSQL, count)
 	}
 	if err != nil {
 		response.ServerError(w, err)
@@ -182,7 +206,7 @@ func queryTasks(rawSQL string, data ...interface{}) ([]Task, error) {
 			&t.EndDate,
 			&t.UpdatedAt,
 			&t.CreatedAt,
-		); err != nil {
+		); err != nil && err != sql.ErrNoRows {
 			return nil, debug.Error(err)
 		}
 

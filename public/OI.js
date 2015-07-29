@@ -78,4 +78,12 @@ var OI = {
 			data: data,
 		});
 	},
+	newTask: function(data) {
+		this.api("newTask", {
+			url: "/api/task",
+			method: "POST",
+			dataType: "json",
+			data: data,
+		});
+	},
 };

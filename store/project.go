@@ -44,7 +44,8 @@ type Project struct {
 	UpdatedAt   time.Time `json:"updatedAt"`
 	CreatedAt   time.Time `json:"createdAt"`
 
-	Author     User        `json:"author"`
+	Author User   `json:"author"`
+	Tasks  []Task `json:"tasks"`
 }
 
 func insertProject(params map[string]string) (int64, error) {
@@ -150,10 +151,12 @@ func updateProjectImage(projectID int64, imageURL string) error {
 }
 
 func getProject(projectID int64) (Project, error) {
+	var err error
+
 	const rawSQL = `SELECT * FROM project WHERE id = $1`
 
 	p := Project{}
-	if err := db.QueryRow(rawSQL, projectID).Scan(
+	if err = db.QueryRow(rawSQL, projectID).Scan(
 		&p.ID,
 		&p.AuthorID,
 		&p.Title,
@@ -165,6 +168,10 @@ func getProject(projectID int64) (Project, error) {
 		&p.UpdatedAt,
 		&p.CreatedAt,
 	); err != nil && err != sql.ErrNoRows {
+		return p, debug.Error(err)
+	}
+
+	if p.Tasks, err = getTasks(projectID); err != nil {
 		return p, debug.Error(err)
 	}
 
@@ -305,7 +312,7 @@ func isAuthor(projectID, userID int64) bool {
 	return authorID == userID
 }
 
-func GetCompleteProject(w http.ResponseWriter, r *http.Request) {
+func GetProject(w http.ResponseWriter, r *http.Request) {
 	projectID, err := formutil.Number(r, "projectID")
 	if err != nil {
 		response.ClientError(w, http.StatusBadRequest)

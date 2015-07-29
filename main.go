@@ -25,6 +25,7 @@ func main() {
 	apiRouter.HandleFunc("/api/logout", logout)
 	apiRouter.HandleFunc("/api/user", user)
 	apiRouter.HandleFunc("/api/project", project)
+	apiRouter.HandleFunc("/api/task", task)
 	router.PathPrefix("/api").Handler(negroni.New(
 		negroni.HandlerFunc(apiMiddleware),
 		negroni.Wrap(apiRouter),

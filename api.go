@@ -185,7 +185,7 @@ func project(w http.ResponseWriter, r *http.Request) {
 		case "latest":
 			store.LatestProjects(w, r)
 		default:
-			store.GetCompleteProject(w, r)
+			store.GetProject(w, r)
 		}
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
@@ -217,6 +217,8 @@ func task(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		typ := r.FormValue("type")
 		switch typ {
+		case "project":
+			store.GetTasks(w, r)
 		case "latest":
 			store.LatestTasks(w, r)
 		default:
