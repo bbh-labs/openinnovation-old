@@ -92,7 +92,7 @@ func updateProject(params map[string]string) error {
 }
 
 func updateProjectTitle(projectID int64, title string) error {
-	const rawSQL = `UPDATE project SET title = $1 WHERE id = $2`
+	const rawSQL = `UPDATE project SET title = $1, updated_at = now() WHERE id = $2`
 
 	if _, err := db.Exec(rawSQL, title, projectID); err != nil {
 		return debug.Error(err)
@@ -102,7 +102,7 @@ func updateProjectTitle(projectID int64, title string) error {
 }
 
 func updateProjectTagline(projectID int64, tagline string) error {
-	const rawSQL = `UPDATE project SET tagline = $1 WHERE id = $2`
+	const rawSQL = `UPDATE project SET tagline = $1, updated_at = now() WHERE id = $2`
 
 	if _, err := db.Exec(rawSQL, tagline, projectID); err != nil {
 		return debug.Error(err)
@@ -112,7 +112,7 @@ func updateProjectTagline(projectID int64, tagline string) error {
 }
 
 func updateProjectDescription(projectID int64, description string) error {
-	const rawSQL = `UPDATE project SET description = $1 WHERE id = $2`
+	const rawSQL = `UPDATE project SET description = $1, updated_at = now() WHERE id = $2`
 
 	if _, err := db.Exec(rawSQL, description, projectID); err != nil {
 		return debug.Error(err)

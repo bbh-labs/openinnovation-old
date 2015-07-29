@@ -98,21 +98,30 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	const rawSQL = `
-	SELECT * FROM user_ WHERE id = $1 LIMIT 1`
-
-	users, err := queryUsers(rawSQL, userID)
+	user, err := getUser(userID)
 	if err != nil {
 		response.ServerError(w, err)
 		return
 	}
 
-	if len(users) == 0 {
+	if user == nil {
 		response.ClientError(w, http.StatusNotFound)
 		return
 	}
 
-	response.OK(w, users[0])
+	response.OK(w, user)
+}
+
+func getUser(userID int64) (User, error) {
+	const rawSQL = `
+	SELECT * FROM user_ WHERE id = $1 LIMIT 1`
+
+	var u user
+	if err := db.QueryRow(rawSQL, userID).Scan(&u); err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	return u, nil
 }
 
 func queryUsers(q string, data ...interface{}) ([]User, error) {

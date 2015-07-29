@@ -156,11 +156,11 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 		return (
 			React.createElement("div", {id: "project-tasks", className: "col s12"}, 
 				React.createElement("div", {className: "main col l9"}, 
-					React.createElement("div", {className: "input-field col s12 m4"}, 
+					React.createElement("div", {className: "input-field col s12 m3"}, 
 						React.createElement("input", {id: "task-search", type: "text", required: true}), 
 						React.createElement("label", {htmlFor: "task-search"}, "Search")
 					), 
-					React.createElement("div", {className: "input-field col s12 m4"}, 
+					React.createElement("div", {className: "input-field col s12 m3"}, 
 						React.createElement("select", {className: "browser-default"}, 
 							React.createElement("option", {value: "", selected: true}, "Any type"), 
 							React.createElement("option", {value: "artist"}, "Artist"), 
@@ -172,38 +172,23 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 							React.createElement("option", {value: "producer"}, "Producer")
 						)
 					), 
-					React.createElement("div", {className: "input-field col s12 m4"}, 
+					React.createElement("div", {className: "input-field col s12 m3"}, 
 						React.createElement("select", {className: "browser-default"}, 
 							React.createElement("option", {value: "", selected: true}, "Any urgency"), 
 							React.createElement("option", {value: "relaxed"}, "Least urgent first"), 
 							React.createElement("option", {value: "urgent"}, "Most urgent first")
 						)
 					), 
-					React.createElement("ul", {className: "collection col s12"}, 
-						React.createElement("li", {className: "collection-item avatar"}, 
-							React.createElement("img", {className: "circle", src: "images/profile-pics/1.jpg"}), 
-							React.createElement("span", {className: "title"}, "Title"), 
-							React.createElement("p", null, "First line ", React.createElement("br", null), 
-							   "Second line"
-							), 
-							React.createElement("a", {href: "#", className: "secondary-content"}, React.createElement("i", {className: "material-icons"}, "send"))
-						), 
-						React.createElement("li", {className: "collection-item avatar"}, 
-							React.createElement("img", {className: "circle", src: "images/profile-pics/1.jpg"}), 
-							React.createElement("span", {className: "title"}, "Title"), 
-							React.createElement("p", null, "First line ", React.createElement("br", null), 
-							   "Second line"
-							), 
-							React.createElement("a", {href: "#", className: "secondary-content"}, React.createElement("i", {className: "material-icons"}, "send"))
-						), 
-						React.createElement("li", {className: "collection-item avatar"}, 
-							React.createElement("img", {className: "circle", src: "images/profile-pics/1.jpg"}), 
-							React.createElement("span", {className: "title"}, "Title"), 
-							React.createElement("p", null, "First line ", React.createElement("br", null), 
-							   "Second line"
-							), 
-							React.createElement("a", {href: "#", className: "secondary-content"}, React.createElement("i", {className: "material-icons"}, "send"))
+					React.createElement("div", {className: "col s12"}, 
+						React.createElement(Project.Tasks.ViewModal, null), 
+						React.createElement("ul", {className: "collection"}, 
+							React.createElement(Project.Tasks.Item, null), 
+							React.createElement(Project.Tasks.Item, null), 
+							React.createElement(Project.Tasks.Item, null)
 						)
+					), 
+					React.createElement("div", {className: "col s12"}, 
+						React.createElement("button", {className: "btn waves-effect waves-light col s12 m4"}, "Add Task")
 					)
 				), 
 				React.createElement("div", {className: "sidebar col s12 m4 l3"}, 
@@ -216,6 +201,51 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 							React.createElement("p", null, "tasks")
 						)
 					)
+				)
+			)
+		)
+	},
+});
+
+Project.Tasks.Item = React.createClass({displayName: "Item",
+	render: function() {
+		return (
+			React.createElement("a", {href: "#view-task", className: "collection-item modal-trigger", onClick: this.handleClick}, "Test")
+		)
+	},
+	handleClick: function(e) {
+		$("#view-task").openModal();
+
+		e.preventDefault();
+	},
+});
+
+Project.Tasks.ViewModal = React.createClass({displayName: "ViewModal",
+	componentDidMount: function() {
+		$(React.findDOMNode(this)).leanModal({
+			dismissable: true,
+			opacity: 5,
+			in_duration: 300,
+			out_duration: 200,
+		});
+	},
+	render: function() {
+		return (
+			React.createElement("div", {id: "view-task", className: "modal"}, 
+				React.createElement("div", {className: "modal-content"}, 
+					React.createElement("form", {className: "row"}, 
+						React.createElement("div", {className: "input-field col s12"}, 
+							React.createElement("input", {placeholder: "Title", id: "view-task-title", type: "text", className: "validate"}), 
+							React.createElement("label", {htmlFor: "view-task-title"}, "Title")
+						), 
+						React.createElement("div", {className: "input-field col s12"}, 
+							React.createElement("textarea", {id: "view-task-description", className: "materialize-textarea"}), 
+							React.createElement("label", {htmlFor: "view-task-description"}, "Description")
+						)
+					)
+				), 
+				React.createElement("div", {className: "modal-footer"}, 
+					React.createElement("a", {href: "#", className: "modal-action modal-close waves-effect waves-green btn-flat"}, "Done")
 				)
 			)
 		)

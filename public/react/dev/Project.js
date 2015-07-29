@@ -156,11 +156,11 @@ Project.Tasks = React.createClass({
 		return (
 			<div id="project-tasks" className="col s12">
 				<div className="main col l9">
-					<div className="input-field col s12 m4">
+					<div className="input-field col s12 m3">
 						<input id="task-search" type="text" required />
 						<label htmlFor="task-search">Search</label>
 					</div>
-					<div className="input-field col s12 m4">
+					<div className="input-field col s12 m3">
 						<select className="browser-default">
 							<option value="" selected>Any type</option>
 							<option value="artist">Artist</option>
@@ -172,39 +172,24 @@ Project.Tasks = React.createClass({
 							<option value="producer">Producer</option>
 						</select>
 					</div>
-					<div className="input-field col s12 m4">
+					<div className="input-field col s12 m3">
 						<select className="browser-default">
 							<option value="" selected>Any urgency</option>
 							<option value="relaxed">Least urgent first</option>
 							<option value="urgent">Most urgent first</option>
 						</select>
 					</div>
-					<ul className="collection col s12">
-						<li className="collection-item avatar">
-							<img className="circle" src="images/profile-pics/1.jpg" />
-							<span className="title">Title</span>
-							<p>First line <br/>
-							   Second line
-							</p>
-							<a href="#" className="secondary-content"><i className="material-icons">send</i></a>
-						</li>
-						<li className="collection-item avatar">
-							<img className="circle" src="images/profile-pics/1.jpg" />
-							<span className="title">Title</span>
-							<p>First line <br/>
-							   Second line
-							</p>
-							<a href="#" className="secondary-content"><i className="material-icons">send</i></a>
-						</li>
-						<li className="collection-item avatar">
-							<img className="circle" src="images/profile-pics/1.jpg" />
-							<span className="title">Title</span>
-							<p>First line <br/>
-							   Second line
-							</p>
-							<a href="#" className="secondary-content"><i className="material-icons">send</i></a>
-						</li>
-					</ul>
+					<div className="col s12">
+						<Project.Tasks.ViewModal />
+						<ul className="collection">
+							<Project.Tasks.Item />
+							<Project.Tasks.Item />
+							<Project.Tasks.Item />
+						</ul>
+					</div>
+					<div className="col s12">
+						<button className="btn waves-effect waves-light col s12 m4">Add Task</button>
+					</div>
 				</div>
 				<div className="sidebar col s12 m4 l3">
 					<div className="card small">
@@ -216,6 +201,51 @@ Project.Tasks = React.createClass({
 							<p>tasks</p>
 						</div>
 					</div>
+				</div>
+			</div>
+		)
+	},
+});
+
+Project.Tasks.Item = React.createClass({
+	render: function() {
+		return (
+			<a href="#view-task" className="collection-item modal-trigger" onClick={this.handleClick}>Test</a>
+		)
+	},
+	handleClick: function(e) {
+		$("#view-task").openModal();
+
+		e.preventDefault();
+	},
+});
+
+Project.Tasks.ViewModal = React.createClass({
+	componentDidMount: function() {
+		$(React.findDOMNode(this)).leanModal({
+			dismissable: true,
+			opacity: 5,
+			in_duration: 300,
+			out_duration: 200,
+		});
+	},
+	render: function() {
+		return (
+			<div id="view-task" className="modal">
+				<div className="modal-content">
+					<form className="row">
+						<div className="input-field col s12">
+							<input placeholder="Title" id="view-task-title" type="text" className="validate" />
+							<label htmlFor="view-task-title">Title</label>
+						</div>
+						<div className="input-field col s12">
+							<textarea id="view-task-description" className="materialize-textarea"></textarea>
+							<label htmlFor="view-task-description">Description</label>
+						</div>
+					</form>
+				</div>
+				<div className="modal-footer">
+					<a href="#" className="modal-action modal-close waves-effect waves-green btn-flat">Done</a>
 				</div>
 			</div>
 		)

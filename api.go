@@ -206,3 +206,23 @@ func projectJoin(w http.ResponseWriter, r *http.Request) {
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}
 }
+
+//
+// /task
+//
+// GET: get tasks
+//
+func task(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		typ := r.FormValue("type")
+		switch typ {
+		case "latest":
+			store.LatestTasks(w, r)
+		default:
+			store.GetTask(w, r)
+		}
+	default:
+		response.ClientError(w, http.StatusMethodNotAllowed)
+	}
+}
