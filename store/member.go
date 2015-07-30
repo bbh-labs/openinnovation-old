@@ -107,10 +107,21 @@ func (u user) RemoveMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := addMember(projectID, userID); err != nil {
+	if err := removeMember(projectID, userID); err != nil {
 		response.ServerError(w, err)
 		return
 	}
 
 	response.OK(w, nil)
+}
+
+func removeMember(projectID, userID int64) error {
+	const rawSQL = `
+	DELETE FROM member WHERE project_id = $1 AND user_id = $2`
+
+	if _, err := db.Exec(rawSQL, projectID, userID); err != nil {
+		return debug.Error(err)
+	}
+
+	return nil
 }
