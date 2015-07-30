@@ -46,6 +46,7 @@ type User interface {
 	GetProject(w http.ResponseWriter, r *http.Request)
 	CreateProject(w http.ResponseWriter, r *http.Request)
 	UpdateProject(w http.ResponseWriter, r *http.Request)
+	DeleteProject(w http.ResponseWriter, r *http.Request)
 	JoinProject(w http.ResponseWriter, r *http.Request)
 	AddMember(w http.ResponseWriter, r *http.Request)
 	
@@ -437,7 +438,7 @@ func (u user) CreateProject(w http.ResponseWriter, r *http.Request) {
 	return
 
 error:
-	if err := u.deleteProject(projectID); err != nil {
+	if err := deleteProject(projectID); err != nil {
 		debug.Warn(err)
 	}
 	response.ServerError(w, err)
@@ -480,7 +481,27 @@ func (u user) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, nil)
 }
 
-func (u user) deleteProject(projectID int64) error {
+func (u user) DeleteProject(w http.ResponseWriter, r *http.Request) {
+	var parser Parser
+
+	projectID := parser.Int(r.FormValue("projectID"))
+	if parser.Err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	if !isAuthor(projectID, u.ID_) {
+		response.ClientError(w, http.StatusUnauthorized)
+		return
+	}
+
+	if err := deleteProject(projectID); err != nil {
+		response.ServerError(w, err)
+		return
+	}
+}
+
+func deleteProject(projectID int64) error {
 	const rawSQL = `DELETE FROM project WHERE id = $1`
 
 	// delete project

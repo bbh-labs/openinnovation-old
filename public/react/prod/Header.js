@@ -32,12 +32,12 @@ var Header = React.createClass({displayName: "Header",
 						React.createElement("ul", {id: "mobile-menu", className: "side-nav"}, 
 							React.createElement("li", null, React.createElement(Link, {to: "new-project"}, "New Project")), 
 							React.createElement("li", null, React.createElement("a", {href: "#"}, "Inbox")), 
-							React.createElement("li", null, React.createElement(Link, {to: "profile", params: {userID: user.id}}, "Profile")), 
+							React.createElement("li", null, React.createElement(Link, {to: "user", params: {userID: user.id}}, "Profile")), 
 							React.createElement("li", null, React.createElement("a", {href: "#"}, "Settings")), 
 							React.createElement("li", null, React.createElement("a", {href: "#", onClick: this.logout}, "Logout"))
 						), 
 						React.createElement("ul", {id: "more-menu", className: "dropdown-content"}, 
-							React.createElement("li", null, React.createElement(Link, {to: "profile", params: {userID: user.id}}, "Profile")), 
+							React.createElement("li", null, React.createElement(Link, {to: "user", params: {userID: user.id}}, "Profile")), 
 							React.createElement("li", null, React.createElement("a", {href: "#"}, "Settings")), 
 							React.createElement("li", null, React.createElement("a", {href: "#", onClick: this.logout}, "Logout"))
 						)

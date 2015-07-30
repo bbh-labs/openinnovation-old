@@ -74,26 +74,6 @@ func insertProject(params map[string]string) (int64, error) {
 	return id, nil
 }
 
-func updateProject(params map[string]string) error {
-	const rawSQL = `UPDATE project SET title = $1, tagline = $2, description = $3, updated_at = now() WHERE id = $4`
-	
-	var parser Parser
-	projectID := parser.Int("projectID")
-	if parser.Err != nil {
-		return debug.Error(parser.Err)
-	}
-
-	title := params["title"]
-	tagline := params["tagline"]
-	description := params["description"]
-
-	if _, err := db.Exec(rawSQL, title, tagline, description, projectID); err != nil {
-		return debug.Error(err)
-	}
-
-	return nil
-}
-
 func updateProjectTitle(projectID int64, title string) error {
 	const rawSQL = `UPDATE project SET title = $1, updated_at = now() WHERE id = $2`
 

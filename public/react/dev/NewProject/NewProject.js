@@ -76,13 +76,14 @@ NewProject.Form = React.createClass({
 		return {showOther: false};
 	},
 	componentDidMount: function() {
-		dispatcher.register(function(payload) {
+		this.dispatchID = dispatcher.register(function(payload) {
 			if (payload.type === "new-project-image-file") {
 				this.image = payload.file;
 			}
 		}.bind(this));
 	},
 	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
 		this.image = null;
 	},
 	render: function() {

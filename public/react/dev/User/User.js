@@ -1,14 +1,14 @@
-var Profile = React.createClass({
+var User = React.createClass({
 	render: function() {
 		return (
-			<main className="profile">
-				<Profile.Content user={this.props.user} />
+			<main className="user">
+				<User.Content user={this.props.user} />
 			</main>
 		)
 	},
 });
 
-Profile.Content = React.createClass({
+User.Content = React.createClass({
 	render: function() {
 		var user = this.props.user;
 		return (
@@ -20,7 +20,7 @@ Profile.Content = React.createClass({
 								<img className="profile-picture circle" src="images/profile-pics/1.jpg" />
 							</div>
 							<div className="card-action">
-								<Profile.Content.Fullname user={user} />
+								<User.Content.Fullname user={user} />
 								<p>{user.title}</p>
 							</div>
 							<div className="card-action">
@@ -45,7 +45,7 @@ Profile.Content = React.createClass({
 	},
 });
 
-Profile.Content.Fullname = React.createClass({
+User.Content.Fullname = React.createClass({
 	getInitialState: function() {
 		return {hovering: false, editMode: false};
 	},
@@ -81,7 +81,7 @@ Profile.Content.Fullname = React.createClass({
 	},
 });
 
-Profile.Content.Description = React.createClass({
+User.Content.Description = React.createClass({
 	getInitialState: function() {
 		return {hovering: false, editMode: false};
 	},

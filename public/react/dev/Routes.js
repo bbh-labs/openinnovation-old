@@ -9,8 +9,9 @@ var routes = (
 			<Route handler={Dashboard} name="dashboard" />
 			<Route handler={ForgotPassword} name="forgotpassword" />
 			<Route handler={Project} name="project" path="/project/:projectID" />
+			<Route handler={EditProject} name="edit-project" path="/project/:projectID/edit" />
 			<Route handler={NewProject} name="new-project" />
-			<Route handler={Profile} name="profile" path="/profile/:userID" />
+			<Route handler={User} name="user" path="/user/:userID" />
 			<Route handler={Admin} name="admin" />
 		</Route>
 	</Route>

@@ -172,6 +172,8 @@ func project(w http.ResponseWriter, r *http.Request) {
 		user.CreateProject(w, r)
 	case "PUT":
 		user.UpdateProject(w, r)
+	case "DELETE":
+		user.DeleteProject(w, r)
 	case "GET":
 		typ := r.FormValue("type")
 		switch typ {

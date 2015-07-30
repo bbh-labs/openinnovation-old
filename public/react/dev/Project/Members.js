@@ -69,7 +69,7 @@ Project.Members.Item = React.createClass({
 				<img className="circle" src="images/profile-pics/1.jpg" />
 				<span className="title"><strong>{member.fullname}</strong></span>
 				<p>{member.title}</p>
-				<Link to="profile" params={{userID: member.id}} className="secondary-content"><i className="material-icons">send</i></Link>
+				<Link to="user" params={{userID: member.id}} className="secondary-content"><i className="material-icons">send</i></Link>
 			</li>
 		)
 	},
