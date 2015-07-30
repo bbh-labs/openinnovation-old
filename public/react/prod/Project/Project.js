@@ -17,6 +17,7 @@ var Project = React.createClass({displayName: "Project",
 				this.transitionTo("dashboard");
 				break;
 			case "newTaskDone":
+			case "updateTaskDone":
 			case "deleteTaskDone":
 				var project = this.state.project;
 				if (!project) {
@@ -47,12 +48,9 @@ var Project = React.createClass({displayName: "Project",
 			return React.createElement("div", null)
 		}
 		return (
-			React.createElement("div", {className: "project"}, 
-				React.createElement(Header, null), 
-				React.createElement("main", null, 
-					React.createElement(Project.Cover, {project: project}), 
-					React.createElement(Project.Content, {project: project})
-				)
+			React.createElement("main", {className: "project"}, 
+				React.createElement(Project.Cover, {project: project}), 
+				React.createElement(Project.Content, {project: project})
 			)
 		)
 	},
@@ -103,13 +101,13 @@ Project.Content = React.createClass({displayName: "Content",
 						React.createElement("li", {className: "tab col s3"}, React.createElement("a", {href: "#project-overview"}, "Overview")), 
 						React.createElement("li", {className: "tab col s3"}, React.createElement("a", {href: "#project-tasks"}, "Tasks")), 
 						React.createElement("li", {className: "tab col s3"}, React.createElement("a", {href: "#project-milestones"}, "Milestones")), 
-						React.createElement("li", {className: "tab col s3"}, React.createElement("a", {href: "#project-collaborators"}, "Collaborators"))
+						React.createElement("li", {className: "tab col s3"}, React.createElement("a", {href: "#project-members"}, "Members"))
 					)
 				), 
 				React.createElement(Project.Overview, {project: project}), 
 				React.createElement(Project.Tasks, {project: project}), 
 				React.createElement(Project.Milestones, {project: project}), 
-				React.createElement(Project.Collaborators, {project: project})
+				React.createElement(Project.Members, {project: project})
 			)
 		)
 	},
@@ -278,70 +276,6 @@ Project.Milestones = React.createClass({displayName: "Milestones",
 							React.createElement("h2", null, "Final Section"), 
 							React.createElement("p", null, "This is the content of the last section"), 
 							React.createElement("span", {className: "cd-date"}, "Feb 26")
-						)
-					)
-				)
-			)
-		)
-	},
-});
-
-Project.Collaborators = React.createClass({displayName: "Collaborators",
-	render: function() {
-		return (
-			React.createElement("div", {id: "project-collaborators", className: "col s12"}, 
-				React.createElement("div", {className: "main col l9"}, 
-					React.createElement("div", {className: "input-field col s12 m4"}, 
-						React.createElement("input", {id: "task-search", type: "text", required: true}), 
-						React.createElement("label", {htmlFor: "task-search"}, "Search")
-					), 
-					React.createElement("div", {className: "input-field col s12 m4"}, 
-						React.createElement("select", {className: "browser-default", defaultValue: ""}, 
-							React.createElement("option", {value: ""}, "Any type"), 
-							React.createElement("option", {value: "artist"}, "Artist"), 
-							React.createElement("option", {value: "copywriter"}, "Copywriter"), 
-							React.createElement("option", {value: "designer"}, "Designer"), 
-							React.createElement("option", {value: "engineer"}, "Engineer"), 
-							React.createElement("option", {value: "manager"}, "Manager"), 
-							React.createElement("option", {value: "planner"}, "Planner"), 
-							React.createElement("option", {value: "producer"}, "Producer")
-						)
-					), 
-					React.createElement("ul", {className: "collection col s12"}, 
-						React.createElement("li", {className: "collection-item avatar"}, 
-							React.createElement("img", {className: "circle", src: "images/profile-pics/1.jpg"}), 
-							React.createElement("span", {className: "title"}, "Title"), 
-							React.createElement("p", null, "First line ", React.createElement("br", null), 
-							   "Second line"
-							), 
-							React.createElement("a", {href: "#", className: "secondary-content"}, React.createElement("i", {className: "material-icons"}, "send"))
-						), 
-						React.createElement("li", {className: "collection-item avatar"}, 
-							React.createElement("img", {className: "circle", src: "images/profile-pics/1.jpg"}), 
-							React.createElement("span", {className: "title"}, "Title"), 
-							React.createElement("p", null, "First line ", React.createElement("br", null), 
-							   "Second line"
-							), 
-							React.createElement("a", {href: "#", className: "secondary-content"}, React.createElement("i", {className: "material-icons"}, "send"))
-						), 
-						React.createElement("li", {className: "collection-item avatar"}, 
-							React.createElement("img", {className: "circle", src: "images/profile-pics/1.jpg"}), 
-							React.createElement("span", {className: "title"}, "Title"), 
-							React.createElement("p", null, "First line ", React.createElement("br", null), 
-							   "Second line"
-							), 
-							React.createElement("a", {href: "#", className: "secondary-content"}, React.createElement("i", {className: "material-icons"}, "send"))
-						)
-					)
-				), 
-				React.createElement("div", {className: "sidebar col s12 m4 l3"}, 
-					React.createElement("div", {className: "card small"}, 
-						React.createElement("div", {className: "card-image"}, 
-							React.createElement("h5", {className: "card-title"}, "Collaborators size")
-						), 
-						React.createElement("div", {className: "card-content"}, 
-							React.createElement("h1", null, "9"), 
-							React.createElement("p", null, "people")
 						)
 					)
 				)

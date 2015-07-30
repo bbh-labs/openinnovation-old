@@ -41,11 +41,25 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	pass := r.FormValue("password")
 	if len(email) < config.EmailLength() || len(pass) < config.PasswordLength() {
 		response.ClientError(w, http.StatusBadRequest)
-		  return
+		return
+	}
+
+	// check fullname
+	fullname := r.FormValue("fullname")
+	if len(fullname) < 6 {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	// check title
+	title := r.FormValue("title")
+	if len(title) == 0 {
+		response.ClientError(w, http.StatusBadRequest)
+		return
 	}
 
 	// register the user
-	if err := register(email, pass, email, "", "", ""); err != nil {
+	if err := register(email, pass, fullname, title, "", ""); err != nil {
 		response.ServerError(w, err)
 		return
 	}

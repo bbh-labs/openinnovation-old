@@ -17,6 +17,7 @@ var Project = React.createClass({
 				this.transitionTo("dashboard");
 				break;
 			case "newTaskDone":
+			case "updateTaskDone":
 			case "deleteTaskDone":
 				var project = this.state.project;
 				if (!project) {
@@ -47,13 +48,10 @@ var Project = React.createClass({
 			return <div/>
 		}
 		return (
-			<div className="project">
-				<Header />
-				<main>
-					<Project.Cover project={project} />
-					<Project.Content project={project} />
-				</main>
-			</div>
+			<main className="project">
+				<Project.Cover project={project} />
+				<Project.Content project={project} />
+			</main>
 		)
 	},
 });
@@ -103,13 +101,13 @@ Project.Content = React.createClass({
 						<li className="tab col s3"><a href="#project-overview">Overview</a></li>
 						<li className="tab col s3"><a href="#project-tasks">Tasks</a></li>
 						<li className="tab col s3"><a href="#project-milestones">Milestones</a></li>
-						<li className="tab col s3"><a href="#project-collaborators">Collaborators</a></li>
+						<li className="tab col s3"><a href="#project-members">Members</a></li>
 					</ul>
 				</div>
 				<Project.Overview project={project} />
 				<Project.Tasks project={project} />
 				<Project.Milestones project={project} />
-				<Project.Collaborators project={project} />
+				<Project.Members project={project} />
 			</div>
 		)
 	},
@@ -281,70 +279,6 @@ Project.Milestones = React.createClass({
 						</div>
 					</div>
 				</section>
-			</div>
-		)
-	},
-});
-
-Project.Collaborators = React.createClass({
-	render: function() {
-		return (
-			<div id="project-collaborators" className="col s12">
-				<div className="main col l9">
-					<div className="input-field col s12 m4">
-						<input id="task-search" type="text" required />
-						<label htmlFor="task-search">Search</label>
-					</div>
-					<div className="input-field col s12 m4">
-						<select className="browser-default" defaultValue="">
-							<option value="">Any type</option>
-							<option value="artist">Artist</option>
-							<option value="copywriter">Copywriter</option>
-							<option value="designer">Designer</option>
-							<option value="engineer">Engineer</option>
-							<option value="manager">Manager</option>
-							<option value="planner">Planner</option>
-							<option value="producer">Producer</option>
-						</select>
-					</div>
-					<ul className="collection col s12">
-						<li className="collection-item avatar">
-							<img className="circle" src="images/profile-pics/1.jpg" />
-							<span className="title">Title</span>
-							<p>First line <br/>
-							   Second line
-							</p>
-							<a href="#" className="secondary-content"><i className="material-icons">send</i></a>
-						</li>
-						<li className="collection-item avatar">
-							<img className="circle" src="images/profile-pics/1.jpg" />
-							<span className="title">Title</span>
-							<p>First line <br/>
-							   Second line
-							</p>
-							<a href="#" className="secondary-content"><i className="material-icons">send</i></a>
-						</li>
-						<li className="collection-item avatar">
-							<img className="circle" src="images/profile-pics/1.jpg" />
-							<span className="title">Title</span>
-							<p>First line <br/>
-							   Second line
-							</p>
-							<a href="#" className="secondary-content"><i className="material-icons">send</i></a>
-						</li>
-					</ul>
-				</div>
-				<div className="sidebar col s12 m4 l3">
-					<div className="card small">
-						<div className="card-image">
-							<h5 className="card-title">Collaborators size</h5>
-						</div>
-						<div className="card-content">
-							<h1>9</h1>
-							<p>people</p>
-						</div>
-					</div>
-				</div>
 			</div>
 		)
 	},

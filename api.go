@@ -50,12 +50,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		store.Login(w, r)
 	case "GET":
-		user := store.CurrentUser(r)
-		if !user.Exists() {
-			response.ClientError(w, http.StatusForbidden)
-			return
-		}
-		response.OK(w, user)
+		response.OK(w, store.CurrentUser(r))
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}
@@ -185,7 +180,7 @@ func project(w http.ResponseWriter, r *http.Request) {
 		case "latest":
 			store.LatestProjects(w, r)
 		default:
-			store.GetProject(w, r)
+			user.GetProject(w, r)
 		}
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
@@ -228,8 +223,24 @@ func task(w http.ResponseWriter, r *http.Request) {
 		}
 	case "POST":
 		user.CreateTask(w, r)
+	case "PUT":
+		user.UpdateTask(w, r)
 	case "DELETE":
 		user.DeleteTask(w, r)
+	default:
+		response.ClientError(w, http.StatusMethodNotAllowed)
+	}
+}
+
+//
+// /member
+//
+// GET: get project members
+//
+func member(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		store.GetMembers(w, r)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}

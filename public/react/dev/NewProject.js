@@ -1,14 +1,10 @@
 var NewProject = React.createClass({
 	render: function() {
 		return (
-			<div className="new-project">
-				<Header />
-				<main>
-					<NewProject.Cover />
-					<NewProject.Form />
-				</main>
-				<Footer />
-			</div>
+			<main className="new-project">
+				<NewProject.Cover />
+				<NewProject.Form />
+			</main>
 		)
 	},
 });

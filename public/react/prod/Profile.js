@@ -1,12 +1,8 @@
 var Profile = React.createClass({displayName: "Profile",
 	render: function() {
 		return (
-			React.createElement("div", {className: "profile"}, 
-				React.createElement(Header, null), 
-				React.createElement("main", null, 
-					React.createElement(Profile.Content, null)
-				), 
-				React.createElement(Footer, null)
+			React.createElement("main", {className: "profile"}, 
+				React.createElement(Profile.Content, {user: this.props.user})
 			)
 		)
 	},
@@ -14,36 +10,109 @@ var Profile = React.createClass({displayName: "Profile",
 
 Profile.Content = React.createClass({displayName: "Content",
 	render: function() {
+		var user = this.props.user;
 		return (
 			React.createElement("div", {className: "row"}, 
-				React.createElement("div", {className: "col s12 m4 l3"}, 
-					React.createElement("div", {className: "card"}, 
-						React.createElement("div", {className: "card-content"}, 
-							React.createElement("img", {className: "profile-picture circle", src: "images/profile-pics/1.jpg"})
-						), 
-						React.createElement("div", {className: "card-action"}, 
-							React.createElement("h5", null, "Jacky Boen"), 
-							React.createElement("p", null, "Lorem ipsum dolor sit amet consectetur")
-						), 
-						React.createElement("div", {className: "card-action"}, 
-							React.createElement("a", {href: "#"}, React.createElement("i", {className: "material-icons"}, "message"))
-						)
-					)
-				), 
-				React.createElement("div", {className: "col s12 m8 l9"}, 
-					React.createElement("div", {className: "col s12"}, 
+				React.createElement("div", {className: "container"}, 
+					React.createElement("div", {className: "col s12 m4 l3"}, 
 						React.createElement("div", {className: "card"}, 
 							React.createElement("div", {className: "card-content"}, 
-								React.createElement("h5", null, "Description"), 
-								React.createElement("p", null, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean justo urna, faucibus vitae nisl ut, suscipit tempus mi. Duis volutpat, nisl eget volutpat facilisis, tellus sem mattis mauris, eu posuere ipsum felis ut sapien. Phasellus tristique augue urna, non porttitor nunc pharetra a. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Donec ullamcorper efficitur ipsum, nec viverra dolor rhoncus quis. In placerat fringilla nibh, in suscipit sapien pharetra ut. Suspendisse eget tellus sapien. Praesent aliquam quis mauris et rutrum. Suspendisse in leo non magna mattis pellentesque eu vel nulla. Cras varius non tellus in varius. Proin sodales nulla enim. Praesent bibendum massa eget pulvinar placerat. Donec eget tristique nisi. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.")
+								React.createElement("img", {className: "profile-picture circle", src: "images/profile-pics/1.jpg"})
+							), 
+							React.createElement("div", {className: "card-action"}, 
+								React.createElement(Profile.Content.Fullname, {user: user}), 
+								React.createElement("p", null, user.title)
+							), 
+							React.createElement("div", {className: "card-action"}, 
+								React.createElement("a", {href: "#"}, React.createElement("i", {className: "material-icons"}, "message"))
 							)
 						)
 					), 
-					React.createElement("div", {className: "col s12"}, 
-						React.createElement(InvolvedProjects, null)
-					)
+						React.createElement("div", {className: "col s12 m9 l8"}, 
+							React.createElement("div", {className: "card"}, 
+								React.createElement("div", {className: "card-content"}, 
+									React.createElement("h5", null, "Description"), 
+									React.createElement("p", null, user.description)
+								)
+							)
+						), 
+						React.createElement("div", {className: "col s12 m9 l8"}, 
+							React.createElement(InvolvedProjects, null)
+						)
 				)
 			)
 		)
+	},
+});
+
+Profile.Content.Fullname = React.createClass({displayName: "Fullname",
+	getInitialState: function() {
+		return {hovering: false, editMode: false};
+	},
+	render: function() {
+		var editMode = this.state.editMode;
+		return (
+			React.createElement("div", {onMouseEnter: this.handleMouseEnter, onMouseLeave: this.handleMouseLeave}, 
+				React.createElement("h5", {ref: "fullname", style: {display: "inline"}, contentEditable: this.state.editMode}, this.props.user.fullname), " ", this.editElement()
+			)
+		)
+	},
+	handleMouseEnter: function(e) {
+		this.setState({hovering: true});
+	},
+	handleMouseLeave: function(e) {
+		this.setState({hovering: false});
+	},
+	handleClick: function(e) {
+		var editMode = this.state.editMode;
+		this.setState({editMode: !editMode});
+
+		var fullname = React.findDOMNode(this.refs.fullname);
+		if (editMode) {
+			var text = $(fullname).text();
+			OI.updateUser({fullname: text});
+			$(fullname).html(text);
+		}
+	},
+	editElement: function() {
+		if (this.state.hovering || this.state.editMode) {
+			return React.createElement("i", {className: "material-icons edit-icon", onClick: this.handleClick}, this.state.editMode ? "done" : "edit mode")
+		}
+	},
+});
+
+Profile.Content.Description = React.createClass({displayName: "Description",
+	getInitialState: function() {
+		return {hovering: false, editMode: false};
+	},
+	render: function() {
+		var editMode = this.state.editMode;
+		return (
+			React.createElement("div", {onMouseEnter: this.handleMouseEnter, onMouseLeave: this.handleMouseLeave}, 
+				React.createElement("h5", {ref: "fullname", style: {display: "inline"}, contentEditable: this.state.editMode}, this.props.user.fullname), " ", this.editElement()
+			)
+		)
+	},
+	handleMouseEnter: function(e) {
+		this.setState({hovering: true});
+	},
+	handleMouseLeave: function(e) {
+		this.setState({hovering: false});
+	},
+	handleClick: function(e) {
+		var editMode = this.state.editMode;
+		this.setState({editMode: !editMode});
+
+		var fullname = React.findDOMNode(this.refs.fullname);
+		if (editMode) {
+			var text = $(fullname).text();
+			OI.updateUser({fullname: text});
+			$(fullname).html(text);
+		}
+	},
+	editElement: function() {
+		if (this.state.hovering || this.state.editMode) {
+			return React.createElement("i", {className: "material-icons edit-icon", onClick: this.handleClick}, this.state.editMode ? "done" : "edit mode")
+		}
 	},
 });

@@ -1,12 +1,18 @@
 var App = React.createClass({
 	mixins: [ Navigation ],
+	getInitialState: function() {
+		return {user: null};
+	},
 	componentDidMount: function() {
-		dispatcher.register(function(payload) {
+		OI.isLoggedIn();
+
+		this.dispatchID = dispatcher.register(function(payload) {
 			var data = payload.data;
 
 			switch (payload.type) {
+			case "isLoggedInDone":
 			case "loginDone":
-				this.transitionTo("dashboard");
+				this.setState({user: payload.data.data});
 				break;
 			case "loginFail":
 				Materialize.toast(payload.data.responseText, 1000, "red");
@@ -19,7 +25,7 @@ var App = React.createClass({
 				Materialize.toast(payload.data.responseText, 1000, "red");
 				break;
 			case "logoutDone":
-				this.transitionTo("intro");
+				this.setState({user: null});
 				break;
 			case "logoutFail":
 				Materialize.toast(resp.responseText, 1000, "red");
@@ -27,9 +33,10 @@ var App = React.createClass({
 			}
 		}.bind(this));
 	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
 	render: function() {
-		return (
-			<RouteHandler />
-		)
+		return <RouteHandler user={this.state.user} />
 	},
 });

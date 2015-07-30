@@ -19,18 +19,18 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		email := r.FormValue("email")
 		pass := r.FormValue("password")
 
-		// check if email is from BBH
-		if !(email != "aqiank@gmail.com" || email != "veeableful@gmail.com") {
-			if !strings.HasSuffix(email, "@bartleboglehegarty.com") {
-				response.ClientError(w, http.StatusBadRequest)
-				return
-			}
-		}
-
 		// check email and password length
 		if len(email) < config.EmailLength() || len(pass) < config.PasswordLength() {
 			response.ClientError(w, http.StatusBadRequest)
 			return
+		}
+
+		// check if email is from BBH
+		if !(email != "aqiank@gmail.com" || email != "veeableful@gmail.com") {
+			if !strings.HasSuffix(email, "@bartleboglehegarty.com") {
+				response.ClientError(w, http.StatusUnauthorized)
+				return
+			}
 		}
 
 		// check if email and password are valid
@@ -38,7 +38,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			response.ServerError(w, err)
 			return
 		} else if !valid {
-			response.ClientError(w, http.StatusBadRequest)
+			response.ClientError(w, http.StatusUnauthorized)
 			return
 		}
 
@@ -60,7 +60,7 @@ func validLogin(email, password string) (bool, error) {
 
 	var u user
 	if err := db.QueryRow(q, email).Scan(
-		&u.id,
+		&u.ID_,
 		&u.Email,
 		&u.Password,
 		&u.Fullname,

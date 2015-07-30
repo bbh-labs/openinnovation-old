@@ -43,12 +43,14 @@ type User interface {
 	InvolvedProjects(w http.ResponseWriter, r *http.Request)
 	CompletedProjects(w http.ResponseWriter, r *http.Request)
 
+	GetProject(w http.ResponseWriter, r *http.Request)
 	CreateProject(w http.ResponseWriter, r *http.Request)
 	UpdateProject(w http.ResponseWriter, r *http.Request)
 	JoinProject(w http.ResponseWriter, r *http.Request)
-	AddProjectUser(w http.ResponseWriter, r *http.Request)
+	AddMember(w http.ResponseWriter, r *http.Request)
 	
 	CreateTask(w http.ResponseWriter, r *http.Request)
+	UpdateTask(w http.ResponseWriter, r *http.Request)
 	DeleteTask(w http.ResponseWriter, r *http.Request)
 
 	IsAuthor(projectID int64) bool
@@ -56,19 +58,19 @@ type User interface {
 }
 
 type user struct {
-	id               int64     `json:"id,omitempty"`
-	idStr            string    `json:"idStr,omitempty"`
-	Email            string    `json:"email,omitempty"`
+	ID_              int64     `json:"id"`
+	IDStr            string    `json:"idStr"`
+	Email            string    `json:"email"`
 	Password         string    `json:"-"`
-	Fullname         string    `json:"fullname,omitempty"`
-	Title            string    `json:"title,omitempty"`
-	Description      string    `json:"description,omitempty"`
-	AvatarURL        string    `json:"avatarURL,omitempty"`
-	Interests        []byte    `json:"interests,omitempty"`
+	Fullname         string    `json:"fullname"`
+	Title            string    `json:"title"`
+	Description      string    `json:"description"`
+	AvatarURL        string    `json:"avatarURL"`
+	Interests        []byte    `json:"interests"`
 	VerificationCode string    `json:"-"`
 	isAdmin          bool      `json:"isAdmin"`
-	UpdatedAt        time.Time `json:"updatedAt,omitempty"`
-	CreatedAt        time.Time `json:"createdAt,omitempty"`
+	UpdatedAt        time.Time `json:"updatedAt"`
+	CreatedAt        time.Time `json:"createdAt"`
 
 	CreatedProjectsCount_   int64 `json:"created_projects_count"`
 	CompletedProjectsCount_ int64 `json:"completed_projects_count"`
@@ -82,7 +84,7 @@ type user struct {
 }
 
 func (u user) ID() int64 {
-	return u.id
+	return u.ID_
 }
 
 func (u user) IsAdmin() bool {
@@ -94,8 +96,16 @@ func (u user) Exists() bool {
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
-	userID, err := formutil.Number(r, "userID")
-	if err != nil {
+	userIDStr := r.FormValue("userID")
+	if userIDStr == "me" {
+		response.OK(w, CurrentUser(r))
+		return
+	}
+
+	var parser Parser
+
+	userID := parser.Int(userIDStr)
+	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
@@ -120,12 +130,12 @@ func getUser(userID int64) (User, error) {
 
 	var u user
 	if err := db.QueryRow(rawSQL, userID).Scan(
-			&u.id,
+			&u.ID_,
 			&u.Email,
 			&u.Password,
 			&u.Fullname,
-			&u.Description,
 			&u.Title,
+			&u.Description,
 			&u.AvatarURL,
 			&u.Interests,
 			&u.VerificationCode,
@@ -151,12 +161,12 @@ func queryUsers(q string, data ...interface{}) ([]User, error) {
 		var u user
 
 		if err = rows.Scan(
-			&u.id,
+			&u.ID_,
 			&u.Email,
 			&u.Password,
 			&u.Fullname,
-			&u.Description,
 			&u.Title,
+			&u.Description,
 			&u.AvatarURL,
 			&u.Interests,
 			&u.VerificationCode,
@@ -167,7 +177,7 @@ func queryUsers(q string, data ...interface{}) ([]User, error) {
 			return nil, debug.Error(err)
 		}
 
-		u.idStr = strconv.FormatInt(u.id, 10)
+		u.IDStr = strconv.FormatInt(u.ID_, 10)
 
 		us = append(us, u)
 	}
@@ -176,17 +186,62 @@ func queryUsers(q string, data ...interface{}) ([]User, error) {
 }
 
 func (u user) Update(w http.ResponseWriter, r *http.Request) {
-	const q = `UPDATE user_ SET nicename = $1, title = $2, description = $3, updated_at = now() WHERE id = $4`
-
-	name := r.FormValue("name")
-	title := r.FormValue("title")
-	description := r.FormValue("description")
-
-	if _, err := db.Exec(q, name, title, description, u.id); err != nil {
+	err := r.ParseForm()
+	if err != nil {
 		response.ServerError(w, err)
+		return
+	}
+
+	for k, v := range r.Form {
+		switch k {
+		case "fullname":
+			err = u.updateFullname(v[0])
+		case "title":
+			err = u.updateTitle(v[0])
+		case "description":
+			err = u.updateDescription(v[0])
+		}
+
+		if err != nil {
+			response.ServerError(w, err)
+			return
+		}
 	}
 
 	response.OK(w, nil)
+}
+
+func (u user) updateFullname(fullname string) error {
+	const rawSQL = `
+	UPDATE user_ SET fullname = $1, updated_at = now() WHERE id = $2`
+
+	if _, err := db.Exec(rawSQL, fullname, u.ID_); err != nil {
+		return debug.Error(err)
+	}
+
+	return nil
+}
+
+func (u user) updateTitle(title string) error {
+	const rawSQL = `
+	UPDATE user_ SET title = $1, updated_at = now() WHERE id = $2`
+
+	if _, err := db.Exec(rawSQL, title, u.ID_); err != nil {
+		return debug.Error(err)
+	}
+
+	return nil
+}
+
+func (u user) updateDescription(description string) error {
+	const rawSQL = `
+	UPDATE user_ SET description = $1, updated_at = now() WHERE id = $2`
+
+	if _, err := db.Exec(rawSQL, description, u.ID_); err != nil {
+		return debug.Error(err)
+	}
+
+	return nil
 }
 
 func (u user) UpdateInterests(w http.ResponseWriter, r *http.Request) {
@@ -194,7 +249,7 @@ func (u user) UpdateInterests(w http.ResponseWriter, r *http.Request) {
 
 	interests := strings.Split(r.FormValue("interests"), ",")
 
-	if _, err := db.Exec(q, interests, u.id); err != nil {
+	if _, err := db.Exec(q, interests, u.ID_); err != nil {
 		response.ServerError(w, err)
 		return
 	}
@@ -205,7 +260,7 @@ func (u user) UpdateInterests(w http.ResponseWriter, r *http.Request) {
 func (u user) updateAvatarURL(url string) error {
 	const q = `UPDATE user_ SET avatarURL = $1, updated_at = now() WHERE id = $2`
 
-	if _, err := db.Exec(q, url, u.id); err != nil {
+	if _, err := db.Exec(q, url, u.ID_); err != nil {
 		return debug.Error(err)
 	}
 	return nil
@@ -220,7 +275,7 @@ func (u user) CreatedProjects(w http.ResponseWriter, r *http.Request) {
 
 	const rawSQL = `SELECT * FROM project WHERE authorID = $1`
 
-	ps, err := queryProjectsWithMembers(rawSQL, userID)
+	ps, err := queryProjects(rawSQL, userID)
 	if err != nil {
 		response.ServerError(w, err)
 		return
@@ -238,10 +293,10 @@ func (u user) InvolvedProjects(w http.ResponseWriter, r *http.Request) {
 
 	const rawSQL = `
 	SELECT project.* FROM project
-	INNER JOIN project_user ON project_user.project_id = project.id
+	INNER JOIN member ON member.project_id = project.id
 	WHERE member.userID = $1`
 
-	ps, err := queryProjectsWithMembers(rawSQL, userID)
+	ps, err := queryProjects(rawSQL, userID)
 	if err != nil {
 		response.ServerError(w, err)
 		return
@@ -261,7 +316,7 @@ func (u user) CompletedProjects(w http.ResponseWriter, r *http.Request) {
 	SELECT project.* FROM project
 	WHERE author_id = $1 AND status = $2`
 
-	ps, err := queryProjectsWithMembers(rawSQL, userID, "completed")
+	ps, err := queryProjects(rawSQL, userID, "completed")
 	if err != nil {
 		response.ServerError(w, err)
 		return
@@ -273,7 +328,7 @@ func (u user) CompletedProjects(w http.ResponseWriter, r *http.Request) {
 func (u user) CreatedProjectsCount() int64 {
 	const q = `SELECT COUNT(*) FROM project WHERE authorID = $1`
 
-	return count(q, u.id)
+	return count(q, u.ID_)
 }
 
 func (u user) InvolvedProjectsCount() int64 {
@@ -282,7 +337,7 @@ func (u user) InvolvedProjectsCount() int64 {
 	INNER JOIN member ON member.projectID = project.id
 	WHERE member.userID = $1`
 
-	return count(q, u.id)
+	return count(q, u.ID_)
 }
 
 func (u user) CompletedProjectsCount() int64 {
@@ -290,7 +345,7 @@ func (u user) CompletedProjectsCount() int64 {
 	SELECT COUNT(project.*) FROM project
 	WHERE status = 'completed' AND project.authorID = $1`
 
-	return count(q, u.id)
+	return count(q, u.ID_)
 }
 
 func MaxCreatedProjectsCount() int64 {
@@ -326,7 +381,7 @@ func MaxCompletedProjectsCount() int64 {
 }
 
 func (u user) SaveAvatar(w http.ResponseWriter, r *http.Request) {
-	url := fmt.Sprintf("oi-content/profile/img/%d/avatar.png", u.id)
+	url := fmt.Sprintf("oi-content/profile/img/%d/avatar.png", u.ID_)
 	header, err := httputil.SaveFile(w, r, "image", url)
 	if err != nil {
 		response.ServerError(w, err)
@@ -355,7 +410,7 @@ func (u user) CreateProject(w http.ResponseWriter, r *http.Request) {
 
 	// basic project info
 	projectID, err := insertProject(map[string]string{
-			"authorID": u.idStr,
+			"authorID": u.IDStr,
 			"title": title,
 			"tagline": tagline,
 			"description": description,
@@ -369,7 +424,7 @@ func (u user) CreateProject(w http.ResponseWriter, r *http.Request) {
 	var ok bool
 
 	// add author to project user list
-	if err = addProjectUser(projectID, u.id); err != nil {
+	if err = addMember(projectID, u.ID_); err != nil {
 		goto error
 	}
 
@@ -433,7 +488,7 @@ func (u user) deleteProject(projectID int64) error {
 		return debug.Error(err)
 	}
 
-	const rawSQL2 = `DELETE FROM project_user WHERE project_id = $1`
+	const rawSQL2 = `DELETE FROM member WHERE project_id = $1`
 
 	// delete project users
 	if _, err := db.Exec(rawSQL2, projectID); err != nil {
@@ -467,7 +522,7 @@ func (u user) JoinProject(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u user) IsAuthor(projectID int64) bool {
-	return isAuthor(projectID, u.id)
+	return isAuthor(projectID, u.ID_)
 }
 
 func (u user) CreateTask(w http.ResponseWriter, r *http.Request) {
@@ -475,8 +530,28 @@ func (u user) CreateTask(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	if taskID, err = insertTask(insertTaskParams{
-		authorID: u.id,
+		authorID: u.ID_,
 		projectID: r.FormValue("projectID"),
+		title: r.FormValue("title"),
+		description: r.FormValue("description"),
+		status: "notdone",
+		tags: r.FormValue("tags"),
+		startDate: r.FormValue("startDate"),
+		endDate: r.FormValue("endDate"),
+	}); err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	response.OK(w, taskID)
+}
+
+func (u user) UpdateTask(w http.ResponseWriter, r *http.Request) {
+	var taskID int64
+	var err error
+
+	if err = updateTask(updateTaskParams{
+		taskID: r.FormValue("taskID"),
 		title: r.FormValue("title"),
 		description: r.FormValue("description"),
 		status: "notdone",
@@ -501,7 +576,7 @@ func (u user) DeleteTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check if user is member of the project
-	if !isMember(projectID, u.id) {
+	if !isMember(projectID, u.ID_) {
 		response.ClientError(w, http.StatusForbidden)
 		return
 	}
@@ -574,12 +649,12 @@ func GetUserByID(userID int64) (User, error) {
 
 	var u user
 	if err := db.QueryRow(rawSQL, userID).Scan(
-		&u.id,
+		&u.ID_,
 		&u.Email,
 		&u.Password,
 		&u.Fullname,
-		&u.Description,
 		&u.Title,
+		&u.Description,
 		&u.AvatarURL,
 		&u.Interests,
 		&u.VerificationCode,
@@ -599,23 +674,26 @@ func GetUserByEmail(email string) (User, error) {
 
 	var u user
 	if err := db.QueryRow(rawSQL, email).Scan(
-		&u.id,
+		&u.ID_,
 		&u.Email,
 		&u.Password,
 		&u.Fullname,
-		&u.Description,
 		&u.Title,
+		&u.Description,
 		&u.AvatarURL,
 		&u.Interests,
 		&u.VerificationCode,
 		&u.isAdmin,
 		&u.UpdatedAt,
 		&u.CreatedAt,
-	); err != nil && err != sql.ErrNoRows {
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, debug.Error(err)
 	}
 
-	u.idStr = strconv.FormatInt(u.id, 10)
+	u.IDStr = strconv.FormatInt(u.ID_, 10)
 
 	return u, nil
 }
@@ -624,6 +702,7 @@ func CurrentUser(r *http.Request) User {
 	user, err := GetUserByEmail(session.GetEmail(r))
 	if err != nil {
 		debug.Warn(err)
+		return nil
 	}
 	return user
 }

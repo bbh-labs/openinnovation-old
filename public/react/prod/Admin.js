@@ -1,12 +1,8 @@
 var Admin = React.createClass({displayName: "Admin",
 	render: function() {
 		return (
-			React.createElement("div", {className: "admin"}, 
-				React.createElement(Header, null), 
-				React.createElement("main", null, 
-					React.createElement(Admin.Content, null)
-				), 
-				React.createElement(Footer, null)
+			React.createElement("main", {className: "admin"}, 
+				React.createElement(Admin.Content, null)
 			)
 		)
 	},

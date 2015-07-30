@@ -44,8 +44,10 @@ type Project struct {
 	UpdatedAt   time.Time `json:"updatedAt"`
 	CreatedAt   time.Time `json:"createdAt"`
 
-	Author User   `json:"author"`
-	Tasks  []Task `json:"tasks"`
+	Author   User   `json:"author"`
+	Tasks    []Task `json:"tasks"`
+	Members  []User `json:"members"`
+	IsMember bool   `json:"isMember"`
 }
 
 func insertProject(params map[string]string) (int64, error) {
@@ -178,6 +180,10 @@ func getProject(projectID int64) (Project, error) {
 		return p, debug.Error(err)
 	}
 
+	if p.Members, err = getMembers(projectID); err != nil {
+		return p, debug.Error(err)
+	}
+
 	return p, nil
 }
 
@@ -234,42 +240,10 @@ func CompletedProjects(count int64) ([]Project, error) {
 	WHERE status = 'completed'
 	ORDER BY createdAt DESC LIMIT ?`
 
-	return queryProjectsWithMembers(rawSQL, count)
+	return queryProjects(rawSQL, count)
 }
 
 func queryProjects(rawSQL string, data ...interface{}) ([]Project, error) {
-	rows, err := db.Query(rawSQL, data...)
-	if err != nil {
-		return nil, debug.Error(err)
-	}
-	defer rows.Close()
-
-	var ps []Project
-	for rows.Next() {
-		var p Project
-
-		if err = rows.Scan(
-			&p.ID,
-			&p.AuthorID,
-			&p.Title,
-			&p.Tagline,
-			&p.Description,
-			&p.ImageURL,
-			&p.ViewCount,
-			&p.Status,
-			&p.UpdatedAt,
-			&p.CreatedAt,
-		); err != nil {
-			return nil, debug.Error(err)
-		}
-
-		ps = append(ps, p)
-	}
-
-	return ps, nil
-}
-
-func queryProjectsWithMembers(rawSQL string, data ...interface{}) ([]Project, error) {
 	rows, err := db.Query(rawSQL, data...)
 	if err != nil {
 		return nil, debug.Error(err)
@@ -317,7 +291,7 @@ func isAuthor(projectID, userID int64) bool {
 
 func isMember(projectID, userID int64) bool {
 	const rawSQL = `
-	SELECT COUNT(*) FROM project_user
+	SELECT COUNT(*) FROM member
 	WHERE project_id = $1 AND user_id = $2`
 
 	var count int64
@@ -331,7 +305,7 @@ func isMember(projectID, userID int64) bool {
 	return true
 }
 
-func GetProject(w http.ResponseWriter, r *http.Request) {
+func (u user) GetProject(w http.ResponseWriter, r *http.Request) {
 	projectID, err := formutil.Number(r, "projectID")
 	if err != nil {
 		response.ClientError(w, http.StatusBadRequest)
@@ -348,6 +322,8 @@ func GetProject(w http.ResponseWriter, r *http.Request) {
 		response.ServerError(w, err)
 		return
 	}
+
+	p.IsMember = isMember(projectID, u.ID_)
 
 	response.OK(w, p)
 }

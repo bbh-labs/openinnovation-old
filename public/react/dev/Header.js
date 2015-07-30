@@ -12,6 +12,7 @@ var Header = React.createClass({
 		});
 	},
 	render: function() {
+		var user = this.props.user;
 		return (
 			<header>
 				<nav className="row">
@@ -31,12 +32,12 @@ var Header = React.createClass({
 						<ul id="mobile-menu" className="side-nav">
 							<li><Link to="new-project">New Project</Link></li>
 							<li><a href="#">Inbox</a></li>
-							<li><Link to="profile">Profile</Link></li>
+							<li><Link to="profile" params={{userID: user.id}}>Profile</Link></li>
 							<li><a href="#">Settings</a></li>
 							<li><a href="#" onClick={this.logout}>Logout</a></li>
 						</ul>
 						<ul id="more-menu" className="dropdown-content">
-							<li><Link to="profile">Profile</Link></li>
+							<li><Link to="profile" params={{userID: user.id}}>Profile</Link></li>
 							<li><a href="#">Settings</a></li>
 							<li><a href="#" onClick={this.logout}>Logout</a></li>
 						</ul>

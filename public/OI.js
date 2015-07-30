@@ -13,6 +13,14 @@ var OI = {
 		if (!fail) fail = notifyApp(name + "Fail");
 		$.ajax(data).done(done).fail(fail);
 	},
+	isLoggedIn: function() {
+		this.api("isLoggedIn", {
+			url: "/login",
+			method: "GET",
+			data: {userID: "me"},
+			dataType: "json",
+		});
+	},
 	login: function(data) {
 		this.api("login", {
 			url: "/login",
@@ -32,6 +40,14 @@ var OI = {
 		this.api("register", {
 			url: "/register",
 			method: "POST",
+			data: data,
+			dataType: "json",
+		});
+	},
+	updateUser: function(data) {
+		this.api("updateUser", {
+			url: "/api/user",
+			method: "PUT",
 			data: data,
 			dataType: "json",
 		});
@@ -86,6 +102,14 @@ var OI = {
 			data: data,
 		});
 	},
+	updateTask: function(data) {
+		this.api("updateTask", {
+			url: "/api/task",
+			method: "PUT",
+			dataType: "json",
+			data: data,
+		});
+	},
 	deleteTask: function(data) {
 		this.api("deleteTask", {
 			url: "/api/task?taskID=" + data.taskID + "&projectID=" + data.projectID,
@@ -99,6 +123,14 @@ var OI = {
 			method: "GET",
 			dataType: "json",
 			data: m(data, {type: "project"}),
+		});
+	},
+	getProjectMembers: function(data) {
+		this.api("getProjectMembers", {
+			url: "/api/member",
+			method: "GET",
+			dataType: "json",
+			data: data,
 		});
 	},
 };

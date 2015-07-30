@@ -1,13 +1,9 @@
 var Admin = React.createClass({
 	render: function() {
 		return (
-			<div className="admin">
-				<Header />
-				<main>
-					<Admin.Content />
-				</main>
-				<Footer />
-			</div>
+			<main className="admin">
+				<Admin.Content />
+			</main>
 		)
 	},
 });

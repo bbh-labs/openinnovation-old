@@ -1,5 +1,18 @@
 Project.Tasks = React.createClass({displayName: "Tasks",
+	getInitialState: function() {
+		return {titles: []};
+	},
 	componentDidMount: function() {
+		$.ajax({
+			url: "/titles.json",
+			method: "GET",
+			dataType: "json",
+		}).done(function(resp) {
+			this.setState({titles: resp});
+		}.bind(this)).fail(function(resp) {
+			console.log(resp.responseText);
+		});
+
 		$(React.findDOMNode(this.refs.modalTrigger)).leanModal({
 			dismissable: true,
 		});
@@ -16,13 +29,7 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 					React.createElement("div", {className: "input-field col s12 m3"}, 
 						React.createElement("select", {className: "browser-default", defaultValue: ""}, 
 							React.createElement("option", {value: ""}, "Any type"), 
-							React.createElement("option", {value: "artist"}, "Artist"), 
-							React.createElement("option", {value: "copywriter"}, "Copywriter"), 
-							React.createElement("option", {value: "designer"}, "Designer"), 
-							React.createElement("option", {value: "programmer"}, "Programmer"), 
-							React.createElement("option", {value: "manager"}, "Manager"), 
-							React.createElement("option", {value: "planner"}, "Planner"), 
-							React.createElement("option", {value: "producer"}, "Producer")
+							this.titleElements()
 						)
 					), 
 					React.createElement("div", {className: "input-field col s12 m3"}, 
@@ -33,8 +40,8 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 						)
 					), 
 					React.createElement("div", {className: "col s12"}, 
-						React.createElement(Project.Tasks.Modal, {id: "create-task", readOnly: false, project: project}), 
-						React.createElement(Project.Tasks.Modal, {id: "view-task", readOnly: true, project: project}), 
+						React.createElement(Project.Tasks.Modal, {id: "create-task", project: project, type: "create"}), 
+						React.createElement(Project.Tasks.Modal, {id: "view-task", project: project, type: "view"}), 
 						React.createElement("ul", {className: "collection"}, 
 							this.taskElements()
 						)
@@ -67,6 +74,11 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 			return React.createElement(Project.Tasks.Item, {task: t})
 		});
 	},
+	titleElements: function() {
+		return buildElements(this.state.titles, function(i, p) {
+			return React.createElement("option", {key: p, value: p}, p)
+		});
+	},
 });
 
 Project.Tasks.Item = React.createClass({displayName: "Item",
@@ -97,7 +109,7 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 		var tags = React.findDOMNode(this.refs.tags);
 		$(tags).tagsInput();
 
-		if (this.props.readOnly) {
+		if (this.props.type == "view") {
 			this.dispatchID = dispatcher.register(function(payload) {
 				switch (payload.type) {
 				case "viewTask":
@@ -108,35 +120,37 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 		}
 	},
 	componentWillUnmount: function() {
-		if (this.props.readOnly) {
+		if (this.props.type == "view") {
 			dispatcher.unregister(this.dispatchID);
 		}
 	},
 	render: function() {
 		var project = this.props.project;
 		var type = this.props.type;
+		var active = type == "view" ? "active" : "";
+		var readOnly = !project.isMember;
 		return (
 			React.createElement("form", {id: this.props.id, className: "modal", onSubmit: this.handleSubmit}, 
 				React.createElement("div", {className: "modal-content"}, 
 					React.createElement("div", {className: "row"}, 
 						React.createElement("div", {className: "input-field col s12"}, 
-							React.createElement("input", {id: "task-title", type: "text", className: "validate", name: "title", readOnly: this.props.readOnly}), 
-							React.createElement("label", {htmlFor: "task-title"}, "Title")
+							React.createElement("input", {id: "task-title", type: "text", className: "validate", name: "title", readOnly: readOnly}), 
+							React.createElement("label", {htmlFor: "task-title", className: active}, "Title")
 						), 
 						React.createElement("div", {className: "input-field col s12"}, 
-							React.createElement("textarea", {id: "task-description", className: "materialize-textarea", name: "description", readOnly: this.props.readOnly}), 
-							React.createElement("label", {htmlFor: "task-description"}, "Description")
+							React.createElement("textarea", {id: "task-description", className: "materialize-textarea", name: "description", readOnly: readOnly}), 
+							React.createElement("label", {htmlFor: "task-description", className: active}, "Description")
 						), 
 						React.createElement("div", {className: "input-field col s6"}, 
-							React.createElement(DatePicker, {id: "task-start-date", name: "startDate", readOnly: this.props.readOnly}), 
-							React.createElement("label", {htmlFor: "task-start-date"}, "Start Date")
+							React.createElement(DatePicker, {id: "task-start-date", name: "startDate", readOnly: readOnly}), 
+							React.createElement("label", {htmlFor: "task-start-date", className: active}, "Start Date")
 						), 
 						React.createElement("div", {className: "input-field col s6"}, 
-							React.createElement(DatePicker, {id: "task-end-date", name: "endDate", readOnly: this.props.readOnly}), 
-							React.createElement("label", {htmlFor: "task-end-date"}, "End Date")
+							React.createElement(DatePicker, {id: "task-end-date", name: "endDate", readOnly: readOnly}), 
+							React.createElement("label", {htmlFor: "task-end-date", className: active}, "End Date")
 						), 
 						React.createElement("div", {className: "input-field col s12"}, 
-							React.createElement("input", {name: "tags", ref: "tags", readOnly: this.props.readOnly})
+							React.createElement("input", {name: "tags", ref: "tags", readOnly: readOnly})
 						), 
 						React.createElement("input", {name: "taskID", type: "hidden"}), 
 						React.createElement("input", {name: "projectID", type: "hidden", value: project.id})
@@ -144,7 +158,7 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 				), 
 				React.createElement("div", {className: "modal-footer"}, 
 					
-						this.props.readOnly ?
+						type == "view" && !readOnly ?
 						React.createElement("button", {className: "btn modal-action modal-close waves-effect waves-green left red white-text", onClick: this.handleDelete}, "Delete") :
 						"", 
 					
@@ -161,7 +175,12 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 		}
 
 		var form = React.findDOMNode(this);
-		OI.newTask($(form).serialize());
+		var type = this.props.type;
+		if (type == "create") {
+			OI.newTask($(form).serialize());
+		} else if (type == "view") {
+			OI.updateTask($(form).serialize());
+		}
 	},
 	handleDelete: function(e) {
 		e.preventDefault();
@@ -181,8 +200,8 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 		form.elements["taskID"].value = task.id;
 		form.elements["title"].value = task.title;
 		form.elements["description"].value = task.description;
-		form.elements["startDate"].value = task.startDate;
-		form.elements["endDate"].value = task.endDate;
+		form.elements["startDate"].value = task.startDateStr;
+		form.elements["endDate"].value = task.endDateStr;
 		form.elements["tags"].value = task.tags;
 	},
 });

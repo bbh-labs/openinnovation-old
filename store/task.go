@@ -39,8 +39,10 @@ type task struct {
 	UpdatedAt   time.Time   `json:"updatedAt"`
 	CreatedAt   time.Time   `json:"createdAt"`
 
-	Author      User        `json:"author"`
-	TagsArray   []string    `json:"tags_array"`
+	Author       User       `json:"author"`
+	TagsArray    []string   `json:"tagsArray"`
+	StartDateStr string     `json:"startDateStr"`
+	EndDateStr   string     `json:"endDateStr"`
 }
 
 type insertTaskParams struct {
@@ -91,6 +93,57 @@ func insertTask(params insertTaskParams) (int64, error) {
 	}
 
 	return id, nil
+}
+
+type updateTaskParams struct {
+	taskID string
+	title string
+	description string
+	status string
+	tags string
+	startDate string
+	endDate string
+}
+
+func updateTask(params updateTaskParams) error {
+	const rawSQL = `
+	UPDATE task SET
+			title = $1,
+			description = $2,
+			status = $3,
+			tags = $4,
+			start_date = $5,
+			end_date = $6,
+			updated_at = now()
+	WHERE id = $7`
+
+	var parser Parser
+	taskID := parser.Int(params.taskID)
+	startDate := parser.Time(params.startDate)
+	endDate := parser.Time(params.endDate)
+	if parser.Err != nil {
+		return debug.Error(parser.Err)
+	}
+
+	title := params.title
+	description := params.description
+	status := params.status
+	tags := params.tags
+
+	if _, err := db.Exec(
+			rawSQL,
+			title,
+			description,
+			status,
+			tags,
+			startDate,
+			endDate,
+			taskID,
+	); err != nil {
+		return debug.Error(err)
+	}
+
+	return nil
 }
 
 type deleteTaskParams struct {
@@ -165,7 +218,8 @@ func getTask(taskID int64) (Task, error) {
 	}
 
 	t.TagsArray = strings.Split(t.Tags, ",")
-
+	t.StartDateStr = t.StartDate.Format("02 Jan, 2006")
+	t.EndDateStr = t.EndDate.Format("02 Jan, 2006")
 
 	return t, nil
 }
@@ -264,6 +318,8 @@ func queryTasks(rawSQL string, data ...interface{}) ([]Task, error) {
 		}
 
 		t.TagsArray = strings.Split(t.Tags, ",")
+		t.StartDateStr = t.StartDate.Format("02 January, 2006")
+		t.EndDateStr = t.EndDate.Format("02 January, 2006")
 
 		ts = append(ts, t)
 	}
