@@ -17,6 +17,7 @@ var Project = React.createClass({displayName: "Project",
 			case "newTaskDone":
 			case "updateTaskDone":
 			case "deleteTaskDone":
+			case "toggleTaskStatusDone":
 				var project = this.state.project;
 				if (!project) {
 					return;
@@ -48,10 +49,11 @@ var Project = React.createClass({displayName: "Project",
 		if (!project) {
 			return React.createElement("div", null)
 		}
+		var user = this.props.user;
 		return (
 			React.createElement("main", {className: "project"}, 
-				React.createElement(Project.Cover, {project: project}), 
-				React.createElement(Project.Content, {project: project})
+				React.createElement(Project.Cover, {user: user, project: project}), 
+				React.createElement(Project.Content, {user: user, project: project})
 			)
 		)
 	},
@@ -94,6 +96,7 @@ Project.Content = React.createClass({displayName: "Content",
 		$(React.findDOMNode(this.refs.tabs)).tabs();
 	},
 	render: function() {
+		var user = this.props.user;
 		var project = this.props.project;
 		return (
 			React.createElement("div", {className: "row container"}, 
@@ -105,10 +108,10 @@ Project.Content = React.createClass({displayName: "Content",
 						React.createElement("li", {className: "tab col s3"}, React.createElement("a", {href: "#project-members"}, "Members"))
 					)
 				), 
-				React.createElement(Project.Overview, {project: project}), 
-				React.createElement(Project.Tasks, {project: project}), 
-				React.createElement(Project.Milestones, {project: project}), 
-				React.createElement(Project.Members, {project: project})
+				React.createElement(Project.Overview, {user: user, project: project}), 
+				React.createElement(Project.Tasks, {user: user, project: project}), 
+				React.createElement(Project.Milestones, {user: user, project: project}), 
+				React.createElement(Project.Members, {user: user, project: project})
 			)
 		)
 	},

@@ -3,6 +3,7 @@ Project.Overview = React.createClass({
 		return {editMode: false};
 	},
 	render: function() {
+		var user = this.props.user;
 		var project = this.props.project;
 		var editMode = this.state.editMode;
 		return (
@@ -31,7 +32,10 @@ Project.Overview = React.createClass({
 							<p>days left</p>
 						</div>
 					</div>
-					<Link className="btn waves-effect waves-light col s12" to="edit-project" params={{projectID: project.id}}>Settings</Link>
+					{
+						user.id == project.authorID ?
+						<Link className="btn waves-effect waves-light col s12" to="edit-project" params={{projectID: project.id}}>Edit Project</Link> : ""
+					}
 				</div>
 			</div>
 		)

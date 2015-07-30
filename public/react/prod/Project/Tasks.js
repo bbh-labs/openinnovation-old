@@ -22,6 +22,9 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 		return (
 			React.createElement("div", {id: "project-tasks", className: "col s12"}, 
 				React.createElement("div", {className: "main col l9"}, 
+					React.createElement("div", {className: "col s12 margin-top"}, 
+						React.createElement("h5", null, "To Do")
+					), 
 					React.createElement("div", {className: "input-field col s12 m3"}, 
 						React.createElement("input", {id: "task-search", type: "text", required: true}), 
 						React.createElement("label", {htmlFor: "task-search"}, "Search")
@@ -32,25 +35,39 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 							this.titleElements()
 						)
 					), 
-					React.createElement("div", {className: "input-field col s12 m3"}, 
-						React.createElement("select", {className: "browser-default", defaultValue: ""}, 
-							React.createElement("option", {value: ""}, "Any urgency"), 
-							React.createElement("option", {value: "relaxed"}, "Least urgent first"), 
-							React.createElement("option", {value: "urgent"}, "Most urgent first")
+					React.createElement("div", {className: "input-field col s12 m3 offset-m3"}, 
+						React.createElement("button", {className: "btn waves-effect waves-light modal-trigger input-button col s12", 
+								ref: "modalTrigger", 
+								"data-target": "create-task"}, 
+							"Add Task"
 						)
 					), 
 					React.createElement("div", {className: "col s12"}, 
 						React.createElement(Project.Tasks.Modal, {id: "create-task", project: project, type: "create"}), 
 						React.createElement(Project.Tasks.Modal, {id: "view-task", project: project, type: "view"}), 
 						React.createElement("ul", {className: "collection"}, 
-							this.taskElements()
+							this.unfinishedTaskElements()
+						)
+					), 
+					React.createElement("div", {className: "col s12 margin-top"}, 
+						React.createElement("h5", null, "Finished")
+					), 
+					React.createElement("div", {className: "input-field col s12 m3"}, 
+						React.createElement("input", {id: "task-search", type: "text", required: true}), 
+						React.createElement("label", {htmlFor: "task-search"}, "Search")
+					), 
+					React.createElement("div", {className: "input-field col s12 m3"}, 
+						React.createElement("select", {className: "browser-default", defaultValue: ""}, 
+							React.createElement("option", {value: ""}, "Any type"), 
+							this.titleElements()
 						)
 					), 
 					React.createElement("div", {className: "col s12"}, 
-						React.createElement("button", {className: "btn waves-effect waves-light modal-trigger col s12 m4", 
-								ref: "modalTrigger", 
-								"data-target": "create-task"}, 
-							"Add Task"
+						React.createElement(Project.Tasks.WorkersModal, null), 
+						React.createElement(Project.Tasks.Modal, {id: "create-task", project: project, type: "create"}), 
+						React.createElement(Project.Tasks.Modal, {id: "view-task", project: project, type: "view"}), 
+						React.createElement("ul", {className: "collection"}, 
+							this.finishedTaskElements()
 						)
 					)
 				), 
@@ -68,10 +85,20 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 			)
 		)
 	},
-	taskElements: function() {
+	unfinishedTaskElements: function() {
 		var tasks = this.props.project.tasks;
 		return buildElements(tasks, function(i, t) {
-			return React.createElement(Project.Tasks.Item, {task: t})
+			if (!t.done) {
+				return React.createElement(Project.Tasks.Item, {key: t.id, task: t})
+			}
+		});
+	},
+	finishedTaskElements: function() {
+		var tasks = this.props.project.tasks;
+		return buildElements(tasks, function(i, t) {
+			if (t.done) {
+				return React.createElement(Project.Tasks.Item, {key: t.id, task: t})
+			}
 		});
 	},
 	titleElements: function() {
@@ -82,16 +109,27 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 });
 
 Project.Tasks.Item = React.createClass({displayName: "Item",
+	getInitialState: function() {
+		return {hovering: false};
+	},
 	componentDidMount: function() {
-		$(React.findDOMNode(this)).leanModal({
+		$(React.findDOMNode(this.refs.viewTask)).leanModal({
 			dismissable: true,
 		});
 	},
 	render: function() {
 		var task = this.props.task;
 		return (
-			React.createElement("a", {href: "#view-task", className: "collection-item modal-trigger", onClick: this.handleClick}, 
-				task.title
+			React.createElement("li", {className: "collection-item", onMouseEnter: this.handleMouseEnter, onMouseLeave: this.handleMouseLeave}, 
+				React.createElement("a", {ref: "viewTask", href: "#view-task", onClick: this.handleClick}, 
+					task.title
+				), 
+				React.createElement("div", {className: "secondary-content"}, 
+					React.createElement("img", {className: "task-worker", src: "images/profile-pics/1.jpg"}), 
+					React.createElement("img", {className: "task-worker", src: "images/profile-pics/1.jpg"}), 
+					React.createElement("img", {className: "task-worker", src: "images/profile-pics/1.jpg"}), 
+					this.doneElement()
+				)
 			)
 		)
 	},
@@ -101,6 +139,22 @@ Project.Tasks.Item = React.createClass({displayName: "Item",
 			data: this.props.task,
 		});
 		e.preventDefault();
+	},
+	handleToggleStatus: function(e) {
+		OI.toggleTaskStatus({taskID: this.props.task.id});
+	},
+	handleMouseEnter: function(e) {
+		this.setState({hovering: true});
+	},
+	handleMouseLeave: function(e) {
+		this.setState({hovering: false});
+	},
+	doneElement: function(e) {
+		var task = this.props.task;
+		var done = task.done;
+		return React.createElement("i", {style: {cursor: "pointer", visibility: this.state.hovering || done ? "visible" : "hidden"}, 
+				  onClick: this.handleToggleStatus, 
+				  className: classNames("material-icons", done && "green-text")}, "done")
 	},
 });
 
@@ -118,6 +172,9 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 				}
 			}.bind(this));
 		}
+
+		var modalTrigger = React.findDOMNode(this.refs.modalTrigger);
+		$(modalTrigger).leanModal();
 	},
 	componentWillUnmount: function() {
 		if (this.props.type == "view") {
@@ -152,6 +209,7 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 						React.createElement("div", {className: "input-field col s12"}, 
 							React.createElement("input", {name: "tags", ref: "tags", readOnly: readOnly})
 						), 
+						React.createElement("a", {className: "waves-effect waves-light btn modal-trigger", href: "#modal-workers", ref: "modalTrigger"}, "Workers"), 
 						React.createElement("input", {name: "taskID", type: "hidden"}), 
 						React.createElement("input", {name: "projectID", type: "hidden", value: project.id})
 					)
@@ -159,8 +217,7 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 				React.createElement("div", {className: "modal-footer"}, 
 					
 						type == "view" && !readOnly ?
-						React.createElement("button", {className: "btn modal-action modal-close waves-effect waves-green left red white-text", onClick: this.handleDelete}, "Delete") :
-						"", 
+						React.createElement("button", {className: "btn modal-action modal-close waves-effect waves-green left red white-text", onClick: this.handleDelete}, "Delete") : "", 
 					
 					React.createElement("button", {type: "submit", className: "btn modal-action modal-close waves-effect waves-green right blue white-text"}, "Done")
 				)
@@ -206,3 +263,18 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 	},
 });
 
+Project.Tasks.WorkersModal = React.createClass({displayName: "WorkersModal",
+	render: function() {
+		return (
+			React.createElement("div", {id: "modal-workers", className: "modal bottom-sheet"}, 
+				React.createElement("div", {className: "modal-content"}, 
+					React.createElement("h4", null, "Modal Header"), 
+					React.createElement("p", null, "A bunch of text")
+				), 
+				React.createElement("div", {className: "modal-footer"}, 
+					React.createElement("a", {href: "#", className: "modal-action modal-close waves-effect waves-green btn-flat"}, "Agree")
+				)
+			)
+		)
+	},
+});

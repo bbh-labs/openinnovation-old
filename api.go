@@ -25,8 +25,6 @@ func apiMiddleware(w http.ResponseWriter, r *http.Request, next http.HandlerFunc
 // 
 // /
 // 
-// GET: loads the main HTML page and other resources
-// 
 func index(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		response.ClientError(w, http.StatusMethodNotAllowed)
@@ -42,9 +40,6 @@ func index(w http.ResponseWriter, r *http.Request) {
 // 
 // /login
 // 
-// GET: retrieve the user's login state and respond with the user's data
-// POST: logs a user in and respond with the user's data
-// 
 func login(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
@@ -59,8 +54,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 // 
 // /logout
 // 
-// POST: logs a user out
-// 
 func logout(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
@@ -74,8 +67,6 @@ func logout(w http.ResponseWriter, r *http.Request) {
 // 
 // /register
 // 
-// POST: register a user
-// 
 func register(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
@@ -88,17 +79,12 @@ func register(w http.ResponseWriter, r *http.Request) {
 // 
 // /verify
 // 
-// GET: verify a user
-// 
 func verify(w http.ResponseWriter, r *http.Request) {
 	store.Verify(w, r)
 }
 
 // 
 // /user
-// 
-// GET: retrieve the user's profile information
-// PUT: update the user's profile information
 // 
 func user(w http.ResponseWriter, r *http.Request) {
 	user := context.Get(r, "user").(store.User)
@@ -121,8 +107,6 @@ func user(w http.ResponseWriter, r *http.Request) {
 // 
 // /user/image
 // 
-// POST: update the user's profile picture
-// 
 func userImage(w http.ResponseWriter, r *http.Request) {
 	user := context.Get(r, "user").(store.User)
 
@@ -136,8 +120,6 @@ func userImage(w http.ResponseWriter, r *http.Request) {
 
 // 
 // /user/project
-// 
-// GET: retrieve the user's projects (involved, completed, all)
 // 
 func userProject(w http.ResponseWriter, r *http.Request) {
 	user := context.Get(r, "user").(store.User)
@@ -159,10 +141,6 @@ func userProject(w http.ResponseWriter, r *http.Request) {
 
 // 
 // /project
-// 
-// POST: create a new project
-// PUT: update an existing project
-// GET: get a project's information
 // 
 func project(w http.ResponseWriter, r *http.Request) {
 	user := context.Get(r, "user").(store.User)
@@ -192,8 +170,6 @@ func project(w http.ResponseWriter, r *http.Request) {
 // 
 // /project/join
 // 
-// POST: send a join project request
-// 
 func projectJoin(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
@@ -207,15 +183,12 @@ func projectJoin(w http.ResponseWriter, r *http.Request) {
 //
 // /task
 //
-// GET: get tasks
-//
 func task(w http.ResponseWriter, r *http.Request) {
 	user := context.Get(r, "user").(store.User)
 
 	switch r.Method {
 	case "GET":
-		typ := r.FormValue("type")
-		switch typ {
+		switch r.FormValue("type") {
 		case "project":
 			store.GetTasks(w, r)
 		case "latest":
@@ -226,7 +199,12 @@ func task(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		user.CreateTask(w, r)
 	case "PUT":
-		user.UpdateTask(w, r)
+		switch r.FormValue("type") {
+		case "toggleStatus":
+			user.ToggleTaskStatus(w, r)
+		default:
+			user.UpdateTask(w, r)
+		}
 	case "DELETE":
 		user.DeleteTask(w, r)
 	default:
@@ -237,12 +215,28 @@ func task(w http.ResponseWriter, r *http.Request) {
 //
 // /member
 //
-// GET: get project members
-//
 func member(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		store.GetMembers(w, r)
+	default:
+		response.ClientError(w, http.StatusMethodNotAllowed)
+	}
+}
+
+//
+// /worker
+//
+func worker(w http.ResponseWriter, r *http.Request) {
+	user := context.Get(r, "user").(store.User)
+
+	switch r.Method {
+	case "GET":
+		store.GetWorkers(w, r)
+	case "POST":
+		user.AssignWorker(w, r)
+	case "DELETE":
+		user.UnassignWorker(w, r)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}

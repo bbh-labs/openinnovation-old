@@ -22,6 +22,9 @@ Project.Tasks = React.createClass({
 		return (
 			<div id="project-tasks" className="col s12">
 				<div className="main col l9">
+					<div className="col s12 margin-top">
+						<h5>To Do</h5>
+					</div>
 					<div className="input-field col s12 m3">
 						<input id="task-search" type="text" required />
 						<label htmlFor="task-search">Search</label>
@@ -32,26 +35,40 @@ Project.Tasks = React.createClass({
 							{this.titleElements()}
 						</select>
 					</div>
-					<div className="input-field col s12 m3">
-						<select className="browser-default" defaultValue="">
-							<option value="">Any urgency</option>
-							<option value="relaxed">Least urgent first</option>
-							<option value="urgent">Most urgent first</option>
-						</select>
+					<div className="input-field col s12 m3 offset-m3">
+						<button className="btn waves-effect waves-light modal-trigger input-button col s12"
+								ref="modalTrigger"
+								data-target="create-task">
+							Add Task
+						</button>
 					</div>
 					<div className="col s12">
 						<Project.Tasks.Modal id="create-task" project={project} type="create" />
 						<Project.Tasks.Modal id="view-task" project={project} type="view" />
 						<ul className="collection">
-							{this.taskElements()}
+							{this.unfinishedTaskElements()}
 						</ul>
 					</div>
+					<div className="col s12 margin-top">
+						<h5>Finished</h5>
+					</div>
+					<div className="input-field col s12 m3">
+						<input id="task-search" type="text" required />
+						<label htmlFor="task-search">Search</label>
+					</div>
+					<div className="input-field col s12 m3">
+						<select className="browser-default" defaultValue="">
+							<option value="">Any type</option>
+							{this.titleElements()}
+						</select>
+					</div>
 					<div className="col s12">
-						<button className="btn waves-effect waves-light modal-trigger col s12 m4"
-								ref="modalTrigger"
-								data-target="create-task">
-							Add Task
-						</button>
+						<Project.Tasks.WorkersModal />
+						<Project.Tasks.Modal id="create-task" project={project} type="create" />
+						<Project.Tasks.Modal id="view-task" project={project} type="view" />
+						<ul className="collection">
+							{this.finishedTaskElements()}
+						</ul>
 					</div>
 				</div>
 				<div className="sidebar col s12 m4 l3">
@@ -68,10 +85,20 @@ Project.Tasks = React.createClass({
 			</div>
 		)
 	},
-	taskElements: function() {
+	unfinishedTaskElements: function() {
 		var tasks = this.props.project.tasks;
 		return buildElements(tasks, function(i, t) {
-			return <Project.Tasks.Item task={t} />
+			if (!t.done) {
+				return <Project.Tasks.Item key={t.id} task={t} />
+			}
+		});
+	},
+	finishedTaskElements: function() {
+		var tasks = this.props.project.tasks;
+		return buildElements(tasks, function(i, t) {
+			if (t.done) {
+				return <Project.Tasks.Item key={t.id} task={t} />
+			}
 		});
 	},
 	titleElements: function() {
@@ -82,17 +109,28 @@ Project.Tasks = React.createClass({
 });
 
 Project.Tasks.Item = React.createClass({
+	getInitialState: function() {
+		return {hovering: false};
+	},
 	componentDidMount: function() {
-		$(React.findDOMNode(this)).leanModal({
+		$(React.findDOMNode(this.refs.viewTask)).leanModal({
 			dismissable: true,
 		});
 	},
 	render: function() {
 		var task = this.props.task;
 		return (
-			<a href="#view-task" className="collection-item modal-trigger" onClick={this.handleClick}>
-				{task.title}
-			</a>
+			<li className="collection-item" onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
+				<a ref="viewTask" href="#view-task" onClick={this.handleClick}>
+					{task.title}
+				</a>
+				<div className="secondary-content">
+					<img className="task-worker" src="images/profile-pics/1.jpg" />
+					<img className="task-worker" src="images/profile-pics/1.jpg" />
+					<img className="task-worker" src="images/profile-pics/1.jpg" />
+					{this.doneElement()}
+				</div>
+			</li>
 		)
 	},
 	handleClick: function(e) {
@@ -101,6 +139,22 @@ Project.Tasks.Item = React.createClass({
 			data: this.props.task,
 		});
 		e.preventDefault();
+	},
+	handleToggleStatus: function(e) {
+		OI.toggleTaskStatus({taskID: this.props.task.id});
+	},
+	handleMouseEnter: function(e) {
+		this.setState({hovering: true});
+	},
+	handleMouseLeave: function(e) {
+		this.setState({hovering: false});
+	},
+	doneElement: function(e) {
+		var task = this.props.task;
+		var done = task.done;
+		return <i style={{cursor: "pointer", visibility: this.state.hovering || done ? "visible" : "hidden"}}
+				  onClick={this.handleToggleStatus}
+				  className={classNames("material-icons", done && "green-text")}>done</i>
 	},
 });
 
@@ -118,6 +172,9 @@ Project.Tasks.Modal = React.createClass({
 				}
 			}.bind(this));
 		}
+
+		var modalTrigger = React.findDOMNode(this.refs.modalTrigger);
+		$(modalTrigger).leanModal();
 	},
 	componentWillUnmount: function() {
 		if (this.props.type == "view") {
@@ -152,6 +209,7 @@ Project.Tasks.Modal = React.createClass({
 						<div className="input-field col s12">
 							<input name="tags" ref="tags" readOnly={readOnly} />
 						</div>
+						<a className="waves-effect waves-light btn modal-trigger" href="#modal-workers" ref="modalTrigger">Workers</a>
 						<input name="taskID" type="hidden" />
 						<input name="projectID" type="hidden" value={project.id} />
 					</div>
@@ -159,8 +217,7 @@ Project.Tasks.Modal = React.createClass({
 				<div className="modal-footer">
 					{
 						type == "view" && !readOnly ?
-						<button className="btn modal-action modal-close waves-effect waves-green left red white-text" onClick={this.handleDelete}>Delete</button> :
-						""
+						<button className="btn modal-action modal-close waves-effect waves-green left red white-text" onClick={this.handleDelete}>Delete</button> : ""
 					}
 					<button type="submit" className="btn modal-action modal-close waves-effect waves-green right blue white-text">Done</button>
 				</div>
@@ -206,3 +263,18 @@ Project.Tasks.Modal = React.createClass({
 	},
 });
 
+Project.Tasks.WorkersModal = React.createClass({
+	render: function() {
+		return (
+			<div id="modal-workers" className="modal bottom-sheet">
+				<div className="modal-content">
+					<h4>Modal Header</h4>
+					<p>A bunch of text</p>
+				</div>
+				<div className="modal-footer">
+					<a href="#" className="modal-action modal-close waves-effect waves-green btn-flat">Agree</a>
+				</div>
+			</div>
+		)
+	},
+});

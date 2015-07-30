@@ -51,7 +51,7 @@ Project.Members = React.createClass({
 	},
 	memberElements: function() {
 		return buildElements(this.props.project.members, function(i, m) {
-			return <Project.Members.Item member={m} />
+			return <Project.Members.Item key={m.id} member={m} />
 		});
 	},
 	titleElements: function() {

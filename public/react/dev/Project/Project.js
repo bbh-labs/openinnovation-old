@@ -17,6 +17,7 @@ var Project = React.createClass({
 			case "newTaskDone":
 			case "updateTaskDone":
 			case "deleteTaskDone":
+			case "toggleTaskStatusDone":
 				var project = this.state.project;
 				if (!project) {
 					return;
@@ -48,10 +49,11 @@ var Project = React.createClass({
 		if (!project) {
 			return <div/>
 		}
+		var user = this.props.user;
 		return (
 			<main className="project">
-				<Project.Cover project={project} />
-				<Project.Content project={project} />
+				<Project.Cover user={user} project={project} />
+				<Project.Content user={user} project={project} />
 			</main>
 		)
 	},
@@ -94,6 +96,7 @@ Project.Content = React.createClass({
 		$(React.findDOMNode(this.refs.tabs)).tabs();
 	},
 	render: function() {
+		var user = this.props.user;
 		var project = this.props.project;
 		return (
 			<div className="row container">
@@ -105,10 +108,10 @@ Project.Content = React.createClass({
 						<li className="tab col s3"><a href="#project-members">Members</a></li>
 					</ul>
 				</div>
-				<Project.Overview project={project} />
-				<Project.Tasks project={project} />
-				<Project.Milestones project={project} />
-				<Project.Members project={project} />
+				<Project.Overview user={user} project={project} />
+				<Project.Tasks user={user} project={project} />
+				<Project.Milestones user={user} project={project} />
+				<Project.Members user={user} project={project} />
 			</div>
 		)
 	},

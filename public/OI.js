@@ -110,6 +110,14 @@ var OI = {
 			data: data,
 		});
 	},
+	toggleTaskStatus: function(data) {
+		this.api("toggleTaskStatus", {
+			url: "/api/task",
+			method: "PUT",
+			dataType: "json",
+			data: m(data, {type: "toggleStatus"}),
+		});
+	},
 	deleteTask: function(data) {
 		this.api("deleteTask", {
 			url: "/api/task?taskID=" + data.taskID + "&projectID=" + data.projectID,

@@ -53,6 +53,10 @@ type User interface {
 	CreateTask(w http.ResponseWriter, r *http.Request)
 	UpdateTask(w http.ResponseWriter, r *http.Request)
 	DeleteTask(w http.ResponseWriter, r *http.Request)
+	ToggleTaskStatus(w http.ResponseWriter, r *http.Request)
+
+	AssignWorker(w http.ResponseWriter, r *http.Request)
+	UnassignWorker(w http.ResponseWriter, r *http.Request)
 
 	IsAuthor(projectID int64) bool
 	IsAdmin() bool
@@ -555,7 +559,7 @@ func (u user) CreateTask(w http.ResponseWriter, r *http.Request) {
 		projectID: r.FormValue("projectID"),
 		title: r.FormValue("title"),
 		description: r.FormValue("description"),
-		status: "notdone",
+		done: false,
 		tags: r.FormValue("tags"),
 		startDate: r.FormValue("startDate"),
 		endDate: r.FormValue("endDate"),
@@ -575,11 +579,27 @@ func (u user) UpdateTask(w http.ResponseWriter, r *http.Request) {
 		taskID: r.FormValue("taskID"),
 		title: r.FormValue("title"),
 		description: r.FormValue("description"),
-		status: "notdone",
 		tags: r.FormValue("tags"),
 		startDate: r.FormValue("startDate"),
 		endDate: r.FormValue("endDate"),
 	}); err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	response.OK(w, taskID)
+}
+
+func (u user) ToggleTaskStatus(w http.ResponseWriter, r *http.Request) {
+	var parser Parser
+
+	taskID := parser.Int(r.FormValue("taskID"))
+	if parser.Err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	if err := toggleTaskStatus(taskID); err != nil {
 		response.ServerError(w, err)
 		return
 	}
@@ -610,6 +630,32 @@ func (u user) DeleteTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.OK(w, nil)
+}
+
+func (u user) AssignWorker(w http.ResponseWriter, r *http.Request) {
+	var parser Parser
+
+	taskID := parser.Int(r.FormValue("taskID"))
+	userID := parser.Int(r.FormValue("userID"))
+	if parser.Err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	insertWorker(taskID, userID, u.ID_)
+}
+
+func (u user) UnassignWorker(w http.ResponseWriter, r *http.Request) {
+	var parser Parser
+
+	taskID := parser.Int(r.FormValue("taskID"))
+	userID := parser.Int(r.FormValue("userID"))
+	if parser.Err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	deleteWorker(taskID, userID)
 }
 
 func SetAdmin(w http.ResponseWriter, r *http.Request) {

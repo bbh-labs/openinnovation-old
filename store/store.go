@@ -36,6 +36,7 @@ func init() {
 	create("project", createProjectSQL)
 	create("task", createTaskSQL)
 	create("member", createMemberSQL)
+	create("worker", createWorkerSQL)
 
 	// secondary tables
 	create("featured_project", createFeaturedProjectSQL)

@@ -17,7 +17,7 @@ author_id int NOT NULL,
 project_id int NOT NULL,
 title text NOT NULL,
 description text NOT NULL,
-status text NOT NULL,
+done boolean NOT NULL,
 tags text,
 start_date timestamp NOT NULL,
 end_date timestamp NOT NULL,
@@ -32,14 +32,15 @@ type task struct {
 	ProjectID   int64       `json:"projectID"`
 	Title       string      `json:"title"`
 	Description string      `json:"description"`
-	Status      string      `json:"status"`
 	Tags        string      `json:"tags"`
+	Done        bool        `json:"done"`
 	StartDate   time.Time   `json:"startDate"`
 	EndDate     time.Time   `json:"endDate"`
 	UpdatedAt   time.Time   `json:"updatedAt"`
 	CreatedAt   time.Time   `json:"createdAt"`
 
 	Author       User       `json:"author"`
+	Workers      []User     `json:"workers"`
 	TagsArray    []string   `json:"tagsArray"`
 	StartDateStr string     `json:"startDateStr"`
 	EndDateStr   string     `json:"endDateStr"`
@@ -50,7 +51,7 @@ type insertTaskParams struct {
 	projectID string
 	title string
 	description string
-	status string
+	done bool
 	tags string
 	startDate string
 	endDate string
@@ -58,7 +59,7 @@ type insertTaskParams struct {
 
 func insertTask(params insertTaskParams) (int64, error) {
 	const rawSQL = `
-	INSERT INTO task (author_id, project_id, title, description, status,
+	INSERT INTO task (author_id, project_id, title, description, done,
 					  tags, start_date, end_date, updated_at, created_at)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now(), now())
 	RETURNING id`
@@ -74,7 +75,7 @@ func insertTask(params insertTaskParams) (int64, error) {
 	authorID := params.authorID
 	title := params.title
 	description := params.description
-	status := params.status
+	done := params.done
 	tags := params.tags
 
 	var id int64
@@ -84,7 +85,7 @@ func insertTask(params insertTaskParams) (int64, error) {
 			projectID,
 			title,
 			description,
-			status,
+			done,
 			tags,
 			startDate,
 			endDate,
@@ -99,7 +100,6 @@ type updateTaskParams struct {
 	taskID string
 	title string
 	description string
-	status string
 	tags string
 	startDate string
 	endDate string
@@ -110,10 +110,9 @@ func updateTask(params updateTaskParams) error {
 	UPDATE task SET
 			title = $1,
 			description = $2,
-			status = $3,
-			tags = $4,
-			start_date = $5,
-			end_date = $6,
+			tags = $3,
+			start_date = $4,
+			end_date = $5,
 			updated_at = now()
 	WHERE id = $7`
 
@@ -127,19 +126,27 @@ func updateTask(params updateTaskParams) error {
 
 	title := params.title
 	description := params.description
-	status := params.status
 	tags := params.tags
 
 	if _, err := db.Exec(
 			rawSQL,
 			title,
 			description,
-			status,
 			tags,
 			startDate,
 			endDate,
 			taskID,
 	); err != nil {
+		return debug.Error(err)
+	}
+
+	return nil
+}
+
+func toggleTaskStatus(taskID int64) error {
+	const rawSQL = `UPDATE task SET done = not done WHERE id = $1`
+
+	if _, err := db.Exec(rawSQL, taskID); err != nil {
 		return debug.Error(err)
 	}
 
@@ -203,7 +210,7 @@ func getTask(taskID int64) (Task, error) {
 			&t.ProjectID,
 			&t.Title,
 			&t.Description,
-			&t.Status,
+			&t.Done,
 			&t.Tags,
 			&t.StartDate,
 			&t.EndDate,
@@ -303,7 +310,7 @@ func queryTasks(rawSQL string, data ...interface{}) ([]Task, error) {
 			&t.ProjectID,
 			&t.Title,
 			&t.Description,
-			&t.Status,
+			&t.Done,
 			&t.Tags,
 			&t.StartDate,
 			&t.EndDate,
@@ -325,4 +332,19 @@ func queryTasks(rawSQL string, data ...interface{}) ([]Task, error) {
 	}
 
 	return ts, nil
+}
+
+func projectIDFromTask(taskID int64) (int64, error) {
+	const rawSQL = `
+	SELECT project_id FROM task WHERE id = $1`
+
+	var projectID int64
+	if err := db.QueryRow(rawSQL, taskID).Scan(&projectID); err != nil {
+		if err == sql.ErrNoRows {
+			return 0, nil
+		}
+		return 0, debug.Error(err)
+	}
+
+	return projectID, nil
 }

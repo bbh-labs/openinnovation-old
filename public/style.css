@@ -6,6 +6,10 @@ header > nav {
 	margin-bottom: 0 !important;
 }
 
+.margin-top {
+	margin-top: 32px;
+}
+
 .no-outline {
 	outline: none;
 }
@@ -17,6 +21,10 @@ header > nav {
 	font-size: 1rem;
 	line-height: 0;
 	cursor: pointer;
+}
+
+.input-button {
+	height: 3rem;
 }
 
 .intro header {
@@ -174,6 +182,13 @@ header > nav {
 .project .sidebar .card-content > * {
 	margin: 0;
 	text-align: center;
+}
+
+.task-worker {
+	border-radius: 50%;
+	width: 32px;
+	height: 32px;
+	margin: 0 4px;
 }
 
 .new-project .parallax-container,
