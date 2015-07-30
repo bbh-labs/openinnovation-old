@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"bbhoi.com/debug"
-	"bbhoi.com/formutil"
 	"bbhoi.com/httputil"
 	"bbhoi.com/response"
 )
@@ -182,6 +181,8 @@ func TrendingProjects(count int64) ([]Project, error) {
 }
 
 func LatestProjects(w http.ResponseWriter, r *http.Request) {
+	var parser Parser
+
 	const rawSQL = `
 	SELECT * FROM project
 	ORDER BY created_at DESC LIMIT $1`
@@ -191,13 +192,14 @@ func LatestProjects(w http.ResponseWriter, r *http.Request) {
 	WHERE title ~* $1
 	ORDER BY created_at DESC LIMIT $2`
 
-	count, err := formutil.Number(r, "count")
-	if err != nil {
+	count := parser.Int(r.FormValue("count"))
+	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
 
 	var projects []Project
+	var err error
 
 	title := r.FormValue("title")
 	if title != "" {
@@ -286,8 +288,10 @@ func isMember(projectID, userID int64) bool {
 }
 
 func (u user) GetProject(w http.ResponseWriter, r *http.Request) {
-	projectID, err := formutil.Number(r, "projectID")
-	if err != nil {
+	var parser Parser
+
+	projectID := parser.Int(r.FormValue("projectID"))
+	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
@@ -309,12 +313,14 @@ func (u user) GetProject(w http.ResponseWriter, r *http.Request) {
 }
 
 func SetFeaturedProject(w http.ResponseWriter, r *http.Request) {
+	var parser Parser
+
 	const existSQL = `
 	SELECT COUNT(*) FROM featured_project
 	WHERE project_id = $1`
 
-	projectID, err := formutil.Number(r, "projectID")
-	if err != nil {
+	projectID := parser.Int(r.FormValue("projectID"))
+	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
@@ -333,11 +339,13 @@ func SetFeaturedProject(w http.ResponseWriter, r *http.Request) {
 }
 
 func UnsetFeaturedProject(w http.ResponseWriter, r *http.Request) {
+	var parser Parser
+
 	const rawSQL = `
 	DELETE FROM featured_project WHERE project_id = $1`
 
-	projectID, err := formutil.Number(r, "projectID")
-	if err != nil {
+	projectID := parser.Int(r.FormValue("projectID"))
+	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}

@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"bbhoi.com/debug"
-	"bbhoi.com/formutil"
 	"bbhoi.com/httputil"
 	"bbhoi.com/response"
 	"bbhoi.com/session"
@@ -272,8 +271,10 @@ func (u user) updateAvatarURL(url string) error {
 }
 
 func (u user) CreatedProjects(w http.ResponseWriter, r *http.Request) {
-	userID, err := formutil.Number(r, "userID")
-	if err != nil {
+	var parser Parser
+
+	userID := parser.Int(r.FormValue("userID"))
+	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
@@ -290,8 +291,10 @@ func (u user) CreatedProjects(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u user) InvolvedProjects(w http.ResponseWriter, r *http.Request) {
-	userID, err := formutil.Number(r, "userID")
-	if err != nil {
+	var parser Parser
+
+	userID := parser.Int(r.FormValue("userID"))
+	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
@@ -311,8 +314,10 @@ func (u user) InvolvedProjects(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u user) CompletedProjects(w http.ResponseWriter, r *http.Request) {
-	userID, err := formutil.Number(r, "userID")
-	if err != nil {
+	var parser Parser
+
+	userID := parser.Int(r.FormValue("userID"))
+	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
@@ -529,8 +534,10 @@ func deleteProject(projectID int64) error {
 }
 
 func (u user) JoinProject(w http.ResponseWriter, r *http.Request) {
-	projectID, err := formutil.Number(r, "projectID")
-	if err != nil {
+	var parser Parser
+
+	projectID := parser.Int(r.FormValue("parser"))
+	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
@@ -659,12 +666,14 @@ func (u user) UnassignWorker(w http.ResponseWriter, r *http.Request) {
 }
 
 func SetAdmin(w http.ResponseWriter, r *http.Request) {
+	var parser Parser
+
 	const rawSQL = `
 	UPDATE user_ WHERE id = $1 WHERE is_admin = false
 	SET is_admin = true`
 
-	userID, err := formutil.Number(r, "userID")
-	if err != nil {
+	userID := parser.Int(r.FormValue("userID"))
+	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
@@ -675,12 +684,14 @@ func SetAdmin(w http.ResponseWriter, r *http.Request) {
 }
 
 func UnsetAdmin(w http.ResponseWriter, r *http.Request) {
+	var parser Parser
+
 	const rawSQL = `
 	UPDATE user_ WHERE id = $1 WHERE is_admin = true
 	SET is_admin = false`
 
-	id, err := formutil.Number(r, "id")
-	if err != nil {
+	id := parser.Int(r.FormValue("id"))
+	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
@@ -691,8 +702,10 @@ func UnsetAdmin(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAdmins(w http.ResponseWriter, r *http.Request) {
-	count, err := formutil.Number(r, "count")
-	if err != nil {
+	var parser Parser
+
+	count := parser.Int(r.FormValue("count"))
+	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}

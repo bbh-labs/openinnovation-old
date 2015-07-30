@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"bbhoi.com/debug"
-	"bbhoi.com/formutil"
 	"bbhoi.com/response"
 )
 
@@ -176,8 +175,10 @@ func deleteTask(params deleteTaskParams) error {
 }
 
 func GetTask(w http.ResponseWriter, r *http.Request) {
-	taskID, err := formutil.Number(r, "taskID")
-	if err != nil {
+	var parser Parser
+
+	taskID := parser.Int(r.FormValue("taskID"))
+	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}

@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"bbhoi.com/debug"
-	"bbhoi.com/formutil"
 	"bbhoi.com/response"
 )
 
@@ -15,8 +14,10 @@ const (
 )
 
 func GetMembers(w http.ResponseWriter, r *http.Request) {
-	projectID, err := formutil.Number(r, "projectID")
-	if err != nil {
+	var parser Parser
+
+	projectID := parser.Int(r.FormValue("projectID"))
+	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
@@ -40,8 +41,11 @@ func getMembers(projectID int64) ([]User, error) {
 }
 
 func (u user) AddMember(w http.ResponseWriter, r *http.Request) {
-	projectID, err := formutil.Number(r, "projectID")
-	if err != nil {
+	var parser Parser
+
+	projectID := parser.Int(r.FormValue("projectID"))
+	userID:= parser.Int(r.FormValue("userID"))
+	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
@@ -51,31 +55,17 @@ func (u user) AddMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := formutil.Number(r, "userID")
-	if err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
 	if memberExists(projectID, userID) {
 		response.OK(w, nil)
 		return
 	}
 
-	if err = addMember(projectID, userID); err != nil {
+	if err := addMember(projectID, userID); err != nil {
 		response.ServerError(w, err)
 		return
 	}
 
 	response.OK(w, nil)
-}
-
-func memberExists(projectID, userID int64) bool {
-	const rawSQL = `
-	SELECT COUNT(*) FROM member
-	WHERE project_id = $1 AND user_id = $2`
-
-	return exists(rawSQL)
 }
 
 func addMember(projectID, userID int64) error {
@@ -87,4 +77,40 @@ func addMember(projectID, userID int64) error {
 	}
 
 	return nil
+}
+
+func memberExists(projectID, userID int64) bool {
+	const rawSQL = `
+	SELECT COUNT(*) FROM member
+	WHERE project_id = $1 AND user_id = $2`
+
+	return exists(rawSQL)
+}
+
+func (u user) RemoveMember(w http.ResponseWriter, r *http.Request) {
+	var parser Parser
+
+	projectID := parser.Int(r.FormValue("projectID"))
+	userID := parser.Int(r.FormValue("userID"))
+	if parser.Err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	if !u.IsAuthor(projectID) {
+		response.ClientError(w, http.StatusForbidden)
+		return
+	}
+
+	if memberExists(projectID, userID) {
+		response.OK(w, nil)
+		return
+	}
+
+	if err := addMember(projectID, userID); err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	response.OK(w, nil)
 }

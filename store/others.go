@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"bbhoi.com/formutil"
 	"bbhoi.com/response"
 )
 
@@ -24,12 +23,14 @@ type FeaturedProject struct {
 }
 
 func FeaturedProjects(w http.ResponseWriter, r *http.Request) {
+	var parser Parser
+
 	const rawSQL = `SELECT project.* FROM featured_project
 	                INNER JOIN project ON project.id = featured_project.project_id
 					LIMIT $1`
 
-	count, err := formutil.Number(r, "count") 
-	if err != nil {
+	count := parser.Int(r.FormValue("count"))
+	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
