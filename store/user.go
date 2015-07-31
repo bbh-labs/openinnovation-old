@@ -335,13 +335,13 @@ func (u user) CompletedProjects(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, ps)
 }
 
-func (u user) CreatedProjectsCount() int64 {
+func (u user) CreatedProjectsCount() (int64, error) {
 	const q = `SELECT COUNT(*) FROM project WHERE authorID = $1`
 
 	return count(q, u.ID_)
 }
 
-func (u user) InvolvedProjectsCount() int64 {
+func (u user) InvolvedProjectsCount() (int64, error) {
 	const q = `
 	SELECT COUNT(project.*) FROM project
 	INNER JOIN member ON member.projectID = project.id
@@ -350,7 +350,7 @@ func (u user) InvolvedProjectsCount() int64 {
 	return count(q, u.ID_)
 }
 
-func (u user) CompletedProjectsCount() int64 {
+func (u user) CompletedProjectsCount() (int64, error) {
 	const q = `
 	SELECT COUNT(project.*) FROM project
 	WHERE status = 'completed' AND project.authorID = $1`
@@ -358,7 +358,7 @@ func (u user) CompletedProjectsCount() int64 {
 	return count(q, u.ID_)
 }
 
-func MaxCreatedProjectsCount() int64 {
+func MaxCreatedProjectsCount() (int64, error) {
 	const q = `
 	SELECT MAX(n) FROM (
 		SELECT COUNT(*) AS n FROM project
@@ -368,7 +368,7 @@ func MaxCreatedProjectsCount() int64 {
 	return count(q)
 }
 
-func MaxInvolvedProjectsCount() int64 {
+func MaxInvolvedProjectsCount() (int64, error) {
 	const q = `
 	SELECT MAX(n) FROM (
 		SELECT COUNT(project.*) AS n FROM project
@@ -379,7 +379,7 @@ func MaxInvolvedProjectsCount() int64 {
 	return count(q)
 }
 
-func MaxCompletedProjectsCount() int64 {
+func MaxCompletedProjectsCount() (int64, error) {
 	const q = `
 	SELECT MAX(n) FROM (
 		SELECT COUNT(project.*) AS n FROM project
@@ -646,6 +646,14 @@ func (u user) AssignWorker(w http.ResponseWriter, r *http.Request) {
 	userID := parser.Int(r.FormValue("userID"))
 	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	if r.FormValue("toggle") == "true" {
+		if err := toggleWorker(taskID, userID, u.ID_); err != nil {
+			response.ServerError(w, err)
+		}
+		response.OK(w, taskID)
 		return
 	}
 

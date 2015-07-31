@@ -50,6 +50,9 @@ func insertWorker(taskID, userID, assignerID int64) error {
 	INSERT INTO worker (task_id, user_id, assigner_id, created_at)
 	VALUES ($1, $2, $3, now())`
 
+	const existSQL = `
+	SELECT COUNT(*) FROM worker WHERE task_id = $1 AND user_id = $2`
+
 	if _, err := db.Exec(rawSQL, taskID, userID, assignerID); err != nil {
 		return debug.Error(err)
 	}
@@ -59,11 +62,40 @@ func insertWorker(taskID, userID, assignerID int64) error {
 
 func deleteWorker(taskID, userID int64) error {
 	const rawSQL = `
-	DELETE FROM worker WHERE task_id = $1 AND user_id = $1`
+	DELETE FROM worker WHERE task_id = $1 AND user_id = $2`
 
 	if _, err := db.Exec(rawSQL, taskID, userID); err != nil {
 		return debug.Error(err)
 	}
 
 	return nil
+}
+
+func toggleWorker(taskID, userID, assignerID int64) error {
+	var is bool
+	var err error
+
+	if is, err = isWorker(taskID, userID); err != nil {
+		return debug.Error(err)
+	}
+
+	if is {
+		if err = deleteWorker(taskID, userID); err != nil {
+			return debug.Error(err)
+		}
+	} else {
+		if err = insertWorker(taskID, userID, assignerID); err != nil {
+			return debug.Error(err)
+		}
+	}
+
+	return nil
+}
+
+func isWorker(taskID, userID int64) (bool, error) {
+	const rawSQL = `
+	SELECT COUNT(*) FROM worker
+	WHERE task_id = $1 AND user_id = $2`
+
+	return exists(rawSQL, taskID, userID)
 }

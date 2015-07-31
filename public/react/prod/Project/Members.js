@@ -69,7 +69,9 @@ Project.Members.Item = React.createClass({displayName: "Item",
 				React.createElement("img", {className: "circle", src: "images/profile-pics/1.jpg"}), 
 				React.createElement("span", {className: "title"}, React.createElement("strong", null, member.fullname)), 
 				React.createElement("p", null, member.title), 
-				React.createElement(Link, {to: "user", params: {userID: member.id}, className: "secondary-content"}, React.createElement("i", {className: "material-icons"}, "send"))
+				React.createElement(Link, {to: "user", params: {userID: member.id}, className: "secondary-content"}, 
+					React.createElement("i", {className: "material-icons"}, "send")
+				)
 			)
 		)
 	},

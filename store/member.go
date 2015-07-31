@@ -55,7 +55,10 @@ func (u user) AddMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if memberExists(projectID, userID) {
+	if exists, err := memberExists(projectID, userID); err != nil {
+		response.ServerError(w, err)
+		return
+	} else if exists {
 		response.OK(w, nil)
 		return
 	}
@@ -79,7 +82,7 @@ func addMember(projectID, userID int64) error {
 	return nil
 }
 
-func memberExists(projectID, userID int64) bool {
+func memberExists(projectID, userID int64) (bool, error) {
 	const rawSQL = `
 	SELECT COUNT(*) FROM member
 	WHERE project_id = $1 AND user_id = $2`
@@ -102,7 +105,10 @@ func (u user) RemoveMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if memberExists(projectID, userID) {
+	if exists, err := memberExists(projectID, userID); err != nil {
+		response.ServerError(w, err)
+		return
+	} else if exists {
 		response.OK(w, nil)
 		return
 	}

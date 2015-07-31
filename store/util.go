@@ -28,3 +28,11 @@ func (p *Parser) Time(s string) time.Time {
 	t, p.Err = time.Parse(`2 January, 2006`, s)
 	return t
 }
+
+func (p *Parser) Bool(s string) bool {
+	if p.Err != nil {
+		return false
+	}
+
+	return s == "true"
+}

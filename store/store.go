@@ -70,18 +70,18 @@ func tableExists(name string) (bool, error) {
 	return rows.Next(), nil
 }
 
-func exists(rawSQL string, data ...interface{}) bool {
+func exists(rawSQL string, data ...interface{}) (bool, error) {
 	var count int64
 	if err := db.QueryRow(rawSQL, data...).Scan(&count); err != nil {
-		return false
+		return false, err
 	}
-	return count > 0
+	return count > 0, nil
 }
 
-func count(rawSQL string, data ...interface{}) int64 {
+func count(rawSQL string, data ...interface{}) (int64, error) {
 	var count int64
 	if err := db.QueryRow(rawSQL, data...).Scan(&count); err != nil {
-		return 0
+		return 0, err
 	}
-	return count
+	return count, nil
 }

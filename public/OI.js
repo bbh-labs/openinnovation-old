@@ -110,19 +110,27 @@ var OI = {
 			data: data,
 		});
 	},
+	deleteTask: function(data) {
+		this.api("deleteTask", {
+			url: "/api/task?taskID=" + data.taskID + "&projectID=" + data.projectID,
+			method: "DELETE",
+			dataType: "json"
+		});
+	},
+	getTask: function(data) {
+		this.api("getTask", {
+			url: "/api/task",
+			method: "GET",
+			dataType: "json",
+			data: data,
+		});
+	},
 	toggleTaskStatus: function(data) {
 		this.api("toggleTaskStatus", {
 			url: "/api/task",
 			method: "PUT",
 			dataType: "json",
 			data: m(data, {type: "toggleStatus"}),
-		});
-	},
-	deleteTask: function(data) {
-		this.api("deleteTask", {
-			url: "/api/task?taskID=" + data.taskID + "&projectID=" + data.projectID,
-			method: "DELETE",
-			dataType: "json"
 		});
 	},
 	getProjectTasks: function(data) {
@@ -135,8 +143,16 @@ var OI = {
 	},
 	getProjectMembers: function(data) {
 		this.api("getProjectMembers", {
-			url: "/api/member",
+			url: "/api/project/member",
 			method: "GET",
+			dataType: "json",
+			data: data,
+		});
+	},
+	assignWorker: function(data) {
+		this.api("assignWorker", {
+			url: "/api/task/worker",
+			method: "POST",
 			dataType: "json",
 			data: data,
 		});

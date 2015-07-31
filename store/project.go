@@ -325,7 +325,10 @@ func SetFeaturedProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if exists(existSQL, projectID) {
+	if exists, err := exists(existSQL, projectID); err != nil {
+		response.ServerError(w, debug.Error(err))
+		return
+	} else if exists {
 		response.OK(w, nil)
 		return
 	}
@@ -334,7 +337,7 @@ func SetFeaturedProject(w http.ResponseWriter, r *http.Request) {
 	INSERT INTO featured_project (project_id, created_at) VALUES ($1, now())`
 
 	if _, err := db.Exec(rawSQL, projectID); err != nil {
-		response.ServerError(w, err)
+		response.ServerError(w, debug.Error(err))
 	}
 }
 

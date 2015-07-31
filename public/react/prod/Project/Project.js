@@ -38,6 +38,22 @@ var Project = React.createClass({displayName: "Project",
 				project.tasks = payload.data.data;
 				this.setState({project: project});
 				break;
+			case "assignWorkerDone":
+				OI.getTask({taskID: payload.data.data});
+				break;
+			case "getTaskDone":
+				var project = this.state.project;
+				var tasks = project.tasks;
+				var task = payload.data.data;
+				for (var i = 0; i < tasks.length; i++) {
+					if (tasks[i].id = task.id) {
+						tasks[i] = task;
+						project.tasks = tasks;
+						this.setState({project: project});
+						break;
+					}
+				}
+				break;
 			}
 		}.bind(this));
 	},
@@ -49,11 +65,13 @@ var Project = React.createClass({displayName: "Project",
 		if (!project) {
 			return React.createElement("div", null)
 		}
+
 		var user = this.props.user;
+		var currentTask = this.state.currentTask;
 		return (
 			React.createElement("main", {className: "project"}, 
 				React.createElement(Project.Cover, {user: user, project: project}), 
-				React.createElement(Project.Content, {user: user, project: project})
+				React.createElement(Project.Content, {user: user, project: project, currentTask: currentTask})
 			)
 		)
 	},
@@ -98,6 +116,7 @@ Project.Content = React.createClass({displayName: "Content",
 	render: function() {
 		var user = this.props.user;
 		var project = this.props.project;
+		var currentTask = this.props.currentTask;
 		return (
 			React.createElement("div", {className: "row container"}, 
 				React.createElement("div", {className: "col s12"}, 
@@ -109,7 +128,7 @@ Project.Content = React.createClass({displayName: "Content",
 					)
 				), 
 				React.createElement(Project.Overview, {user: user, project: project}), 
-				React.createElement(Project.Tasks, {user: user, project: project}), 
+				React.createElement(Project.Tasks, {user: user, project: project, currentTask: currentTask}), 
 				React.createElement(Project.Milestones, {user: user, project: project}), 
 				React.createElement(Project.Members, {user: user, project: project})
 			)

@@ -181,6 +181,18 @@ func projectJoin(w http.ResponseWriter, r *http.Request) {
 }
 
 //
+// /project/member
+//
+func member(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		store.GetMembers(w, r)
+	default:
+		response.ClientError(w, http.StatusMethodNotAllowed)
+	}
+}
+
+//
 // /task
 //
 func task(w http.ResponseWriter, r *http.Request) {
@@ -213,19 +225,7 @@ func task(w http.ResponseWriter, r *http.Request) {
 }
 
 //
-// /member
-//
-func member(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		store.GetMembers(w, r)
-	default:
-		response.ClientError(w, http.StatusMethodNotAllowed)
-	}
-}
-
-//
-// /worker
+// /task/worker
 //
 func worker(w http.ResponseWriter, r *http.Request) {
 	user := context.Get(r, "user").(store.User)

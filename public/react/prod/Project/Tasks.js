@@ -1,6 +1,6 @@
 Project.Tasks = React.createClass({displayName: "Tasks",
 	getInitialState: function() {
-		return {titles: []};
+		return {titles: [], selectedTask: null};
 	},
 	componentDidMount: function() {
 		$.ajax({
@@ -16,9 +16,21 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 		$(React.findDOMNode(this.refs.modalTrigger)).leanModal({
 			dismissable: true,
 		});
+
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "selectedTask":
+				this.setState({selectedTask: this.selectedTask(payload.data)});
+				break;
+			}
+		}.bind(this));
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
 		var project = this.props.project;
+		var selectedTask = this.state.selectedTask;
 		return (
 			React.createElement("div", {id: "project-tasks", className: "col s12"}, 
 				React.createElement("div", {className: "main col l9"}, 
@@ -43,8 +55,6 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 						)
 					), 
 					React.createElement("div", {className: "col s12"}, 
-						React.createElement(Project.Tasks.Modal, {id: "create-task", project: project, type: "create"}), 
-						React.createElement(Project.Tasks.Modal, {id: "view-task", project: project, type: "view"}), 
 						React.createElement("ul", {className: "collection"}, 
 							this.unfinishedTaskElements()
 						)
@@ -63,9 +73,9 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 						)
 					), 
 					React.createElement("div", {className: "col s12"}, 
-						React.createElement(Project.Tasks.WorkersModal, null), 
-						React.createElement(Project.Tasks.Modal, {id: "create-task", project: project, type: "create"}), 
-						React.createElement(Project.Tasks.Modal, {id: "view-task", project: project, type: "view"}), 
+						React.createElement(Project.Tasks.WorkersModal, {project: project, selectedTask: selectedTask}), 
+						React.createElement(Project.Tasks.Modal, {id: "create-task", project: project, selectedTask: selectedTask, type: "create"}), 
+						React.createElement(Project.Tasks.Modal, {id: "view-task", project: project, selectedTask: selectedTask, type: "view"}), 
 						React.createElement("ul", {className: "collection"}, 
 							this.finishedTaskElements()
 						)
@@ -106,6 +116,20 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 			return React.createElement("option", {key: p, value: p}, p)
 		});
 	},
+	selectedTask: function(taskID) {
+		var tasks = this.props.project.tasks;
+		if (!tasks) {
+			return null;
+		}
+
+		for (var i = 0; i < tasks.length; i++) {
+			if (tasks[i].id == taskID) {
+				return tasks[i];
+			}
+		}
+
+		return null;
+	},
 });
 
 Project.Tasks.Item = React.createClass({displayName: "Item",
@@ -125,9 +149,7 @@ Project.Tasks.Item = React.createClass({displayName: "Item",
 					task.title
 				), 
 				React.createElement("div", {className: "secondary-content"}, 
-					React.createElement("img", {className: "task-worker", src: "images/profile-pics/1.jpg"}), 
-					React.createElement("img", {className: "task-worker", src: "images/profile-pics/1.jpg"}), 
-					React.createElement("img", {className: "task-worker", src: "images/profile-pics/1.jpg"}), 
+					this.workerElements(), 
 					this.doneElement()
 				)
 			)
@@ -135,9 +157,10 @@ Project.Tasks.Item = React.createClass({displayName: "Item",
 	},
 	handleClick: function(e) {
 		dispatcher.dispatch({
-			type: "viewTask",
-			data: this.props.task,
+			type: "selectedTask",
+			data: this.props.task.id,
 		});
+
 		e.preventDefault();
 	},
 	handleToggleStatus: function(e) {
@@ -149,12 +172,34 @@ Project.Tasks.Item = React.createClass({displayName: "Item",
 	handleMouseLeave: function(e) {
 		this.setState({hovering: false});
 	},
+	workerElements: function(e) {
+		var workers = this.props.task.workers;
+		if (!workers) {
+			workers = [];
+		}
+		return workers.map(function(w) {
+			return React.createElement(Project.Tasks.Worker, {worker: w})
+		});
+	},
 	doneElement: function(e) {
 		var task = this.props.task;
-		var done = task.done;
-		return React.createElement("i", {style: {cursor: "pointer", visibility: this.state.hovering || done ? "visible" : "hidden"}, 
+		return React.createElement("i", {style: {cursor: "pointer", visibility: this.state.hovering || task.done ? "visible" : "hidden"}, 
 				  onClick: this.handleToggleStatus, 
-				  className: classNames("material-icons", done && "green-text")}, "done")
+				  className: classNames("material-icons", task.done && "green-text")}, "done")
+	},
+});
+
+Project.Tasks.Worker = React.createClass({displayName: "Worker",
+	componentDidMount: function() {
+		$(React.findDOMNode(this)).tooltip({delay: 50});
+	},
+	render: function() {
+		var worker = this.props.worker;
+		return React.createElement("img", {className: "task-worker tooltipped", 
+					"data-position": "bottom", 
+					"data-delay": "50", 
+					"data-tooltip": worker.fullname, 
+					src: "images/profile-pics/1.jpg"})
 	},
 });
 
@@ -162,19 +207,23 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 	componentDidMount: function() {
 		var tags = React.findDOMNode(this.refs.tags);
 		$(tags).tagsInput();
-
-		if (this.props.type == "view") {
-			this.dispatchID = dispatcher.register(function(payload) {
-				switch (payload.type) {
-				case "viewTask":
-					this.loadTask(payload.data);
-					break;
-				}
-			}.bind(this));
-		}
-
+	
 		var modalTrigger = React.findDOMNode(this.refs.modalTrigger);
 		$(modalTrigger).leanModal();
+	},
+	componentDidUpdate: function() {
+		var form = React.findDOMNode(this);
+		var task = this.props.selectedTask;
+		if (!task) {
+			return;
+		}
+
+		form.elements["taskID"].value = task.id;
+		form.elements["title"].value = task.title;
+		form.elements["description"].value = task.description;
+		form.elements["startDate"].value = task.startDateStr;
+		form.elements["endDate"].value = task.endDateStr;
+		form.elements["tags"].value = task.tags;
 	},
 	componentWillUnmount: function() {
 		if (this.props.type == "view") {
@@ -209,7 +258,9 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 						React.createElement("div", {className: "input-field col s12"}, 
 							React.createElement("input", {name: "tags", ref: "tags", readOnly: readOnly})
 						), 
-						React.createElement("a", {className: "waves-effect waves-light btn modal-trigger", href: "#modal-workers", ref: "modalTrigger"}, "Workers"), 
+						React.createElement("div", {className: "col s12 margin-top"}, 
+							React.createElement("a", {className: "waves-effect waves-light btn modal-trigger", href: "#modal-workers", ref: "modalTrigger"}, "Assign Someone")
+						), 
 						React.createElement("input", {name: "taskID", type: "hidden"}), 
 						React.createElement("input", {name: "projectID", type: "hidden", value: project.id})
 					)
@@ -252,29 +303,85 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 			taskID: form.elements["taskID"].value,
 		});
 	},
-	loadTask: function(task) {
-		var form = React.findDOMNode(this);
-		form.elements["taskID"].value = task.id;
-		form.elements["title"].value = task.title;
-		form.elements["description"].value = task.description;
-		form.elements["startDate"].value = task.startDateStr;
-		form.elements["endDate"].value = task.endDateStr;
-		form.elements["tags"].value = task.tags;
-	},
 });
 
 Project.Tasks.WorkersModal = React.createClass({displayName: "WorkersModal",
+	componentDidMount: function() {
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "viewWorkersModal":
+				break;
+			}
+		}.bind(this));
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
 	render: function() {
+		var task = this.props.selectedTask;
+		if (!task) {
+			return React.createElement("div", null)
+		}
 		return (
 			React.createElement("div", {id: "modal-workers", className: "modal bottom-sheet"}, 
 				React.createElement("div", {className: "modal-content"}, 
-					React.createElement("h4", null, "Modal Header"), 
-					React.createElement("p", null, "A bunch of text")
-				), 
-				React.createElement("div", {className: "modal-footer"}, 
-					React.createElement("a", {href: "#", className: "modal-action modal-close waves-effect waves-green btn-flat"}, "Agree")
+					React.createElement("div", {className: "container"}, 
+						React.createElement("ul", {className: "collection"}, 
+							this.props.project.members.map(function(m) {
+								return React.createElement(Project.Tasks.WorkersModal.Item, {key: m.id, member: m, isWorker: this.isWorker(m), taskID: task.id})
+							}.bind(this))
+						)
+					)
 				)
 			)
 		)
+	},
+	isWorker: function(member) {
+		var task = this.props.selectedTask;
+		if (!task) {
+			return;
+		}
+	
+		var workers = task.workers;
+		if (!workers) {
+			workers = [];
+		}
+
+		for (var i = 0; i < workers.length; i++) {
+			if (workers[i].id == member.id) {
+				return true;
+			}
+		}
+
+		return false;
+	},
+});
+
+Project.Tasks.WorkersModal.Item = React.createClass({displayName: "Item",
+	render: function() {
+		var member = this.props.member;
+		var isWorker = this.props.isWorker;
+		return (
+			React.createElement("li", {className: classNames("collection-item avatar pointer", isWorker && "teal white-text"), onClick: this.handleClick}, 
+				React.createElement("img", {className: "circle", src: "images/profile-pics/1.jpg"}), 
+				React.createElement("span", {className: "title"}, React.createElement("strong", null, member.fullname)), 
+				React.createElement("p", null, member.title), 
+				React.createElement(Link, {to: "user", params: {userID: member.id}, className: "secondary-content"}, 
+					React.createElement("i", {className: "material-icons"}, "send")
+				)
+			)
+		)
+	},
+	handleClick: function(e) {
+		var taskID = this.props.taskID;
+		var memberID = this.props.member.id;
+
+		OI.assignWorker({
+			taskID: taskID,
+			userID: memberID,
+			toggle: true,
+		});
+
+		e.preventDefault();
 	},
 });

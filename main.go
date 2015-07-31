@@ -31,8 +31,9 @@ func main() {
 	apiRouter.Handle("/api/logout", p("logout", logout))
 	apiRouter.Handle("/api/user", p("user", user))
 	apiRouter.Handle("/api/project", p("project", project))
-	apiRouter.Handle("/api/task", p("task", task))
-	apiRouter.Handle("/api/member", p("task", task))
+	apiRouter.Handle("/api/project/member", p("/task/member", member))
+	apiRouter.Handle("/api/task", p("/task", task))
+	apiRouter.Handle("/api/task/worker", p("/task/worker", worker))
 	router.PathPrefix("/api").Handler(negroni.New(
 		negroni.HandlerFunc(apiMiddleware),
 		negroni.Wrap(apiRouter),

@@ -202,7 +202,7 @@ func getTask(taskID int64) (Task, error) {
 	var err error
 
 	const rawSQL = `
-	SELECT * FROM task
+	SELECT * FROM task WHERE id = $1
 	ORDER BY created_at DESC LIMIT 1`
 
 	if err = db.QueryRow(rawSQL, taskID).Scan(
@@ -228,6 +228,9 @@ func getTask(taskID int64) (Task, error) {
 	t.TagsArray = strings.Split(t.Tags, ",")
 	t.StartDateStr = t.StartDate.Format("02 Jan, 2006")
 	t.EndDateStr = t.EndDate.Format("02 Jan, 2006")
+	if t.Workers, err = getWorkers(t.ID); err != nil {
+		return nil, debug.Error(err)
+	}
 
 	return t, nil
 }
@@ -328,6 +331,9 @@ func queryTasks(rawSQL string, data ...interface{}) ([]Task, error) {
 		t.TagsArray = strings.Split(t.Tags, ",")
 		t.StartDateStr = t.StartDate.Format("02 January, 2006")
 		t.EndDateStr = t.EndDate.Format("02 January, 2006")
+		if t.Workers, err = getWorkers(t.ID); err != nil {
+			return nil, debug.Error(err)
+		}
 
 		ts = append(ts, t)
 	}

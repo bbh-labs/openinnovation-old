@@ -38,6 +38,22 @@ var Project = React.createClass({
 				project.tasks = payload.data.data;
 				this.setState({project: project});
 				break;
+			case "assignWorkerDone":
+				OI.getTask({taskID: payload.data.data});
+				break;
+			case "getTaskDone":
+				var project = this.state.project;
+				var tasks = project.tasks;
+				var task = payload.data.data;
+				for (var i = 0; i < tasks.length; i++) {
+					if (tasks[i].id = task.id) {
+						tasks[i] = task;
+						project.tasks = tasks;
+						this.setState({project: project});
+						break;
+					}
+				}
+				break;
 			}
 		}.bind(this));
 	},
@@ -49,11 +65,13 @@ var Project = React.createClass({
 		if (!project) {
 			return <div/>
 		}
+
 		var user = this.props.user;
+		var currentTask = this.state.currentTask;
 		return (
 			<main className="project">
 				<Project.Cover user={user} project={project} />
-				<Project.Content user={user} project={project} />
+				<Project.Content user={user} project={project} currentTask={currentTask} />
 			</main>
 		)
 	},
@@ -98,6 +116,7 @@ Project.Content = React.createClass({
 	render: function() {
 		var user = this.props.user;
 		var project = this.props.project;
+		var currentTask = this.props.currentTask;
 		return (
 			<div className="row container">
 				<div className="col s12">
@@ -109,7 +128,7 @@ Project.Content = React.createClass({
 					</ul>
 				</div>
 				<Project.Overview user={user} project={project} />
-				<Project.Tasks user={user} project={project} />
+				<Project.Tasks user={user} project={project} currentTask={currentTask} />
 				<Project.Milestones user={user} project={project} />
 				<Project.Members user={user} project={project} />
 			</div>
