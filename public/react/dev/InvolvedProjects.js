@@ -1,5 +1,22 @@
 var InvolvedProjects = React.createClass({
+	getInitialState: function() {
+		return {projects: []};
+	},
 	componentDidMount: function() {
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "involvedProjectsDone":
+				this.setState({projects: payload.data.data});
+				break;
+			case "involvedProjectsFail":
+				Materialize.toast(payload.data.responseText, 1000, "red white-text");
+				break;
+			}
+		}.bind(this));
+
+		OI.involvedProjects({userID: this.props.userID});
+	},
+	componentDidUpdate: function() {
 		var slides = React.findDOMNode(this.refs.slides);
 		$(slides).owlCarousel({
 			loop: true,
@@ -20,14 +37,19 @@ var InvolvedProjects = React.createClass({
 			},
 		});
 	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
 	render: function() {
 		return (
 			<div className="involved-projects card">
 				<div className="card-content">
 					<h5>Involved Projects</h5>
-					<div ref="slides">
-						{this.projectElements()}
-					</div>
+					<div ref="slides">{
+						this.state.projects.map(function(p) {
+							return <InvolvedProjects.Item key={p.id} project={p} />
+						})
+					}</div>
 				</div>
 				<div className="card-action">
 					<a href="#" className="mdl-button">View More</a>
@@ -35,18 +57,13 @@ var InvolvedProjects = React.createClass({
 			</div>
 		)
 	},
-	projectElements: function() {
-		return buildElements(PROJECTS, function(i, p) {
-			return <InvolvedProjects.Item project={p} />
-		});
-	},
 });
 
 InvolvedProjects.Item = React.createClass({
 	render: function() {
 		var p = this.props.project;
 		return (
-			<img src={p.imageURL} />
+			<img className="img-responsive" src={p.imageURL} />
 		)
 	},
 });

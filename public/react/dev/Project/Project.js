@@ -53,6 +53,8 @@ var Project = React.createClass({
 						break;
 					}
 				}
+
+				this.refs.content.updateSelectedTask();
 				break;
 			}
 		}.bind(this));
@@ -71,7 +73,7 @@ var Project = React.createClass({
 		return (
 			<main className="project">
 				<Project.Cover user={user} project={project} />
-				<Project.Content user={user} project={project} currentTask={currentTask} />
+				<Project.Content ref="content" user={user} project={project} currentTask={currentTask} />
 			</main>
 		)
 	},
@@ -133,5 +135,7 @@ Project.Content = React.createClass({
 				<Project.Members user={user} project={project} />
 			</div>
 		)
+	},
+	updateSelectedTask: function() {
 	},
 });

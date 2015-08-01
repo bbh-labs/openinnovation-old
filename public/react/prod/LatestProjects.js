@@ -37,7 +37,7 @@ var LatestProjects = React.createClass({displayName: "LatestProjects",
 	},
 	projectElements: function() {
 		return buildElements(PROJECTS, function(i, p) {
-			return React.createElement(LatestProjects.Item, {project: p})
+			return React.createElement(LatestProjects.Item, {key: p.id, project: p})
 		});
 	},
 });

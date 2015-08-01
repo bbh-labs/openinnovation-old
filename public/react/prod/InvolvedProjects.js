@@ -1,5 +1,22 @@
 var InvolvedProjects = React.createClass({displayName: "InvolvedProjects",
+	getInitialState: function() {
+		return {projects: []};
+	},
 	componentDidMount: function() {
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "involvedProjectsDone":
+				this.setState({projects: payload.data.data});
+				break;
+			case "involvedProjectsFail":
+				Materialize.toast(payload.data.responseText, 1000, "red white-text");
+				break;
+			}
+		}.bind(this));
+
+		OI.involvedProjects({userID: this.props.userID});
+	},
+	componentDidUpdate: function() {
 		var slides = React.findDOMNode(this.refs.slides);
 		$(slides).owlCarousel({
 			loop: true,
@@ -20,13 +37,18 @@ var InvolvedProjects = React.createClass({displayName: "InvolvedProjects",
 			},
 		});
 	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
 	render: function() {
 		return (
 			React.createElement("div", {className: "involved-projects card"}, 
 				React.createElement("div", {className: "card-content"}, 
 					React.createElement("h5", null, "Involved Projects"), 
 					React.createElement("div", {ref: "slides"}, 
-						this.projectElements()
+						this.state.projects.map(function(p) {
+							return React.createElement(InvolvedProjects.Item, {key: p.id, project: p})
+						})
 					)
 				), 
 				React.createElement("div", {className: "card-action"}, 
@@ -35,18 +57,13 @@ var InvolvedProjects = React.createClass({displayName: "InvolvedProjects",
 			)
 		)
 	},
-	projectElements: function() {
-		return buildElements(PROJECTS, function(i, p) {
-			return React.createElement(InvolvedProjects.Item, {project: p})
-		});
-	},
 });
 
 InvolvedProjects.Item = React.createClass({displayName: "Item",
 	render: function() {
 		var p = this.props.project;
 		return (
-			React.createElement("img", {src: p.imageURL})
+			React.createElement("img", {className: "img-responsive", src: p.imageURL})
 		)
 	},
 });

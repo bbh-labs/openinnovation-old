@@ -38,10 +38,6 @@ type User interface {
 	UpdateInterests(w http.ResponseWriter, r *http.Request)
 	SaveAvatar(w http.ResponseWriter, r *http.Request)
 
-	CreatedProjects(w http.ResponseWriter, r *http.Request)
-	InvolvedProjects(w http.ResponseWriter, r *http.Request)
-	CompletedProjects(w http.ResponseWriter, r *http.Request)
-
 	GetProject(w http.ResponseWriter, r *http.Request)
 	CreateProject(w http.ResponseWriter, r *http.Request)
 	UpdateProject(w http.ResponseWriter, r *http.Request)
@@ -270,7 +266,7 @@ func (u user) updateAvatarURL(url string) error {
 	return nil
 }
 
-func (u user) CreatedProjects(w http.ResponseWriter, r *http.Request) {
+func CreatedProjects(w http.ResponseWriter, r *http.Request) {
 	var parser Parser
 
 	userID := parser.Int(r.FormValue("userID"))
@@ -290,7 +286,7 @@ func (u user) CreatedProjects(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, ps)
 }
 
-func (u user) InvolvedProjects(w http.ResponseWriter, r *http.Request) {
+func InvolvedProjects(w http.ResponseWriter, r *http.Request) {
 	var parser Parser
 
 	userID := parser.Int(r.FormValue("userID"))
@@ -302,7 +298,7 @@ func (u user) InvolvedProjects(w http.ResponseWriter, r *http.Request) {
 	const rawSQL = `
 	SELECT project.* FROM project
 	INNER JOIN member ON member.project_id = project.id
-	WHERE member.userID = $1`
+	WHERE member.user_id = $1`
 
 	ps, err := queryProjects(rawSQL, userID)
 	if err != nil {
@@ -313,7 +309,7 @@ func (u user) InvolvedProjects(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, ps)
 }
 
-func (u user) CompletedProjects(w http.ResponseWriter, r *http.Request) {
+func CompletedProjects(w http.ResponseWriter, r *http.Request) {
 	var parser Parser
 
 	userID := parser.Int(r.FormValue("userID"))
@@ -345,7 +341,7 @@ func (u user) InvolvedProjectsCount() (int64, error) {
 	const q = `
 	SELECT COUNT(project.*) FROM project
 	INNER JOIN member ON member.projectID = project.id
-	WHERE member.userID = $1`
+	WHERE member.user_id = $1`
 
 	return count(q, u.ID_)
 }
@@ -373,7 +369,7 @@ func MaxInvolvedProjectsCount() (int64, error) {
 	SELECT MAX(n) FROM (
 		SELECT COUNT(project.*) AS n FROM project
 		INNER JOIN member ON member.projectID = project.id
-		GROUP BY member.userID
+		GROUP BY member.user_id
 	) as n`
 
 	return count(q)
@@ -559,17 +555,31 @@ func (u user) IsAuthor(projectID int64) bool {
 
 func (u user) CreateTask(w http.ResponseWriter, r *http.Request) {
 	var taskID int64
+	var parser Parser
 	var err error
+
+	projectID := parser.Int(r.FormValue("projectID"))
+	startDate := parser.Time(r.FormValue("startDate"))
+	endDate := parser.Time(r.FormValue("endDate"))
+	if parser.Err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	if startDate.After(endDate) {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
 
 	if taskID, err = insertTask(insertTaskParams{
 		authorID: u.ID_,
-		projectID: r.FormValue("projectID"),
+		projectID: projectID,
 		title: r.FormValue("title"),
 		description: r.FormValue("description"),
 		done: false,
 		tags: r.FormValue("tags"),
-		startDate: r.FormValue("startDate"),
-		endDate: r.FormValue("endDate"),
+		startDate: startDate,
+		endDate: endDate,
 	}); err != nil {
 		response.ServerError(w, err)
 		return

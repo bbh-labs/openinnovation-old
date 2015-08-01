@@ -52,6 +52,14 @@ var OI = {
 			dataType: "json",
 		});
 	},
+	involvedProjects: function(data) {
+		this.api("involvedProjects", {
+			url: "/api/user/project",
+			method: "GET",
+			data: m(data, {type: "involved"}),
+			dataType: "json",
+		});
+	},
 	newProject: function(data) {
 		this.api("newProject", {
 			url: "/api/project",

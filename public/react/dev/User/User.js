@@ -1,8 +1,9 @@
 var User = React.createClass({
+	mixins: [ State ],
 	render: function() {
 		return (
 			<main className="user">
-				<User.Content user={this.props.user} />
+				<User.Content user={this.props.user} userID={this.getParams().userID} />
 			</main>
 		)
 	},
@@ -37,7 +38,7 @@ User.Content = React.createClass({
 							</div>
 						</div>
 						<div className="col s12 m9 l8">
-							<InvolvedProjects />
+							<InvolvedProjects userID={this.props.userID} />
 						</div>
 				</div>
 			</div>

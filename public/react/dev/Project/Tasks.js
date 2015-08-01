@@ -225,11 +225,6 @@ Project.Tasks.Modal = React.createClass({
 		form.elements["endDate"].value = task.endDateStr;
 		form.elements["tags"].value = task.tags;
 	},
-	componentWillUnmount: function() {
-		if (this.props.type == "view") {
-			dispatcher.unregister(this.dispatchID);
-		}
-	},
 	render: function() {
 		var project = this.props.project;
 		var type = this.props.type;

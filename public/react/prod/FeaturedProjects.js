@@ -35,7 +35,7 @@ var FeaturedProjects = React.createClass({displayName: "FeaturedProjects",
 	},
 	projectElements: function() {
 		return buildElements(this.state.projects, function(i, p) {
-			return React.createElement(FeaturedProjects.Item, {project: p})
+			return React.createElement(FeaturedProjects.Item, {key: p.id, project: p})
 		});
 	},
 });

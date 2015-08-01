@@ -216,15 +216,6 @@ func LatestProjects(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, projects)
 }
 
-func CompletedProjects(count int64) ([]Project, error) {
-	const rawSQL = `
-	SELECT * FROM project
-	WHERE status = 'completed'
-	ORDER BY createdAt DESC LIMIT ?`
-
-	return queryProjects(rawSQL, count)
-}
-
 func queryProjects(rawSQL string, data ...interface{}) ([]Project, error) {
 	rows, err := db.Query(rawSQL, data...)
 	if err != nil {

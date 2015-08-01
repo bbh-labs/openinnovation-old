@@ -47,13 +47,13 @@ type task struct {
 
 type insertTaskParams struct {
 	authorID int64
-	projectID string
+	projectID int64
 	title string
 	description string
 	done bool
 	tags string
-	startDate string
-	endDate string
+	startDate time.Time
+	endDate time.Time
 }
 
 func insertTask(params insertTaskParams) (int64, error) {
@@ -63,31 +63,17 @@ func insertTask(params insertTaskParams) (int64, error) {
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now(), now())
 	RETURNING id`
 
-	var parser Parser
-	projectID := parser.Int(params.projectID)
-	startDate := parser.Time(params.startDate)
-	endDate := parser.Time(params.endDate)
-	if parser.Err != nil {
-		return 0, debug.Error(parser.Err)
-	}
-
-	authorID := params.authorID
-	title := params.title
-	description := params.description
-	done := params.done
-	tags := params.tags
-
 	var id int64
 	if err := db.QueryRow(
 			rawSQL,
-			authorID,
-			projectID,
-			title,
-			description,
-			done,
-			tags,
-			startDate,
-			endDate,
+			params.authorID,
+			params.projectID,
+			params.title,
+			params.description,
+			params.done,
+			params.tags,
+			params.startDate,
+			params.endDate,
 	).Scan(&id); err != nil {
 		return 0, debug.Error(err)
 	}

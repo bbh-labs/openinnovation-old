@@ -1,8 +1,9 @@
 var User = React.createClass({displayName: "User",
+	mixins: [ State ],
 	render: function() {
 		return (
 			React.createElement("main", {className: "user"}, 
-				React.createElement(User.Content, {user: this.props.user})
+				React.createElement(User.Content, {user: this.props.user, userID: this.getParams().userID})
 			)
 		)
 	},
@@ -37,7 +38,7 @@ User.Content = React.createClass({displayName: "Content",
 							)
 						), 
 						React.createElement("div", {className: "col s12 m9 l8"}, 
-							React.createElement(InvolvedProjects, null)
+							React.createElement(InvolvedProjects, {userID: this.props.userID})
 						)
 				)
 			)

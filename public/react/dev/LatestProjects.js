@@ -37,7 +37,7 @@ var LatestProjects = React.createClass({
 	},
 	projectElements: function() {
 		return buildElements(PROJECTS, function(i, p) {
-			return <LatestProjects.Item project={p} />
+			return <LatestProjects.Item key={p.id} project={p} />
 		});
 	},
 });

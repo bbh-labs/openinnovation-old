@@ -122,17 +122,15 @@ func userImage(w http.ResponseWriter, r *http.Request) {
 // /user/project
 // 
 func userProject(w http.ResponseWriter, r *http.Request) {
-	user := context.Get(r, "user").(store.User)
-
 	switch r.Method {
 	case "GET":
 		switch r.FormValue("type") {
 		case "involved":
-			user.InvolvedProjects(w, r)
+			store.InvolvedProjects(w, r)
 		case "completed":
-			user.CompletedProjects(w, r)
+			store.CompletedProjects(w, r)
 		default:
-			user.CreatedProjects(w, r)
+			store.CreatedProjects(w, r)
 		}
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)

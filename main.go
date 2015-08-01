@@ -22,15 +22,16 @@ func main() {
 
 	router := mux.NewRouter()
 	router.Handle("/metrics", prometheus.Handler())
-	router.Handle("/", p("home", home))
-	router.Handle("/login", p("login", login))
-	router.Handle("/register", p("register", register))
-	router.Handle("/verify", p("verify", verify))
+	router.Handle("/", p("/", home))
+	router.Handle("/login", p("/login", login))
+	router.Handle("/register", p("/register", register))
+	router.Handle("/verify", p("/verify", verify))
 
 	apiRouter := mux.NewRouter()
-	apiRouter.Handle("/api/logout", p("logout", logout))
-	apiRouter.Handle("/api/user", p("user", user))
-	apiRouter.Handle("/api/project", p("project", project))
+	apiRouter.Handle("/api/logout", p("/logout", logout))
+	apiRouter.Handle("/api/user", p("/user", user))
+	apiRouter.Handle("/api/user/project", p("/user/project", userProject))
+	apiRouter.Handle("/api/project", p("/project", project))
 	apiRouter.Handle("/api/project/member", p("/task/member", member))
 	apiRouter.Handle("/api/task", p("/task", task))
 	apiRouter.Handle("/api/task/worker", p("/task/worker", worker))
@@ -40,8 +41,8 @@ func main() {
 	))
 
 	adminRouter := mux.NewRouter()
-	adminRouter.Handle("/api/admin/user", p("adminUser", adminUser))
-	adminRouter.Handle("/api/admin/project", p("adminProject", adminProject))
+	adminRouter.Handle("/api/admin/user", p("/admin/user", adminUser))
+	adminRouter.Handle("/api/admin/project", p("/admin/project", adminProject))
 	router.PathPrefix("/api/admin").Handler(negroni.New(
 		negroni.HandlerFunc(adminMiddleware),
 		negroni.Wrap(adminRouter),
