@@ -26,7 +26,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// check if email is from BBH
-		if !(email != "aqiank@gmail.com" || email != "veeableful@gmail.com") {
+		if email != "aqiank@gmail.com" && email != "veeableful@gmail.com" {
 			if !strings.HasSuffix(email, "@bartleboglehegarty.com") {
 				response.ClientError(w, http.StatusUnauthorized)
 				return
