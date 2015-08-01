@@ -68,7 +68,7 @@ type user struct {
 	AvatarURL        string    `json:"avatarURL"`
 	Interests        []byte    `json:"interests"`
 	VerificationCode string    `json:"-"`
-	isAdmin          bool      `json:"isAdmin"`
+	IsAdmin_         bool      `json:"isAdmin"`
 	UpdatedAt        time.Time `json:"updatedAt"`
 	CreatedAt        time.Time `json:"createdAt"`
 
@@ -88,7 +88,7 @@ func (u user) ID() int64 {
 }
 
 func (u user) IsAdmin() bool {
-	return u.isAdmin
+	return u.IsAdmin_
 }
 
 func (u user) Exists() bool {
@@ -139,7 +139,7 @@ func getUser(userID int64) (User, error) {
 			&u.AvatarURL,
 			&u.Interests,
 			&u.VerificationCode,
-			&u.isAdmin,
+			&u.IsAdmin_,
 			&u.UpdatedAt,
 			&u.CreatedAt,
 	); err != nil && err != sql.ErrNoRows {
@@ -170,7 +170,7 @@ func queryUsers(q string, data ...interface{}) ([]User, error) {
 			&u.AvatarURL,
 			&u.Interests,
 			&u.VerificationCode,
-			&u.isAdmin,
+			&u.IsAdmin_,
 			&u.UpdatedAt,
 			&u.CreatedAt,
 		); err != nil {
@@ -756,7 +756,7 @@ func GetUserByID(userID int64) (User, error) {
 		&u.AvatarURL,
 		&u.Interests,
 		&u.VerificationCode,
-		&u.isAdmin,
+		&u.IsAdmin_,
 		&u.UpdatedAt,
 		&u.CreatedAt,
 	); err != nil && err != sql.ErrNoRows {
@@ -781,7 +781,7 @@ func GetUserByEmail(email string) (User, error) {
 		&u.AvatarURL,
 		&u.Interests,
 		&u.VerificationCode,
-		&u.isAdmin,
+		&u.IsAdmin_,
 		&u.UpdatedAt,
 		&u.CreatedAt,
 	); err != nil {
