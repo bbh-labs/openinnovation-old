@@ -17,6 +17,9 @@ var EditProject = React.createClass({
 
 		OI.project({projectID: this.getParams().projectID});
 	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
 	render: function() {
 		var project = this.state.project;
 		if (!this.state.project) {
@@ -25,7 +28,7 @@ var EditProject = React.createClass({
 		return (
 			<main className="edit-project">
 				<EditProject.Cover />
-				<EditProject.Form project={project} />
+				<EditProject.Content project={project} />
 			</main>
 		)
 	},
@@ -92,19 +95,16 @@ EditProject.Cover = React.createClass({
 	},
 });
 
-EditProject.Form = React.createClass({
+EditProject.Content = React.createClass({
 	image: null,
+	getInitialState: function() {
+		return {menuIndex: 0};
+	},
 	componentDidMount: function() {
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
 			case "edit-project-image-file":
 				this.image = payload.file;
-				break;
-			case "updateProjectDone":
-				Materialize.toast("Successfully updated the project", 1000);
-				break;
-			case "updateProjectFail":
-				Materialize.toast("Failed to update the project", 1000);
 				break;
 			}
 		}.bind(this));
@@ -115,44 +115,79 @@ EditProject.Form = React.createClass({
 	},
 	render: function() {
 		var project = this.props.project;
+		var menuIndex = this.state.menuIndex;
 		return (
 			<div className="row">
 				<div className="container">
-					<form className="col s8 offset-s2" onSubmit={this.handleSubmit}>
-						<div className="row">
-							<div className="input-field col s12">
-								<input type="text" name="title" id="project-title" className="validate" defaultValue={project.title} />
-								<label htmlFor="project-title" className="active">Name</label>
-							</div>
-						</div>
-						<div className="row">
-							<div className="input-field col s12">
-								<input type="text" name="tagline" id="project-tagline" className="validate" defaultValue={project.tagline} />
-								<label htmlFor="project-tagline" className="active">Tagline</label>
-							</div>
-						</div>
-						<div className="row">
-							<div className="input-field col s12">
-								<textarea id="project-description" name="description" className="materialize-textarea" defaultValue={project.description}></textarea>
-								<label htmlFor="project-description" className="active">Description</label>
-							</div>
-						</div>
-						<input type="hidden" name="projectID" value={project.id} />
-						<button className="waves-effect waves-light btn" type="submit">Update</button>
-						<Link className="btn waves-effect waves-light grey" to="project" params={{projectID: project.id}}>View</Link>
-					</form>
+					<div className="col s3">
+						<div className="collection">{
+							[ "Options", "Collaborators", "Services" ].map(function(s, i) {
+								var cx = menuIndex == i ? "active" : "";
+								return <a href="#" onClick={this.handleClick} className={classNames("collection-item", cx)}>{s}</a>
+							}.bind(this))
+						}</div>
+					</div>
+					<div className="col s9">
+						{menuIndex == 0 ? <EditProject.Content.Form project={project} /> : ""}
+					</div>
 				</div>
 			</div>
 		)
 	},
+	handleClick: function(e) {
+		//this.setState({menuIndex: i});
+
+		e.preventDefault();
+	},
+});
+
+EditProject.Content.Form = React.createClass({
+	componentDidMount: function() {
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "updateProjectDone":
+				Materialize.toast("Successfully updated the project", 1000);
+				break;
+			case "updateProjectFail":
+				Materialize.toast("Failed to update the project", 1000);
+				break;
+			}
+		});
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
+	render: function() {
+		var project = this.props.project;
+		return (
+			<form className="col s9" onSubmit={this.handleSubmit}>
+				<div className="row">
+					<div className="input-field col s12">
+						<input type="text" name="title" id="project-title" className="validate" defaultValue={project.title} />
+						<label htmlFor="project-title" className="active">Name</label>
+					</div>
+				</div>
+				<div className="row">
+					<div className="input-field col s12">
+						<input type="text" name="tagline" id="project-tagline" className="validate" defaultValue={project.tagline} />
+						<label htmlFor="project-tagline" className="active">Tagline</label>
+					</div>
+				</div>
+				<div className="row">
+					<div className="input-field col s12">
+						<textarea id="project-description" name="description" className="materialize-textarea" defaultValue={project.description}></textarea>
+						<label htmlFor="project-description" className="active">Description</label>
+					</div>
+				</div>
+				<input type="hidden" name="projectID" value={project.id} />
+				<button className="waves-effect waves-light btn" type="submit">Update</button>
+				<Link className="btn waves-effect waves-light grey" to="project" params={{projectID: project.id}}>View</Link>
+			</form>
+		)
+	},
 	handleSubmit: function(e) {
 		OI.updateProject($(e.target).serialize());
-		/*
-		if (!this.image) {
-			Materialize.toast("Image was not selected!");
-			return;
-		}
-		*/
+
 		e.preventDefault();
 	},
 });
