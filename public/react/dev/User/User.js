@@ -1,9 +1,35 @@
 var User = React.createClass({
 	mixins: [ State ],
+	getInitialState: function() {
+		return {user: null};
+	},
+	componentDidMount: function() {
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "userDone":
+				this.setState({user: payload.data.data});
+				break;
+			case "userFail":
+				Materialize.toast("Failed to get user", 1000, "red white-text");
+				break;
+			case "updateUserAvatarDone":
+				OI.user({userID: this.getParams().userID});
+				break;
+			}
+		}.bind(this));
+
+		OI.user({userID: this.getParams().userID});
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
 	render: function() {
+		if (!this.state.user) {
+			return <div />
+		}
 		return (
 			<main className="user">
-				<User.Content user={this.props.user} userID={this.getParams().userID} />
+				<User.Content user={this.state.user} />
 			</main>
 		)
 	},
@@ -18,7 +44,8 @@ User.Content = React.createClass({
 					<div className="col s12 m4 l3">
 						<div className="card">
 							<div className="card-content">
-								<img className="profile-picture circle" src="images/profile-pics/1.jpg" />
+								<User.Content.Avatar user={user} />
+								<User.Content.ImageCropperModal user={user} />
 							</div>
 							<div className="card-action">
 								<User.Content.Fullname user={user} />
@@ -38,11 +65,57 @@ User.Content = React.createClass({
 							</div>
 						</div>
 						<div className="col s12 m9 l8">
-							<InvolvedProjects userID={this.props.userID} />
+							<InvolvedProjects userID={user.id} />
 						</div>
 				</div>
 			</div>
 		)
+	},
+});
+
+User.Content.Avatar = React.createClass({
+	componentDidMount: function() {
+		var dropzone = React.findDOMNode(this);
+		$(dropzone).dropzone({
+            url: "/foo",
+            clickable: true,
+            maxFilesize: 1,
+            autoProcessQueue: false,
+            dictDefaultMessage: "Select your avatar (max: 1MB)",
+            addedfile: function(file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+					dispatcher.dispatch({
+						type: "openUserImageCropper",
+						data: e.target.result,
+					});
+                }.bind(this);
+                reader.readAsDataURL(file);
+            }.bind(this),
+		});
+
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "newProjectDone":
+				this.transitionTo("project", {projectID: payload.data.data});
+				break;
+			case "newProjectFail":
+				switch (payload.data.status) {
+				default:
+					Materialize.toast(payload.data.responseText, 3000, "red white-text");
+					break;
+				case 500:
+					Materialize.toast("Something went wrong when creating the new project..", 3000, "red white-text");
+					break;
+				}
+				break;
+			}
+		}.bind(this));
+	},
+	render: function() {
+		var user = this.props.user;
+		var date = new Date();
+		return <img className="profile-picture circle" src={user.avatarURL + "?" + date.getTime()} />
 	},
 });
 

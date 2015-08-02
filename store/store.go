@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	DataDir = "content"
+	ContentFolder = "public"
 )
 
 var db *sql.DB

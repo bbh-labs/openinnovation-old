@@ -49,9 +49,9 @@ Project.Tasks = React.createClass({
 						<ul className="collection">{
 							this.props.project.tasks ? this.props.project.tasks.map(function(t) {
 								if (!t.done) {
-									return <Project.Tasks.Item key={t.id} task={t} />
+									return <Project.Tasks.Item key={t.id} task={t} onTaskClicked={this.onTaskClicked} />
 								}
-							}) : ""
+							}.bind(this)) : ""
 						}</ul>
 					</div>
 					<div className="col s12 margin-top">
@@ -77,9 +77,9 @@ Project.Tasks = React.createClass({
 							this.props.project.tasks ?
 							this.props.project.tasks.map(function(t) {
 								if (t.done) {
-									return <Project.Tasks.Item key={t.id} task={t} />
+									return <Project.Tasks.Item key={t.id} task={t} onTaskClicked={this.onTaskClicked} />
 								}
-							}) : ""
+							}.bind(this)) : ""
 						}</ul>
 					</div>
 				</div>
@@ -104,7 +104,6 @@ Project.Tasks = React.createClass({
 	},
 	onTaskClicked: function(e, i) {
 		this.setState({clickedTask: i});
-		e.preventDefault();
 	},
 });
 
@@ -125,8 +124,15 @@ Project.Tasks.Item = React.createClass({
 					{task.title}
 				</a>
 				<div className="secondary-content">
-					{this.workerElements()}
-					{this.doneElement()}
+				{
+					this.props.task.workers ?
+					this.props.task.workers.map(function(w) {
+						return <Project.Tasks.Worker worker={w} />
+					}) : ""
+				}
+					<i style={{cursor: "pointer", visibility: this.state.hovering || task.done ? "visible" : "hidden"}}
+							  onClick={this.handleToggleStatus}
+							  className={classNames("material-icons", task.done && "green-text")}>done</i>
 				</div>
 			</li>
 		)
@@ -147,10 +153,6 @@ Project.Tasks.Item = React.createClass({
 		this.setState({hovering: false});
 	},
 	workerElements: function(e) {
-		var workers = this.props.task.workers;
-		if (!workers) {
-			workers = [];
-		}
 		return workers.map(function(w) {
 			return <Project.Tasks.Worker worker={w} />
 		});

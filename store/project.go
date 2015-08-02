@@ -27,7 +27,6 @@ const (
 )
 
 const (
-	Folder = `public`
 	ProjectImageURL = `oi-content/project/%d/image`
 )
 
@@ -104,19 +103,20 @@ func updateProjectDescription(projectID int64, description string) error {
 }
 
 func saveProjectImage(w http.ResponseWriter, r *http.Request, projectID int64) (bool, error) {
-	url := fmt.Sprintf(ProjectImageURL, projectID)
-
 	// FIXME: there must be some other way changing directory
-	if err := os.Chdir(Folder); err != nil {
+	if err := os.Chdir(ContentFolder); err != nil {
 		return false, debug.Error(err)
 	}
 
+	url := fmt.Sprintf(ProjectImageURL, projectID)
 	finalURL, header, err := httputil.SaveFileWithExtension(w, r, "image", url)
 	if err != nil || header == nil {
 		return false, nil
 	}
 
-	os.Chdir("..")
+	if err := os.Chdir(".."); err != nil {
+		return false, debug.Error(err)
+	}
 
 	if err := updateProjectImage(projectID, finalURL); err != nil {
 		return false, debug.Error(err)

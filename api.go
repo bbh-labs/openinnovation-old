@@ -94,25 +94,13 @@ func user(w http.ResponseWriter, r *http.Request) {
 		switch r.FormValue("type") {
 		case "interests":
 			user.UpdateInterests(w, r)
+		case "image":
+			user.UpdateAvatar(w, r)
 		default:
 			user.Update(w, r)
 		}
 	case "GET":
 		store.GetUser(w, r)
-	default:
-		response.ClientError(w, http.StatusMethodNotAllowed)
-	}
-}
-
-// 
-// /user/image
-// 
-func userImage(w http.ResponseWriter, r *http.Request) {
-	user := context.Get(r, "user").(store.User)
-
-	switch r.Method {
-	case "POST":
-		user.SaveAvatar(w, r)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}

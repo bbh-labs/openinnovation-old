@@ -31,12 +31,16 @@ const (
 	created_at timestamp NOT NULL`
 )
 
+const (
+	UserAvatarURL = `oi-content/user/%d/image`
+)
+
 type User interface {
 	ID() int64
 	Exists() bool
 	Update(w http.ResponseWriter, r *http.Request)
 	UpdateInterests(w http.ResponseWriter, r *http.Request)
-	SaveAvatar(w http.ResponseWriter, r *http.Request)
+	UpdateAvatar(w http.ResponseWriter, r *http.Request)
 
 	GetProject(w http.ResponseWriter, r *http.Request)
 	CreateProject(w http.ResponseWriter, r *http.Request)
@@ -146,6 +150,12 @@ func getUser(userID int64) (User, error) {
 		return nil, err
 	}
 
+	u.IDStr = strconv.FormatInt(u.ID_, 10)
+
+	if len(u.AvatarURL) == 0 {
+		u.AvatarURL = "avatar.jpg"
+	}
+
 	return u, nil
 }
 
@@ -178,6 +188,10 @@ func queryUsers(q string, data ...interface{}) ([]User, error) {
 		}
 
 		u.IDStr = strconv.FormatInt(u.ID_, 10)
+
+		if len(u.AvatarURL) == 0 {
+			u.AvatarURL = "avatar.jpg"
+		}
 
 		us = append(us, u)
 	}
@@ -258,7 +272,7 @@ func (u user) UpdateInterests(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u user) updateAvatarURL(url string) error {
-	const q = `UPDATE user_ SET avatarURL = $1, updated_at = now() WHERE id = $2`
+	const q = `UPDATE user_ SET avatar_url = $1, updated_at = now() WHERE id = $2`
 
 	if _, err := db.Exec(q, url, u.ID_); err != nil {
 		return debug.Error(err)
@@ -386,21 +400,30 @@ func MaxCompletedProjectsCount() (int64, error) {
 	return count(q)
 }
 
-func (u user) SaveAvatar(w http.ResponseWriter, r *http.Request) {
-	url := fmt.Sprintf("oi-content/profile/img/%d/avatar.png", u.ID_)
-	header, err := httputil.SaveFile(w, r, "image", url)
-	if err != nil {
+func (u user) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
+	// FIXME: there must be some other way changing directory
+	if err := os.Chdir(ContentFolder); err != nil {
 		response.ServerError(w, err)
 		return
 	}
-	if header == nil {
+
+	url := fmt.Sprintf(UserAvatarURL, u.ID_)
+	finalURL, header, err := httputil.SaveFileWithExtension(w, r, "image", url)
+	if err != nil || header == nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
-	if err = u.updateAvatarURL(url); err != nil {
+
+	if err := os.Chdir(".."); err != nil {
 		response.ServerError(w, err)
 		return
 	}
+
+	if err = u.updateAvatarURL(finalURL); err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
 	response.OK(w, nil)
 }
 
@@ -763,6 +786,12 @@ func GetUserByID(userID int64) (User, error) {
 		return nil, debug.Error(err)
 	}
 
+	u.IDStr = strconv.FormatInt(u.ID_, 10)
+
+	if len(u.AvatarURL) == 0 {
+		u.AvatarURL = "avatar.jpg"
+	}
+
 	return u, nil
 }
 
@@ -792,6 +821,10 @@ func GetUserByEmail(email string) (User, error) {
 	}
 
 	u.IDStr = strconv.FormatInt(u.ID_, 10)
+
+	if len(u.AvatarURL) == 0 {
+		u.AvatarURL = "avatar.jpg"
+	}
 
 	return u, nil
 }

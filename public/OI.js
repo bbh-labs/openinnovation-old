@@ -44,12 +44,30 @@ var OI = {
 			dataType: "json",
 		});
 	},
+	user: function(data) {
+		this.api("user", {
+			url: "/api/user",
+			method: "GET",
+			data: data,
+			dataType: "json",
+		});
+	},
 	updateUser: function(data) {
 		this.api("updateUser", {
 			url: "/api/user",
 			method: "PUT",
 			data: data,
 			dataType: "json",
+		});
+	},
+	updateUserAvatar: function(data) {
+		this.api("updateUserAvatar", {
+			url: "/api/user",
+			method: "PUT",
+			data: data,
+			dataType: "json",
+			processData: false,
+			contentType: false,
 		});
 	},
 	involvedProjects: function(data) {

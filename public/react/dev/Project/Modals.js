@@ -9,11 +9,17 @@ Project.Tasks.Modal = React.createClass({
 	componentDidUpdate: function() {
 		var clickedTask = this.props.clickedTask;
 		if (clickedTask < 0) {
-			return <div />
+			return;
 		}
 
-		var project = this.props.project;
-		var task = project.tasks[clickedTask];
+		var tasks = this.props.project.tasks;
+		var task;
+
+		for (var i = 0; i < tasks.length; i++) {
+			if (tasks[i].id == clickedTask) {
+				task = tasks[i];
+			}
+		}
 	
 		var form = React.findDOMNode(this);
 		form.elements["taskID"].value = task.id;
@@ -22,11 +28,6 @@ Project.Tasks.Modal = React.createClass({
 		form.elements["startDate"].value = task.startDateStr;
 		form.elements["endDate"].value = task.endDateStr;
 		form.elements["tags"].value = task.tags;
-	},
-	componentWillUnmount: function() {
-		if (this.props.type == "view") {
-			dispatcher.unregister(this.dispatchID);
-		}
 	},
 	render: function() {
 		var project = this.props.project;
@@ -110,15 +111,21 @@ Project.Tasks.WorkersModal = React.createClass({
 			return <div />
 		}
 
-		var project = this.props.project;
-		var task = project.tasks[clickedTask];
+		var tasks = this.props.project.tasks;
+		var task;
+		for (var i = 0; i < tasks.length; i++) {
+			if (tasks[i].id == clickedTask) {
+				task = tasks[i];
+			}
+		}
+
 		return (
 			<div id="modal-workers" className="modal bottom-sheet">
 				<div className="modal-content">
 					<div className="container">
 						<ul className="collection">{
 							this.props.project.members.map(function(m) {
-								return <Project.Tasks.WorkersModal.Item key={m.id} member={m} isWorker={this.isWorker(m)} taskID={selectedTask.id} />
+								return <Project.Tasks.WorkersModal.Item key={m.id} member={m} isWorker={this.isWorker(m)} task={task} />
 							}.bind(this))
 						}</ul>
 					</div>
@@ -127,12 +134,20 @@ Project.Tasks.WorkersModal = React.createClass({
 		)
 	},
 	isWorker: function(member) {
-		var selectedTask = this.props.selectedTask;
-		if (!selectedTask) {
-			return;
+		var clickedTask = this.props.clickedTask;
+		if (clickedTask < 0) {
+			return false;
 		}
-	
-		var workers = selectedTask.workers;
+
+		var tasks = this.props.project.tasks;
+		var task;
+		for (var i = 0; i < tasks.length; i++) {
+			if (tasks[i].id == clickedTask) {
+				task = tasks[i];
+			}
+		}
+
+		var workers = task.workers;
 		if (!workers) {
 			workers = [];
 		}
@@ -163,7 +178,7 @@ Project.Tasks.WorkersModal.Item = React.createClass({
 		)
 	},
 	handleClick: function(e) {
-		var taskID = this.props.taskID;
+		var taskID = this.props.task.id;
 		var memberID = this.props.member.id;
 
 		OI.assignWorker({

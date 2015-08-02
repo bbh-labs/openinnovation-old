@@ -1,9 +1,35 @@
 var User = React.createClass({displayName: "User",
 	mixins: [ State ],
+	getInitialState: function() {
+		return {user: null};
+	},
+	componentDidMount: function() {
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "userDone":
+				this.setState({user: payload.data.data});
+				break;
+			case "userFail":
+				Materialize.toast("Failed to get user", 1000, "red white-text");
+				break;
+			case "updateUserAvatarDone":
+				OI.user({userID: this.getParams().userID});
+				break;
+			}
+		}.bind(this));
+
+		OI.user({userID: this.getParams().userID});
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
 	render: function() {
+		if (!this.state.user) {
+			return React.createElement("div", null)
+		}
 		return (
 			React.createElement("main", {className: "user"}, 
-				React.createElement(User.Content, {user: this.props.user, userID: this.getParams().userID})
+				React.createElement(User.Content, {user: this.state.user})
 			)
 		)
 	},
@@ -18,7 +44,8 @@ User.Content = React.createClass({displayName: "Content",
 					React.createElement("div", {className: "col s12 m4 l3"}, 
 						React.createElement("div", {className: "card"}, 
 							React.createElement("div", {className: "card-content"}, 
-								React.createElement("img", {className: "profile-picture circle", src: "images/profile-pics/1.jpg"})
+								React.createElement(User.Content.Avatar, {user: user}), 
+								React.createElement(User.Content.ImageCropperModal, {user: user})
 							), 
 							React.createElement("div", {className: "card-action"}, 
 								React.createElement(User.Content.Fullname, {user: user}), 
@@ -38,11 +65,57 @@ User.Content = React.createClass({displayName: "Content",
 							)
 						), 
 						React.createElement("div", {className: "col s12 m9 l8"}, 
-							React.createElement(InvolvedProjects, {userID: this.props.userID})
+							React.createElement(InvolvedProjects, {userID: user.id})
 						)
 				)
 			)
 		)
+	},
+});
+
+User.Content.Avatar = React.createClass({displayName: "Avatar",
+	componentDidMount: function() {
+		var dropzone = React.findDOMNode(this);
+		$(dropzone).dropzone({
+            url: "/foo",
+            clickable: true,
+            maxFilesize: 1,
+            autoProcessQueue: false,
+            dictDefaultMessage: "Select your avatar (max: 1MB)",
+            addedfile: function(file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+					dispatcher.dispatch({
+						type: "openUserImageCropper",
+						data: e.target.result,
+					});
+                }.bind(this);
+                reader.readAsDataURL(file);
+            }.bind(this),
+		});
+
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "newProjectDone":
+				this.transitionTo("project", {projectID: payload.data.data});
+				break;
+			case "newProjectFail":
+				switch (payload.data.status) {
+				default:
+					Materialize.toast(payload.data.responseText, 3000, "red white-text");
+					break;
+				case 500:
+					Materialize.toast("Something went wrong when creating the new project..", 3000, "red white-text");
+					break;
+				}
+				break;
+			}
+		}.bind(this));
+	},
+	render: function() {
+		var user = this.props.user;
+		var date = new Date();
+		return React.createElement("img", {className: "profile-picture circle", src: user.avatarURL + "?" + date.getTime()})
 	},
 });
 
