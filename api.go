@@ -87,17 +87,15 @@ func verify(w http.ResponseWriter, r *http.Request) {
 // /user
 // 
 func user(w http.ResponseWriter, r *http.Request) {
-	user := context.Get(r, "user").(store.User)
-
 	switch r.Method {
 	case "PUT":	
 		switch r.FormValue("type") {
 		case "interests":
-			user.UpdateInterests(w, r)
+			UpdateInterests(w, r)
 		case "image":
-			user.UpdateAvatar(w, r)
+			UpdateAvatar(w, r)
 		default:
-			user.Update(w, r)
+			Update(w, r)
 		}
 	case "GET":
 		GetUser(w, r)
@@ -114,11 +112,11 @@ func userProject(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		switch r.FormValue("type") {
 		case "involved":
-			store.InvolvedProjects(w, r)
+			InvolvedProjects(w, r)
 		case "completed":
-			store.CompletedProjects(w, r)
+			CompletedProjects(w, r)
 		default:
-			store.CreatedProjects(w, r)
+			CreatedProjects(w, r)
 		}
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
@@ -129,15 +127,13 @@ func userProject(w http.ResponseWriter, r *http.Request) {
 // /project
 // 
 func project(w http.ResponseWriter, r *http.Request) {
-	user := context.Get(r, "user").(store.User)
-
 	switch r.Method {
 	case "POST":
-		user.CreateProject(w, r)
+		CreateProject(w, r)
 	case "PUT":
-		user.UpdateProject(w, r)
+		UpdateProject(w, r)
 	case "DELETE":
-		user.DeleteProject(w, r)
+		DeleteProject(w, r)
 	case "GET":
 		typ := r.FormValue("type")
 		switch typ {
@@ -148,19 +144,6 @@ func project(w http.ResponseWriter, r *http.Request) {
 		default:
 			GetProject(w, r)
 		}
-	default:
-		response.ClientError(w, http.StatusMethodNotAllowed)
-	}
-}
-
-// 
-// /project/join
-// 
-func projectJoin(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "POST":
-		user := context.Get(r, "user").(store.User)
-		user.JoinProject(w, r)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}
@@ -182,8 +165,6 @@ func member(w http.ResponseWriter, r *http.Request) {
 // /task
 //
 func task(w http.ResponseWriter, r *http.Request) {
-	user := context.Get(r, "user").(store.User)
-
 	switch r.Method {
 	case "GET":
 		switch r.FormValue("type") {
@@ -195,16 +176,16 @@ func task(w http.ResponseWriter, r *http.Request) {
 			GetTask(w, r)
 		}
 	case "POST":
-		user.CreateTask(w, r)
+		CreateTask(w, r)
 	case "PUT":
 		switch r.FormValue("type") {
 		case "toggleStatus":
-			user.ToggleTaskStatus(w, r)
+			ToggleTaskStatus(w, r)
 		default:
-			user.UpdateTask(w, r)
+			UpdateTask(w, r)
 		}
 	case "DELETE":
-		user.DeleteTask(w, r)
+		DeleteTask(w, r)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}
@@ -214,15 +195,13 @@ func task(w http.ResponseWriter, r *http.Request) {
 // /task/worker
 //
 func worker(w http.ResponseWriter, r *http.Request) {
-	user := context.Get(r, "user").(store.User)
-
 	switch r.Method {
 	case "GET":
 		GetWorkers(w, r)
 	case "POST":
-		user.AssignWorker(w, r)
+		AssignWorker(w, r)
 	case "DELETE":
-		user.UnassignWorker(w, r)
+		UnassignWorker(w, r)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}

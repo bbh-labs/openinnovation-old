@@ -43,18 +43,18 @@ type task struct {
 	EndDateStr   string     `json:"endDateStr"`
 }
 
-type insertTaskParams struct {
-	authorID int64
-	projectID int64
-	title string
-	description string
-	done bool
-	tags string
-	startDate time.Time
-	endDate time.Time
+type CreateTaskParams struct {
+	AuthorID int64
+	ProjectID int64
+	Title string
+	Description string
+	Done bool
+	Tags string
+	StartDate time.Time
+	EndDate time.Time
 }
 
-func insertTask(params insertTaskParams) (int64, error) {
+func CreateTask(params CreateTaskParams) (int64, error) {
 	const rawSQL = `
 	INSERT INTO task (author_id, project_id, title, description, done,
 					  tags, start_date, end_date, updated_at, created_at)
@@ -64,14 +64,14 @@ func insertTask(params insertTaskParams) (int64, error) {
 	var id int64
 	if err := db.QueryRow(
 			rawSQL,
-			params.authorID,
-			params.projectID,
-			params.title,
-			params.description,
-			params.done,
-			params.tags,
-			params.startDate,
-			params.endDate,
+			params.AuthorID,
+			params.ProjectID,
+			params.Title,
+			params.Description,
+			params.Done,
+			params.Tags,
+			params.StartDate,
+			params.EndDate,
 	).Scan(&id); err != nil {
 		return 0, debug.Error(err)
 	}
@@ -79,16 +79,16 @@ func insertTask(params insertTaskParams) (int64, error) {
 	return id, nil
 }
 
-type updateTaskParams struct {
-	taskID string
-	title string
-	description string
-	tags string
-	startDate string
-	endDate string
+type UpdateTaskParams struct {
+	TaskID string
+	Title string
+	Description string
+	Tags string
+	StartDate string
+	EndDate string
 }
 
-func updateTask(params updateTaskParams) error {
+func UpdateTask(params UpdateTaskParams) error {
 	const rawSQL = `
 	UPDATE task SET
 			title = $1,
@@ -100,16 +100,16 @@ func updateTask(params updateTaskParams) error {
 	WHERE id = $7`
 
 	var parser Parser
-	taskID := parser.Int(params.taskID)
-	startDate := parser.Time(params.startDate)
-	endDate := parser.Time(params.endDate)
+	taskID := parser.Int(params.TaskID)
+	startDate := parser.Time(params.StartDate)
+	endDate := parser.Time(params.EndDate)
 	if parser.Err != nil {
 		return debug.Error(parser.Err)
 	}
 
-	title := params.title
-	description := params.description
-	tags := params.tags
+	title := params.Title
+	description := params.Description
+	tags := params.Tags
 
 	if _, err := db.Exec(
 			rawSQL,
@@ -126,7 +126,7 @@ func updateTask(params updateTaskParams) error {
 	return nil
 }
 
-func toggleTaskStatus(taskID int64) error {
+func ToggleTaskStatus(taskID int64) error {
 	const rawSQL = `UPDATE task SET done = not done WHERE id = $1`
 
 	if _, err := db.Exec(rawSQL, taskID); err != nil {
@@ -136,17 +136,17 @@ func toggleTaskStatus(taskID int64) error {
 	return nil
 }
 
-type deleteTaskParams struct {
-	userID int64
-	taskID string
+type DeleteTaskParams struct {
+	UserID int64
+	TaskID string
 }
 
-func deleteTask(params deleteTaskParams) error {
+func DeleteTask(params DeleteTaskParams) error {
 	var parser Parser
 
 	const rawSQL = `DELETE FROM task WHERE id = $1`
 
-	taskID := parser.Int(params.taskID)
+	taskID := parser.Int(params.TaskID)
 	if parser.Err != nil {
 		return debug.Error(parser.Err)
 	}

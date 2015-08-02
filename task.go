@@ -5,6 +5,7 @@ import (
 
 	"bbhoi.com/response"
 	"bbhoi.com/store"
+	"github.com/gorilla/context"
 )
 
 func GetTask(w http.ResponseWriter, r *http.Request) {
@@ -48,6 +49,43 @@ func GetTasks(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, tasks)
 }
 
+func CreateTask(w http.ResponseWriter, r *http.Request) {
+	var parser store.Parser
+
+	projectID := parser.Int(r.FormValue("projectID"))
+	startDate := parser.Time(r.FormValue("startDate"))
+	endDate := parser.Time(r.FormValue("endDate"))
+	if parser.Err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	if startDate.After(endDate) {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	var taskID int64
+	var err error
+
+	user := context.Get(r, "user").(store.User)
+	if taskID, err = store.CreateTask(store.CreateTaskParams{
+		AuthorID: user.ID(),
+		ProjectID: projectID,
+		Title: r.FormValue("title"),
+		Description: r.FormValue("description"),
+		Done: false,
+		Tags: r.FormValue("tags"),
+		StartDate: startDate,
+		EndDate: endDate,
+	}); err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	response.OK(w, taskID)
+}
+
 func LatestTasks(w http.ResponseWriter, r *http.Request) {
 	var parser store.Parser
 
@@ -64,4 +102,67 @@ func LatestTasks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.OK(w, tasks)
+}
+
+func UpdateTask(w http.ResponseWriter, r *http.Request) {
+	var taskID int64
+	var err error
+
+	if err = store.UpdateTask(store.UpdateTaskParams{
+		TaskID: r.FormValue("taskID"),
+		Title: r.FormValue("title"),
+		Description: r.FormValue("description"),
+		Tags: r.FormValue("tags"),
+		StartDate: r.FormValue("startDate"),
+		EndDate: r.FormValue("endDate"),
+	}); err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	response.OK(w, taskID)
+}
+
+func ToggleTaskStatus(w http.ResponseWriter, r *http.Request) {
+	var parser store.Parser
+
+	taskID := parser.Int(r.FormValue("taskID"))
+	if parser.Err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	if err := store.ToggleTaskStatus(taskID); err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	response.OK(w, taskID)
+}
+
+func DeleteTask(w http.ResponseWriter, r *http.Request) {
+	var parser store.Parser
+
+	projectID := parser.Int(r.FormValue("projectID"))
+	if parser.Err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	user := context.Get(r, "user").(store.User)
+
+	// check if user is member of the project
+	if !store.IsMember(projectID, user.ID()) {
+		response.ClientError(w, http.StatusForbidden)
+		return
+	}
+
+	if err := store.DeleteTask(store.DeleteTaskParams{
+		TaskID: r.FormValue("taskID"),
+	}); err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	response.OK(w, nil)
 }

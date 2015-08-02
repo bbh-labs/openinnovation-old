@@ -56,6 +56,44 @@ func GetProject(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, p)
 }
 
+func UpdateProject(w http.ResponseWriter, r *http.Request) {
+	var parser store.Parser
+
+	projectID := parser.Int(r.FormValue("projectID"))
+	if parser.Err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	user := context.Get(r, "user").(store.User)
+	if !user.IsAuthor(projectID) {
+		response.ClientError(w, http.StatusForbidden)
+		return
+	}
+
+	var err error
+	for k, v := range r.Form {
+		if len(v) == 0 {
+			continue
+		}
+
+		switch k {
+		case "title":
+			err = store.UpdateProjectTitle(projectID, v[0])
+		case "tagline":
+			err = store.UpdateProjectTagline(projectID, v[0])
+		case "description":
+			err = store.UpdateProjectDescription(projectID, v[0])
+		}
+		if err != nil {
+			response.ServerError(w, err)
+			return
+		}
+	}
+
+	response.OK(w, nil)
+}
+
 func SetFeaturedProject(w http.ResponseWriter, r *http.Request) {
 	var parser store.Parser
 

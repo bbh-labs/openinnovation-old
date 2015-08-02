@@ -2,15 +2,11 @@ package store
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
-	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"bbhoi.com/debug"
-	"bbhoi.com/httputil"
 	"bbhoi.com/response"
 	"bbhoi.com/session"
 )
@@ -37,23 +33,13 @@ const (
 
 type User interface {
 	ID() int64
+	IDStr() string
 	Exists() bool
-	Update(w http.ResponseWriter, r *http.Request)
-	UpdateInterests(w http.ResponseWriter, r *http.Request)
-	UpdateAvatar(w http.ResponseWriter, r *http.Request)
-
-	CreateProject(w http.ResponseWriter, r *http.Request)
-	UpdateProject(w http.ResponseWriter, r *http.Request)
-	DeleteProject(w http.ResponseWriter, r *http.Request)
-	JoinProject(w http.ResponseWriter, r *http.Request)
-	
-	CreateTask(w http.ResponseWriter, r *http.Request)
-	UpdateTask(w http.ResponseWriter, r *http.Request)
-	DeleteTask(w http.ResponseWriter, r *http.Request)
-	ToggleTaskStatus(w http.ResponseWriter, r *http.Request)
-
-	AssignWorker(w http.ResponseWriter, r *http.Request)
-	UnassignWorker(w http.ResponseWriter, r *http.Request)
+	UpdateFullname(fullname string) error
+	UpdateTitle(title string) error
+	UpdateDescription(description string) error
+	UpdateInterests(interests []string) error
+	UpdateAvatarURL(url string) error
 
 	IsAuthor(projectID int64) bool
 	IsAdmin() bool
@@ -61,7 +47,7 @@ type User interface {
 
 type user struct {
 	ID_              int64     `json:"id"`
-	IDStr            string    `json:"idStr"`
+	IDStr_           string    `json:"idStr"`
 	Email            string    `json:"email"`
 	Password         string    `json:"-"`
 	Fullname         string    `json:"fullname"`
@@ -87,6 +73,10 @@ type user struct {
 
 func (u user) ID() int64 {
 	return u.ID_
+}
+
+func (u user) IDStr() string {
+	return u.IDStr_
 }
 
 func (u user) IsAdmin() bool {
@@ -119,7 +109,7 @@ func GetUser(userID int64) (User, error) {
 		return nil, err
 	}
 
-	u.IDStr = strconv.FormatInt(u.ID_, 10)
+	u.IDStr_ = strconv.FormatInt(u.ID_, 10)
 
 	if len(u.AvatarURL) == 0 {
 		u.AvatarURL = "avatar.jpg"
@@ -156,7 +146,7 @@ func queryUsers(q string, data ...interface{}) ([]User, error) {
 			return nil, debug.Error(err)
 		}
 
-		u.IDStr = strconv.FormatInt(u.ID_, 10)
+		u.IDStr_ = strconv.FormatInt(u.ID_, 10)
 
 		if len(u.AvatarURL) == 0 {
 			u.AvatarURL = "avatar.jpg"
@@ -168,33 +158,7 @@ func queryUsers(q string, data ...interface{}) ([]User, error) {
 	return us, nil
 }
 
-func (u user) Update(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	for k, v := range r.Form {
-		switch k {
-		case "fullname":
-			err = u.updateFullname(v[0])
-		case "title":
-			err = u.updateTitle(v[0])
-		case "description":
-			err = u.updateDescription(v[0])
-		}
-
-		if err != nil {
-			response.ServerError(w, err)
-			return
-		}
-	}
-
-	response.OK(w, nil)
-}
-
-func (u user) updateFullname(fullname string) error {
+func (u user) UpdateFullname(fullname string) error {
 	const rawSQL = `
 	UPDATE user_ SET fullname = $1, updated_at = now() WHERE id = $2`
 
@@ -205,7 +169,7 @@ func (u user) updateFullname(fullname string) error {
 	return nil
 }
 
-func (u user) updateTitle(title string) error {
+func (u user) UpdateTitle(title string) error {
 	const rawSQL = `
 	UPDATE user_ SET title = $1, updated_at = now() WHERE id = $2`
 
@@ -216,7 +180,7 @@ func (u user) updateTitle(title string) error {
 	return nil
 }
 
-func (u user) updateDescription(description string) error {
+func (u user) UpdateDescription(description string) error {
 	const rawSQL = `
 	UPDATE user_ SET description = $1, updated_at = now() WHERE id = $2`
 
@@ -227,20 +191,17 @@ func (u user) updateDescription(description string) error {
 	return nil
 }
 
-func (u user) UpdateInterests(w http.ResponseWriter, r *http.Request) {
+func (u user) UpdateInterests(interests []string) error {
 	const q = `UPDATE user_ SET interests = $1, updated_at = now() WHERE id = $2`
 
-	interests := strings.Split(r.FormValue("interests"), ",")
-
 	if _, err := db.Exec(q, interests, u.ID_); err != nil {
-		response.ServerError(w, err)
-		return
+		return debug.Error(err)
 	}
 
-	response.OK(w, nil)
+	return nil
 }
 
-func (u user) updateAvatarURL(url string) error {
+func (u user) UpdateAvatarURL(url string) error {
 	const q = `UPDATE user_ SET avatar_url = $1, updated_at = now() WHERE id = $2`
 
 	if _, err := db.Exec(q, url, u.ID_); err != nil {
@@ -249,69 +210,27 @@ func (u user) updateAvatarURL(url string) error {
 	return nil
 }
 
-func CreatedProjects(w http.ResponseWriter, r *http.Request) {
-	var parser Parser
-
-	userID := parser.Int(r.FormValue("userID"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
+func CreatedProjects(userID int64) ([]Project, error) {
 	const rawSQL = `SELECT * FROM project WHERE authorID = $1`
 
-	ps, err := queryProjects(rawSQL, userID)
-	if err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	response.OK(w, ps)
+	return queryProjects(rawSQL, userID)
 }
 
-func InvolvedProjects(w http.ResponseWriter, r *http.Request) {
-	var parser Parser
-
-	userID := parser.Int(r.FormValue("userID"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
+func InvolvedProjects(userID int64) ([]Project, error) {
 	const rawSQL = `
 	SELECT project.* FROM project
 	INNER JOIN member ON member.project_id = project.id
 	WHERE member.user_id = $1`
 
-	ps, err := queryProjects(rawSQL, userID)
-	if err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	response.OK(w, ps)
+	return queryProjects(rawSQL, userID)
 }
 
-func CompletedProjects(w http.ResponseWriter, r *http.Request) {
-	var parser Parser
-
-	userID := parser.Int(r.FormValue("userID"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
+func CompletedProjects(userID int64) ([]Project, error) {
 	const rawSQL = `
 	SELECT project.* FROM project
 	WHERE author_id = $1 AND status = $2`
 
-	ps, err := queryProjects(rawSQL, userID, "completed")
-	if err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	response.OK(w, ps)
+	return queryProjects(rawSQL, userID, "completed")
 }
 
 func (u user) CreatedProjectsCount() (int64, error) {
@@ -369,310 +288,8 @@ func MaxCompletedProjectsCount() (int64, error) {
 	return count(q)
 }
 
-func (u user) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
-	// FIXME: there must be some other way changing directory
-	if err := os.Chdir(ContentFolder); err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	url := fmt.Sprintf(UserAvatarURL, u.ID_)
-	finalURL, header, err := httputil.SaveFileWithExtension(w, r, "image", url)
-	if err != nil || header == nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	if err := os.Chdir(".."); err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	if err = u.updateAvatarURL(finalURL); err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	response.OK(w, nil)
-}
-
-func (u user) CreateProject(w http.ResponseWriter, r *http.Request) {
-	title := r.FormValue("title")
-	if title == "" {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	tagline := r.FormValue("tagline")
-	description := r.FormValue("description")
-
-	// basic project info
-	projectID, err := insertProject(map[string]string{
-			"authorID": u.IDStr,
-			"title": title,
-			"tagline": tagline,
-			"description": description,
-	})
-
-	if err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	var ok bool
-
-	// add author to project user list
-	if err = AddMember(projectID, u.ID_); err != nil {
-		goto error
-	}
-
-	// image
-	if ok, err = saveProjectImage(w, r, projectID); err != nil || !ok {
-		goto error
-	}
-
-	response.OK(w, projectID)
-	return
-
-error:
-	if err := deleteProject(projectID); err != nil {
-		debug.Warn(err)
-	}
-	response.ServerError(w, err)
-}
-
-func (u user) UpdateProject(w http.ResponseWriter, r *http.Request) {
-	var parser Parser
-	var err error
-
-	projectID := parser.Int(r.FormValue("projectID"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	if !u.IsAuthor(projectID) {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
-
-	for k, v := range r.Form {
-		if len(v) == 0 {
-			continue
-		}
-
-		switch k {
-		case "title":
-			err = updateProjectTitle(projectID, v[0])
-		case "tagline":
-			err = updateProjectTagline(projectID, v[0])
-		case "description":
-			err = updateProjectDescription(projectID, v[0])
-		}
-		if err != nil {
-			response.ServerError(w, err)
-			return
-		}
-	}
-
-	response.OK(w, nil)
-}
-
-func (u user) DeleteProject(w http.ResponseWriter, r *http.Request) {
-	var parser Parser
-
-	projectID := parser.Int(r.FormValue("projectID"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	if !isAuthor(projectID, u.ID_) {
-		response.ClientError(w, http.StatusUnauthorized)
-		return
-	}
-
-	if err := deleteProject(projectID); err != nil {
-		response.ServerError(w, err)
-		return
-	}
-}
-
-func deleteProject(projectID int64) error {
-	const rawSQL = `DELETE FROM project WHERE id = $1`
-
-	// delete project
-	if _, err := db.Exec(rawSQL, projectID); err != nil {
-		return debug.Error(err)
-	}
-
-	const rawSQL2 = `DELETE FROM member WHERE project_id = $1`
-
-	// delete project users
-	if _, err := db.Exec(rawSQL2, projectID); err != nil {
-		return debug.Error(err)
-	}
-
-	// delete project image
-	if err := os.RemoveAll(fmt.Sprintf("oi-content/project/%d", projectID)); err != nil {
-		return debug.Error(err)
-	}
-
-	return nil
-}
-
-func (u user) JoinProject(w http.ResponseWriter, r *http.Request) {
-	var parser Parser
-
-	projectID := parser.Int(r.FormValue("parser"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	const rawSQL = `
-	INSERT INTO members (projectID, userID, status)
-	VALUES ($1, $2, $3)
-	WHERE projectID = $4`
-
-	if _, err := db.Exec(rawSQL, projectID, u.ID, "pending"); err != nil {
-		response.ServerError(w, err)
-	}
-	response.OK(w, nil)
-}
-
 func (u user) IsAuthor(projectID int64) bool {
 	return isAuthor(projectID, u.ID_)
-}
-
-func (u user) CreateTask(w http.ResponseWriter, r *http.Request) {
-	var taskID int64
-	var parser Parser
-	var err error
-
-	projectID := parser.Int(r.FormValue("projectID"))
-	startDate := parser.Time(r.FormValue("startDate"))
-	endDate := parser.Time(r.FormValue("endDate"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	if startDate.After(endDate) {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	if taskID, err = insertTask(insertTaskParams{
-		authorID: u.ID_,
-		projectID: projectID,
-		title: r.FormValue("title"),
-		description: r.FormValue("description"),
-		done: false,
-		tags: r.FormValue("tags"),
-		startDate: startDate,
-		endDate: endDate,
-	}); err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	response.OK(w, taskID)
-}
-
-func (u user) UpdateTask(w http.ResponseWriter, r *http.Request) {
-	var taskID int64
-	var err error
-
-	if err = updateTask(updateTaskParams{
-		taskID: r.FormValue("taskID"),
-		title: r.FormValue("title"),
-		description: r.FormValue("description"),
-		tags: r.FormValue("tags"),
-		startDate: r.FormValue("startDate"),
-		endDate: r.FormValue("endDate"),
-	}); err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	response.OK(w, taskID)
-}
-
-func (u user) ToggleTaskStatus(w http.ResponseWriter, r *http.Request) {
-	var parser Parser
-
-	taskID := parser.Int(r.FormValue("taskID"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	if err := toggleTaskStatus(taskID); err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	response.OK(w, taskID)
-}
-
-func (u user) DeleteTask(w http.ResponseWriter, r *http.Request) {
-	var parser Parser
-
-	projectID := parser.Int(r.FormValue("projectID"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	// check if user is member of the project
-	if !IsMember(projectID, u.ID_) {
-		response.ClientError(w, http.StatusForbidden)
-		return
-	}
-
-	if err := deleteTask(deleteTaskParams{
-		taskID: r.FormValue("taskID"),
-	}); err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	response.OK(w, nil)
-}
-
-func (u user) AssignWorker(w http.ResponseWriter, r *http.Request) {
-	var parser Parser
-
-	taskID := parser.Int(r.FormValue("taskID"))
-	userID := parser.Int(r.FormValue("userID"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	if r.FormValue("toggle") == "true" {
-		if err := toggleWorker(taskID, userID, u.ID_); err != nil {
-			response.ServerError(w, err)
-		}
-		response.OK(w, taskID)
-		return
-	}
-
-	insertWorker(taskID, userID, u.ID_)
-}
-
-func (u user) UnassignWorker(w http.ResponseWriter, r *http.Request) {
-	var parser Parser
-
-	taskID := parser.Int(r.FormValue("taskID"))
-	userID := parser.Int(r.FormValue("userID"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	deleteWorker(taskID, userID)
 }
 
 func SetAdmin(w http.ResponseWriter, r *http.Request) {
@@ -755,7 +372,7 @@ func GetUserByID(userID int64) (User, error) {
 		return nil, debug.Error(err)
 	}
 
-	u.IDStr = strconv.FormatInt(u.ID_, 10)
+	u.IDStr_ = strconv.FormatInt(u.ID_, 10)
 
 	if len(u.AvatarURL) == 0 {
 		u.AvatarURL = "avatar.jpg"
@@ -789,7 +406,7 @@ func GetUserByEmail(email string) (User, error) {
 		return nil, debug.Error(err)
 	}
 
-	u.IDStr = strconv.FormatInt(u.ID_, 10)
+	u.IDStr_ = strconv.FormatInt(u.ID_, 10)
 
 	if len(u.AvatarURL) == 0 {
 		u.AvatarURL = "avatar.jpg"

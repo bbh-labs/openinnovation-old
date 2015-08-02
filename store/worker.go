@@ -24,7 +24,7 @@ func GetWorkers(taskID int64) ([]User, error) {
 	return workers, nil
 }
 
-func insertWorker(taskID, userID, assignerID int64) error {
+func InsertWorker(taskID, userID, assignerID int64) error {
 	const rawSQL = `
 	INSERT INTO worker (task_id, user_id, assigner_id, created_at)
 	VALUES ($1, $2, $3, now())`
@@ -39,7 +39,7 @@ func insertWorker(taskID, userID, assignerID int64) error {
 	return nil
 }
 
-func deleteWorker(taskID, userID int64) error {
+func DeleteWorker(taskID, userID int64) error {
 	const rawSQL = `
 	DELETE FROM worker WHERE task_id = $1 AND user_id = $2`
 
@@ -50,7 +50,7 @@ func deleteWorker(taskID, userID int64) error {
 	return nil
 }
 
-func toggleWorker(taskID, userID, assignerID int64) error {
+func ToggleWorker(taskID, userID, assignerID int64) error {
 	var is bool
 	var err error
 
@@ -59,11 +59,11 @@ func toggleWorker(taskID, userID, assignerID int64) error {
 	}
 
 	if is {
-		if err = deleteWorker(taskID, userID); err != nil {
+		if err = DeleteWorker(taskID, userID); err != nil {
 			return debug.Error(err)
 		}
 	} else {
-		if err = insertWorker(taskID, userID, assignerID); err != nil {
+		if err = InsertWorker(taskID, userID, assignerID); err != nil {
 			return debug.Error(err)
 		}
 	}

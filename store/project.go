@@ -47,7 +47,7 @@ type Project struct {
 	IsMember bool   `json:"isMember"`
 }
 
-func insertProject(params map[string]string) (int64, error) {
+func CreateProject(params map[string]string) (int64, error) {
 	const rawSQL = `
 	INSERT INTO project (author_id, title, tagline, description, image_url, view_count, status, updated_at, created_at)
 	VALUES ($1, $2, $3, $4, '', 0, 'concept', now(), now())
@@ -71,7 +71,7 @@ func insertProject(params map[string]string) (int64, error) {
 	return id, nil
 }
 
-func updateProjectTitle(projectID int64, title string) error {
+func UpdateProjectTitle(projectID int64, title string) error {
 	const rawSQL = `UPDATE project SET title = $1, updated_at = now() WHERE id = $2`
 
 	if _, err := db.Exec(rawSQL, title, projectID); err != nil {
@@ -81,7 +81,7 @@ func updateProjectTitle(projectID int64, title string) error {
 	return nil
 }
 
-func updateProjectTagline(projectID int64, tagline string) error {
+func UpdateProjectTagline(projectID int64, tagline string) error {
 	const rawSQL = `UPDATE project SET tagline = $1, updated_at = now() WHERE id = $2`
 
 	if _, err := db.Exec(rawSQL, tagline, projectID); err != nil {
@@ -91,7 +91,7 @@ func updateProjectTagline(projectID int64, tagline string) error {
 	return nil
 }
 
-func updateProjectDescription(projectID int64, description string) error {
+func UpdateProjectDescription(projectID int64, description string) error {
 	const rawSQL = `UPDATE project SET description = $1, updated_at = now() WHERE id = $2`
 
 	if _, err := db.Exec(rawSQL, description, projectID); err != nil {
@@ -101,7 +101,7 @@ func updateProjectDescription(projectID int64, description string) error {
 	return nil
 }
 
-func saveProjectImage(w http.ResponseWriter, r *http.Request, projectID int64) (bool, error) {
+func SaveProjectImage(w http.ResponseWriter, r *http.Request, projectID int64) (bool, error) {
 	// FIXME: there must be some other way changing directory
 	if err := os.Chdir(ContentFolder); err != nil {
 		return false, debug.Error(err)
@@ -163,6 +163,29 @@ func GetProject(projectID int64) (Project, error) {
 	}
 
 	return p, nil
+}
+
+func DeleteProject(projectID int64) error {
+	const rawSQL = `DELETE FROM project WHERE id = $1`
+
+	// delete project
+	if _, err := db.Exec(rawSQL, projectID); err != nil {
+		return debug.Error(err)
+	}
+
+	const rawSQL2 = `DELETE FROM member WHERE project_id = $1`
+
+	// delete project users
+	if _, err := db.Exec(rawSQL2, projectID); err != nil {
+		return debug.Error(err)
+	}
+
+	// delete project image
+	if err := os.RemoveAll(fmt.Sprintf("oi-content/project/%d", projectID)); err != nil {
+		return debug.Error(err)
+	}
+
+	return nil
 }
 
 func GetMostViewedProjects(count int64) ([]Project, error) {
