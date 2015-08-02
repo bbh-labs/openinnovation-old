@@ -43,7 +43,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 func login(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
-		store.Login(w, r)
+		Login(w, r)
 	case "GET":
 		response.OK(w, store.CurrentUser(r))
 	default:
@@ -70,7 +70,7 @@ func logout(w http.ResponseWriter, r *http.Request) {
 func register(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
-		store.Register(w, r)
+		Register(w, r)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}
@@ -80,7 +80,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 // /verify
 // 
 func verify(w http.ResponseWriter, r *http.Request) {
-	store.Verify(w, r)
+	Verify(w, r)
 }
 
 // 
@@ -100,7 +100,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 			user.Update(w, r)
 		}
 	case "GET":
-		store.GetUser(w, r)
+		GetUser(w, r)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}
@@ -142,11 +142,11 @@ func project(w http.ResponseWriter, r *http.Request) {
 		typ := r.FormValue("type")
 		switch typ {
 		case "featured":
-			store.FeaturedProjects(w, r)
+			FeaturedProjects(w, r)
 		case "latest":
-			store.LatestProjects(w, r)
+			LatestProjects(w, r)
 		default:
-			user.GetProject(w, r)
+			GetProject(w, r)
 		}
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
@@ -172,7 +172,7 @@ func projectJoin(w http.ResponseWriter, r *http.Request) {
 func member(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		store.GetMembers(w, r)
+		GetMembers(w, r)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}
@@ -188,11 +188,11 @@ func task(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		switch r.FormValue("type") {
 		case "project":
-			store.GetTasks(w, r)
+			GetTasks(w, r)
 		case "latest":
-			store.LatestTasks(w, r)
+			LatestTasks(w, r)
 		default:
-			store.GetTask(w, r)
+			GetTask(w, r)
 		}
 	case "POST":
 		user.CreateTask(w, r)
@@ -218,7 +218,7 @@ func worker(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		store.GetWorkers(w, r)
+		GetWorkers(w, r)
 	case "POST":
 		user.AssignWorker(w, r)
 	case "DELETE":

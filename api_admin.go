@@ -59,9 +59,9 @@ func adminProject(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		switch r.FormValue("type") {
 		case "setFeaturedProject":
-			store.SetFeaturedProject(w, r)
+			SetFeaturedProject(w, r)
 		case "unsetFeaturedProject":
-			store.UnsetFeaturedProject(w, r)
+			UnsetFeaturedProject(w, r)
 		default:
 			response.ClientError(w, http.StatusBadRequest)
 		}

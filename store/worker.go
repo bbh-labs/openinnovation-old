@@ -1,10 +1,7 @@
 package store
 
 import (
-	"net/http"
-
 	"bbhoi.com/debug"
-	"bbhoi.com/response"
 )
 
 const createWorkerSQL = `
@@ -13,25 +10,7 @@ user_id int NOT NULL,
 assigner_id int NOT NULL,
 created_at timestamp NOT NULL`
 
-func GetWorkers(w http.ResponseWriter, r *http.Request) {
-	var parser Parser
-
-	taskID := parser.Int(r.FormValue("taskID"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	workers, err := getWorkers(taskID)
-	if err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	response.OK(w, workers)
-}
-
-func getWorkers(taskID int64) ([]User, error) {
+func GetWorkers(taskID int64) ([]User, error) {
 	const rawSQL = `
 	SELECT user_.* FROM worker
 	INNER JOIN user_ ON user_.id = worker.user_id
@@ -97,5 +76,5 @@ func isWorker(taskID, userID int64) (bool, error) {
 	SELECT COUNT(*) FROM worker
 	WHERE task_id = $1 AND user_id = $2`
 
-	return exists(rawSQL, taskID, userID)
+	return Exists(rawSQL, taskID, userID)
 }

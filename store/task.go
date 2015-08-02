@@ -2,12 +2,10 @@ package store
 
 import (
 	"database/sql"
-	"net/http"
 	"strings"
 	"time"
 
 	"bbhoi.com/debug"
-	"bbhoi.com/response"
 )
 
 const createTaskSQL = `
@@ -160,30 +158,7 @@ func deleteTask(params deleteTaskParams) error {
 	return nil
 }
 
-func GetTask(w http.ResponseWriter, r *http.Request) {
-	var parser Parser
-
-	taskID := parser.Int(r.FormValue("taskID"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	task, err := getTask(taskID)
-	if err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	if task == nil {
-		response.ClientError(w, http.StatusNotFound)
-		return
-	}
-
-	response.OK(w, task)
-}
-
-func getTask(taskID int64) (Task, error) {
+func GetTask(taskID int64) (Task, error) {
 	var t task
 	var err error
 
@@ -207,39 +182,21 @@ func getTask(taskID int64) (Task, error) {
 		return nil, err
 	}
 
-	if t.Author, err = getUser(t.AuthorID); err != nil {
+	if t.Author, err = GetUser(t.AuthorID); err != nil {
 		return nil, debug.Error(err)
 	}
 
 	t.TagsArray = strings.Split(t.Tags, ",")
 	t.StartDateStr = t.StartDate.Format("02 Jan, 2006")
 	t.EndDateStr = t.EndDate.Format("02 Jan, 2006")
-	if t.Workers, err = getWorkers(t.ID); err != nil {
+	if t.Workers, err = GetWorkers(t.ID); err != nil {
 		return nil, debug.Error(err)
 	}
 
 	return t, nil
 }
 
-func GetTasks(w http.ResponseWriter, r *http.Request) {
-	var parser Parser
-
-	projectID := parser.Int(r.FormValue("projectID"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	tasks, err := getTasks(projectID)
-	if err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	response.OK(w, tasks)
-}
-
-func getTasks(projectID int64) ([]Task, error) {
+func GetTasks(projectID int64) ([]Task, error) {
 	const rawSQL = `
 	SELECT * FROM task
 	WHERE project_id = $1
@@ -248,7 +205,7 @@ func getTasks(projectID int64) ([]Task, error) {
 	return queryTasks(rawSQL, projectID)
 }
 
-func LatestTasks(w http.ResponseWriter, r *http.Request) {
+func LatestTasks(title string, count int64) ([]Task, error) {
 	const rawSQL = `
 	SELECT * FROM task
 	ORDER BY created_at DESC LIMIT $1`
@@ -258,29 +215,12 @@ func LatestTasks(w http.ResponseWriter, r *http.Request) {
 	WHERE title ~* $1
 	ORDER BY created_at DESC LIMIT $2`
 
-	var parser Parser
-	count := parser.Int(r.FormValue("count"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	var tasks []Task
-	var err error
-
-	title := r.FormValue("title")
 	if title != "" {
 		title = ".*" + title + ".*"
-		tasks, err = queryTasks(rawSQL2, title, count)
+		return queryTasks(rawSQL2, title, count)
 	} else {
-		tasks, err = queryTasks(rawSQL, count)
+		return queryTasks(rawSQL, count)
 	}
-	if err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	response.OK(w, tasks)
 }
 
 func queryTasks(rawSQL string, data ...interface{}) ([]Task, error) {
@@ -310,14 +250,14 @@ func queryTasks(rawSQL string, data ...interface{}) ([]Task, error) {
 			return nil, debug.Error(err)
 		}
 
-		if t.Author, err = getUser(t.AuthorID); err != nil {
+		if t.Author, err = GetUser(t.AuthorID); err != nil {
 			return nil, debug.Error(err)
 		}
 
 		t.TagsArray = strings.Split(t.Tags, ",")
 		t.StartDateStr = t.StartDate.Format("02 January, 2006")
 		t.EndDateStr = t.EndDate.Format("02 January, 2006")
-		if t.Workers, err = getWorkers(t.ID); err != nil {
+		if t.Workers, err = GetWorkers(t.ID); err != nil {
 			return nil, debug.Error(err)
 		}
 

@@ -70,7 +70,7 @@ func tableExists(name string) (bool, error) {
 	return rows.Next(), nil
 }
 
-func exists(rawSQL string, data ...interface{}) (bool, error) {
+func Exists(rawSQL string, data ...interface{}) (bool, error) {
 	var count int64
 	if err := db.QueryRow(rawSQL, data...).Scan(&count); err != nil {
 		return false, err

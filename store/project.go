@@ -9,7 +9,6 @@ import (
 
 	"bbhoi.com/debug"
 	"bbhoi.com/httputil"
-	"bbhoi.com/response"
 )
 
 const (
@@ -134,7 +133,7 @@ func updateProjectImage(projectID int64, imageURL string) error {
 	return nil
 }
 
-func getProject(projectID int64) (Project, error) {
+func GetProject(projectID int64) (Project, error) {
 	var err error
 
 	const rawSQL = `SELECT * FROM project WHERE id = $1`
@@ -155,11 +154,11 @@ func getProject(projectID int64) (Project, error) {
 		return p, debug.Error(err)
 	}
 
-	if p.Tasks, err = getTasks(projectID); err != nil {
+	if p.Tasks, err = GetTasks(projectID); err != nil {
 		return p, debug.Error(err)
 	}
 
-	if p.Members, err = getMembers(projectID); err != nil {
+	if p.Members, err = GetMembers(projectID); err != nil {
 		return p, debug.Error(err)
 	}
 
@@ -180,9 +179,7 @@ func TrendingProjects(count int64) ([]Project, error) {
 	return GetMostViewedProjects(count)
 }
 
-func LatestProjects(w http.ResponseWriter, r *http.Request) {
-	var parser Parser
-
+func LatestProjects(title string, count int64) ([]Project, error) {
 	const rawSQL = `
 	SELECT * FROM project
 	ORDER BY created_at DESC LIMIT $1`
@@ -192,28 +189,12 @@ func LatestProjects(w http.ResponseWriter, r *http.Request) {
 	WHERE title ~* $1
 	ORDER BY created_at DESC LIMIT $2`
 
-	count := parser.Int(r.FormValue("count"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	var projects []Project
-	var err error
-
-	title := r.FormValue("title")
 	if title != "" {
 		title = ".*" + title + ".*"
-		projects, err = queryProjects(rawSQL2, title, count)
+		return queryProjects(rawSQL2, title, count)
 	} else {
-		projects, err = queryProjects(rawSQL, count)
+		return queryProjects(rawSQL, count)
 	}
-	if err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	response.OK(w, projects)
 }
 
 func queryProjects(rawSQL string, data ...interface{}) ([]Project, error) {
@@ -262,7 +243,7 @@ func isAuthor(projectID, userID int64) bool {
 	return authorID == userID
 }
 
-func isMember(projectID, userID int64) bool {
+func IsMember(projectID, userID int64) bool {
 	const rawSQL = `
 	SELECT COUNT(*) FROM member
 	WHERE project_id = $1 AND user_id = $2`
@@ -278,73 +259,24 @@ func isMember(projectID, userID int64) bool {
 	return true
 }
 
-func (u user) GetProject(w http.ResponseWriter, r *http.Request) {
-	var parser Parser
-
-	projectID := parser.Int(r.FormValue("projectID"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	p, err := getProject(projectID)
-	if err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	if p.Author, err = GetUserByID(p.AuthorID); err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	p.IsMember = isMember(projectID, u.ID_)
-
-	response.OK(w, p)
-}
-
-func SetFeaturedProject(w http.ResponseWriter, r *http.Request) {
-	var parser Parser
-
-	const existSQL = `
-	SELECT COUNT(*) FROM featured_project
-	WHERE project_id = $1`
-
-	projectID := parser.Int(r.FormValue("projectID"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	if exists, err := exists(existSQL, projectID); err != nil {
-		response.ServerError(w, debug.Error(err))
-		return
-	} else if exists {
-		response.OK(w, nil)
-		return
-	}
-
+func SetFeaturedProject(projectID int64) error {
 	const rawSQL = `
 	INSERT INTO featured_project (project_id, created_at) VALUES ($1, now())`
 
 	if _, err := db.Exec(rawSQL, projectID); err != nil {
-		response.ServerError(w, debug.Error(err))
+		return debug.Error(err)
 	}
+
+	return nil
 }
 
-func UnsetFeaturedProject(w http.ResponseWriter, r *http.Request) {
-	var parser Parser
-
+func UnsetFeaturedProject(projectID int64) error {
 	const rawSQL = `
 	DELETE FROM featured_project WHERE project_id = $1`
 
-	projectID := parser.Int(r.FormValue("projectID"))
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
+	if _, err := db.Exec(rawSQL, projectID); err != nil {
+		return debug.Error(err)
 	}
 
-	if _, err := db.Exec(rawSQL, projectID); err != nil {
-		response.ServerError(w, err)
-	}
+	return nil
 }

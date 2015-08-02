@@ -42,12 +42,10 @@ type User interface {
 	UpdateInterests(w http.ResponseWriter, r *http.Request)
 	UpdateAvatar(w http.ResponseWriter, r *http.Request)
 
-	GetProject(w http.ResponseWriter, r *http.Request)
 	CreateProject(w http.ResponseWriter, r *http.Request)
 	UpdateProject(w http.ResponseWriter, r *http.Request)
 	DeleteProject(w http.ResponseWriter, r *http.Request)
 	JoinProject(w http.ResponseWriter, r *http.Request)
-	AddMember(w http.ResponseWriter, r *http.Request)
 	
 	CreateTask(w http.ResponseWriter, r *http.Request)
 	UpdateTask(w http.ResponseWriter, r *http.Request)
@@ -99,36 +97,7 @@ func (u user) Exists() bool {
 	return u.Email != ""
 }
 
-func GetUser(w http.ResponseWriter, r *http.Request) {
-	userIDStr := r.FormValue("userID")
-	if userIDStr == "me" {
-		response.OK(w, CurrentUser(r))
-		return
-	}
-
-	var parser Parser
-
-	userID := parser.Int(userIDStr)
-	if parser.Err != nil {
-		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	user, err := getUser(userID)
-	if err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	if user == nil {
-		response.ClientError(w, http.StatusNotFound)
-		return
-	}
-
-	response.OK(w, user)
-}
-
-func getUser(userID int64) (User, error) {
+func GetUser(userID int64) (User, error) {
 	const rawSQL = `
 	SELECT * FROM user_ WHERE id = $1 LIMIT 1`
 
@@ -453,7 +422,7 @@ func (u user) CreateProject(w http.ResponseWriter, r *http.Request) {
 	var ok bool
 
 	// add author to project user list
-	if err = addMember(projectID, u.ID_); err != nil {
+	if err = AddMember(projectID, u.ID_); err != nil {
 		goto error
 	}
 
@@ -657,7 +626,7 @@ func (u user) DeleteTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check if user is member of the project
-	if !isMember(projectID, u.ID_) {
+	if !IsMember(projectID, u.ID_) {
 		response.ClientError(w, http.StatusForbidden)
 		return
 	}
