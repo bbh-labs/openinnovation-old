@@ -1,8 +1,4 @@
 Project.Milestones = React.createClass({
-	componentDidMount: function() {
-		var createMilestone = React.findDOMNode(this.refs.createMilestone);
-		$(createMilestone).leanModal({dismissable: true});
-	},
 	render: function() {
 		var user = this.props.user;
 		var project = this.props.project;
@@ -13,16 +9,23 @@ Project.Milestones = React.createClass({
 					{
 						project.milestones ?
 						project.milestones.map(function(m) {
-							return <Project.Milestones.Item key={m.id} milestone={m} isAuthor={project.author.id == user.id} />
+							return <Project.Milestones.Item type="view" key={m.id} milestone={m} isAuthor={project.author.id == user.id} />
 						}) : ""
 					}
-						<button data-target="create-milestone" className="btn waves-effect waves-light" ref="createMilestone">Add Milestone</button>
+						<button className="btn waves-effect waves-light" ref="createMilestone" onClick={this.handleClick}>Add Milestone</button>
 					</section>
 				</div>
 				<Project.Milestones.Modal id="view-milestone" project={project} type="view" />
 				<Project.Milestones.Modal id="create-milestone" project={project} type="create" />
 			</div>
 		)
+	},
+	handleClick: function(e) {
+		dispatcher.dispatch({
+			type: "createMilestone",
+		});
+
+		e.preventDefault();
 	},
 });
 

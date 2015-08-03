@@ -44,7 +44,7 @@ User.Content = React.createClass({
 					<div className="col s12 m4 l3">
 						<div className="card">
 							<div className="card-content">
-								<User.Content.Avatar user={user} />
+								<User.Content.AvatarContainer user={user} />
 								<User.Content.ImageCropperModal user={user} />
 							</div>
 							<div className="card-action">
@@ -72,27 +72,51 @@ User.Content = React.createClass({
 	},
 });
 
-User.Content.Avatar = React.createClass({
-	componentDidMount: function() {
-		var dropzone = React.findDOMNode(this);
-		$(dropzone).dropzone({
-            url: "/foo",
-            clickable: true,
-            maxFilesize: 1,
-            autoProcessQueue: false,
-            dictDefaultMessage: "Select your avatar (max: 1MB)",
-            addedfile: function(file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-					dispatcher.dispatch({
-						type: "openUserImageCropper",
-						data: e.target.result,
-					});
-                }.bind(this);
-                reader.readAsDataURL(file);
-            }.bind(this),
-		});
+User.Content.AvatarContainer = React.createClass({
+	styles: {
+		container: {
+			position: "relative",
+			width: "200px",
+			height: "200px",
+			margin: "0 auto",
+		},
+	},
+	getInitialState: function() {
+		return {hovering: false};
+	},
+	render: function() {
+		var user = this.props.user;
+		return (
+			<div style={this.styles.container} onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
+				<User.Content.Avatar user={user} />
+				<User.Content.Overlay hovering={this.state.hovering} />
+			</div>
+		)
+	},
+	handleMouseEnter: function(e) {
+		this.setState({hovering: true});
+	},
+	handleMouseLeave: function(e) {
+		this.setState({hovering: false});
+	},
+});
 
+User.Content.Avatar = React.createClass({
+	styles: {
+		container: {
+			position: "absolute",
+			width: "100%",
+			height: "100%",
+		},
+		image: {
+			width: "100%",
+			height: "100%",
+		},
+		input: {
+			display: "none",
+		},
+	},
+	componentDidMount: function() {
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
 			case "createProjectDone":
@@ -114,7 +138,56 @@ User.Content.Avatar = React.createClass({
 	render: function() {
 		var user = this.props.user;
 		var date = new Date();
-		return <img className="profile-picture circle" src={user.avatarURL + "?" + date.getTime()} />
+		return (
+			<div style={this.styles.container}>
+				<label htmlFor="avatar-input">
+					<img style={this.styles.image} className="circle" src={user.avatarURL + "?" + date.getTime()} />
+				</label>
+				<input id="avatar-input" type="file" style={this.styles.input} onChange={this.onChange} />
+			</div>
+		)
+	},
+	onChange: function(e) {
+		var reader = new FileReader();
+
+		reader.onload = function(e) {
+			dispatcher.dispatch({
+				type: "openUserImageCropper",
+				data: e.target.result,
+			});
+		}.bind(this);
+
+		reader.readAsDataURL(e.target.files[0]);
+	},
+});
+
+User.Content.Overlay = React.createClass({
+	styles: {
+		container: {
+			 position: "absolute",
+			 width: "100%",
+			 height: "100%",
+			 borderRadius: "50%",
+			 background: "black",
+			 transition: "opacity .2s",
+			 pointerEvents: "none",
+			 opacity: 0,
+		},
+		hovering: {
+			opacity: 0.5,
+		},
+		text: {
+			color: "white"
+		},
+	},
+	render: function() {
+		return (
+			<div className="valign-wrapper" style={m(this.styles.container, this.props.hovering && this.styles.hovering)}>
+				<div className="valign" style={{margin: "0 auto"}}>
+					<p style={this.styles.text}>Change profile picture</p>
+				</div>
+			</div>
+		)
 	},
 });
 

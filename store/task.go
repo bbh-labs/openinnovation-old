@@ -97,7 +97,7 @@ func UpdateTask(params UpdateTaskParams) error {
 			start_date = $4,
 			end_date = $5,
 			updated_at = now()
-	WHERE id = $7`
+	WHERE id = $6`
 
 	var parser Parser
 	taskID := parser.Int(params.TaskID)

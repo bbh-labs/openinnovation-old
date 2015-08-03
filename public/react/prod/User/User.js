@@ -44,7 +44,7 @@ User.Content = React.createClass({displayName: "Content",
 					React.createElement("div", {className: "col s12 m4 l3"}, 
 						React.createElement("div", {className: "card"}, 
 							React.createElement("div", {className: "card-content"}, 
-								React.createElement(User.Content.Avatar, {user: user}), 
+								React.createElement(User.Content.AvatarContainer, {user: user}), 
 								React.createElement(User.Content.ImageCropperModal, {user: user})
 							), 
 							React.createElement("div", {className: "card-action"}, 
@@ -72,27 +72,51 @@ User.Content = React.createClass({displayName: "Content",
 	},
 });
 
-User.Content.Avatar = React.createClass({displayName: "Avatar",
-	componentDidMount: function() {
-		var dropzone = React.findDOMNode(this);
-		$(dropzone).dropzone({
-            url: "/foo",
-            clickable: true,
-            maxFilesize: 1,
-            autoProcessQueue: false,
-            dictDefaultMessage: "Select your avatar (max: 1MB)",
-            addedfile: function(file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-					dispatcher.dispatch({
-						type: "openUserImageCropper",
-						data: e.target.result,
-					});
-                }.bind(this);
-                reader.readAsDataURL(file);
-            }.bind(this),
-		});
+User.Content.AvatarContainer = React.createClass({displayName: "AvatarContainer",
+	styles: {
+		container: {
+			position: "relative",
+			width: "200px",
+			height: "200px",
+			margin: "0 auto",
+		},
+	},
+	getInitialState: function() {
+		return {hovering: false};
+	},
+	render: function() {
+		var user = this.props.user;
+		return (
+			React.createElement("div", {style: this.styles.container, onMouseEnter: this.handleMouseEnter, onMouseLeave: this.handleMouseLeave}, 
+				React.createElement(User.Content.Avatar, {user: user}), 
+				React.createElement(User.Content.Overlay, {hovering: this.state.hovering})
+			)
+		)
+	},
+	handleMouseEnter: function(e) {
+		this.setState({hovering: true});
+	},
+	handleMouseLeave: function(e) {
+		this.setState({hovering: false});
+	},
+});
 
+User.Content.Avatar = React.createClass({displayName: "Avatar",
+	styles: {
+		container: {
+			position: "absolute",
+			width: "100%",
+			height: "100%",
+		},
+		image: {
+			width: "100%",
+			height: "100%",
+		},
+		input: {
+			display: "none",
+		},
+	},
+	componentDidMount: function() {
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
 			case "createProjectDone":
@@ -114,7 +138,56 @@ User.Content.Avatar = React.createClass({displayName: "Avatar",
 	render: function() {
 		var user = this.props.user;
 		var date = new Date();
-		return React.createElement("img", {className: "profile-picture circle", src: user.avatarURL + "?" + date.getTime()})
+		return (
+			React.createElement("div", {style: this.styles.container}, 
+				React.createElement("label", {htmlFor: "avatar-input"}, 
+					React.createElement("img", {style: this.styles.image, className: "circle", src: user.avatarURL + "?" + date.getTime()})
+				), 
+				React.createElement("input", {id: "avatar-input", type: "file", style: this.styles.input, onChange: this.onChange})
+			)
+		)
+	},
+	onChange: function(e) {
+		var reader = new FileReader();
+
+		reader.onload = function(e) {
+			dispatcher.dispatch({
+				type: "openUserImageCropper",
+				data: e.target.result,
+			});
+		}.bind(this);
+
+		reader.readAsDataURL(e.target.files[0]);
+	},
+});
+
+User.Content.Overlay = React.createClass({displayName: "Overlay",
+	styles: {
+		container: {
+			 position: "absolute",
+			 width: "100%",
+			 height: "100%",
+			 borderRadius: "50%",
+			 background: "black",
+			 transition: "opacity .2s",
+			 pointerEvents: "none",
+			 opacity: 0,
+		},
+		hovering: {
+			opacity: 0.5,
+		},
+		text: {
+			color: "white"
+		},
+	},
+	render: function() {
+		return (
+			React.createElement("div", {className: "valign-wrapper", style: m(this.styles.container, this.props.hovering && this.styles.hovering)}, 
+				React.createElement("div", {className: "valign", style: {margin: "0 auto"}}, 
+					React.createElement("p", {style: this.styles.text}, "Change profile picture")
+				)
+			)
+		)
 	},
 });
 

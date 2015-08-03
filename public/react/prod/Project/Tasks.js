@@ -100,16 +100,11 @@ Project.Tasks.Item = React.createClass({displayName: "Item",
 	getInitialState: function() {
 		return {hovering: false};
 	},
-	componentDidMount: function() {
-		$(React.findDOMNode(this.refs.viewTask)).leanModal({
-			dismissable: true,
-		});
-	},
 	render: function() {
 		var task = this.props.task;
 		return (
 			React.createElement("li", {className: "collection-item", onMouseEnter: this.handleMouseEnter, onMouseLeave: this.handleMouseLeave}, 
-				React.createElement("a", {ref: "viewTask", href: "#view-task", onClick: this.handleClick}, 
+				React.createElement("a", {href: "", onClick: this.handleClick}, 
 					task.title
 				), 
 				React.createElement("div", {className: "secondary-content"}, 
@@ -127,10 +122,14 @@ Project.Tasks.Item = React.createClass({displayName: "Item",
 		)
 	},
 	handleClick: function(e) {
+		e.preventDefault();
 		var task = this.props.task;
 		this.props.onTaskClicked(e, task.id);
 
-		e.preventDefault();
+		dispatcher.dispatch({
+			type: "viewTask",
+			data: task,
+		});
 	},
 	handleToggleStatus: function(e) {
 		OI.toggleTaskStatus({
@@ -163,10 +162,14 @@ Project.Tasks.Worker = React.createClass({displayName: "Worker",
 	},
 	render: function() {
 		var worker = this.props.worker;
-		return React.createElement("img", {className: "task-worker tooltipped", 
+		return (
+			React.createElement(Link, {to: "user", params: {userID: worker.id}, 
 					"data-position": "bottom", 
 					"data-delay": "50", 
-					"data-tooltip": worker.fullname, 
-					src: "images/profile-pics/1.jpg"})
+					"data-tooltip": worker.fullname}, 
+				React.createElement("img", {className: "task-worker tooltipped", 
+						src: worker.avatarURL})
+			)
+		)
 	},
 });

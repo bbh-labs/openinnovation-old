@@ -55,9 +55,11 @@ Project.Members.Item = React.createClass({
 		var member = this.props.member;
 		return (
 			<li className="collection-item avatar">
-				<img className="circle" src="images/profile-pics/1.jpg" />
-				<span className="title"><strong>{member.fullname}</strong></span>
-				<p>{member.title}</p>
+				<Link to="user" params={{userID: member.id}}>
+					<img className="circle" src={member.avatarURL} />
+					<span className="title"><strong>{member.fullname}</strong></span>
+					<p>{member.title}</p>
+				</Link>
 				<Link to="user" params={{userID: member.id}} className="secondary-content">
 					<i className="material-icons">send</i>
 				</Link>

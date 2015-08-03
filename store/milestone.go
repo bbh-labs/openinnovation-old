@@ -96,23 +96,22 @@ type UpdateMilestoneParams struct {
 	Date        time.Time
 }
 
-func UpdateMilestone(params UpdateMilestoneParams) (int64, error) {
+func UpdateMilestone(params UpdateMilestoneParams) error {
 	const rawSQL = `
 	UPDATE milestone SET title = $1, description = $2, date = $3
-	WHERE milestone_id = $4`
+	WHERE id = $4`
 
-	var id int64
-	if err := db.QueryRow(
+	if _, err := db.Exec(
 		rawSQL,
 		params.Title,
 		params.Description,
 		params.Date,
 		params.MilestoneID,
-	).Scan(&id); err != nil {
-		return 0, debug.Error(err)
+	); err != nil {
+		return debug.Error(err)
 	}
 
-	return id, nil
+	return nil
 }
 
 func DeleteMilestone(milestoneID int64) error {

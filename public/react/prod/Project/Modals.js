@@ -5,29 +5,31 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 	
 		var modalTrigger = React.findDOMNode(this.refs.modalTrigger);
 		$(modalTrigger).leanModal();
-	},
-	componentDidUpdate: function() {
-		var clickedTask = this.props.clickedTask;
-		if (clickedTask < 0) {
-			return;
-		}
 
-		var tasks = this.props.project.tasks;
-		var task;
-
-		for (var i = 0; i < tasks.length; i++) {
-			if (tasks[i].id == clickedTask) {
-				task = tasks[i];
-			}
-		}
-	
 		var form = React.findDOMNode(this);
-		form.elements["taskID"].value = task.id;
-		form.elements["title"].value = task.title;
-		form.elements["description"].value = task.description;
-		form.elements["startDate"].value = task.startDateStr;
-		form.elements["endDate"].value = task.endDateStr;
-		form.elements["tags"].value = task.tags;
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "viewTask":
+				if (this.props.type != "view") {
+					return;
+				}
+
+				var task = payload.data;
+				form.elements["taskID"].value = task.id;
+				form.elements["title"].value = task.title;
+				form.elements["description"].value = task.description;
+				form.elements["tags"].value = task.tags;
+
+				this.refs.startDate.set("select", task.startDateStr, {format: "dd mmmm, yyyy"});
+				this.refs.endDate.set("select", task.endDateStr, {format: "dd mmmm, yyyy"});
+
+				$(form).openModal();
+				break;
+			}
+		}.bind(this));
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
 		var project = this.props.project;
@@ -47,11 +49,11 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 							React.createElement("label", {htmlFor: "task-description", className: active}, "Description")
 						), 
 						React.createElement("div", {className: "input-field col s6"}, 
-							React.createElement(DatePicker, {id: "task-start-date", name: "startDate", readOnly: readOnly}), 
+							React.createElement(DatePicker, {id: "task-start-date", name: "startDate", readOnly: readOnly, ref: "startDate"}), 
 							React.createElement("label", {htmlFor: "task-start-date", className: active}, "Start Date")
 						), 
 						React.createElement("div", {className: "input-field col s6"}, 
-							React.createElement(DatePicker, {id: "task-end-date", name: "endDate", readOnly: readOnly}), 
+							React.createElement(DatePicker, {id: "task-end-date", name: "endDate", readOnly: readOnly, ref: "endDate"}), 
 							React.createElement("label", {htmlFor: "task-end-date", className: active}, "End Date")
 						), 
 						React.createElement("div", {className: "input-field col s12"}, 
@@ -147,6 +149,10 @@ Project.Tasks.WorkersModal = React.createClass({displayName: "WorkersModal",
 			}
 		}
 
+		if (!task) {
+			return false;
+		}
+
 		var workers = task.workers;
 		if (!workers) {
 			workers = [];
@@ -193,7 +199,7 @@ Project.Tasks.WorkersModal.Item = React.createClass({displayName: "Item",
 
 Project.Milestones.Modal = React.createClass({displayName: "Modal",
 	componentDidMount: function() {
-		var modal = React.findDOMNode(this);
+		var form = React.findDOMNode(this);
 
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
@@ -201,12 +207,22 @@ Project.Milestones.Modal = React.createClass({displayName: "Modal",
 				if (this.props.type != "view") {
 					return;
 				}
+
 				var milestone = payload.data;
-				modal.elements["title"].value = milestone.title;
-				modal.elements["description"].value = milestone.description;
-				modal.elements["milestoneID"].value = milestone.id;
-				this.refs.date.set("select", "dd MMMM, yyyy");
-				$(modal).openModal();
+				form.elements["title"].value = milestone.title;
+				form.elements["description"].value = milestone.description;
+				form.elements["milestoneID"].value = milestone.id;
+				this.refs.date.set("select", milestone.dateStr, {format: "dd mmmm, yyyy"});
+
+				$(form).openModal();
+				break;
+			case "createMilestone":
+				if (this.props.type != "create") {
+					return;
+				}
+
+				form.reset();
+				$(form).openModal();
 				break;
 			}
 		}.bind(this));
@@ -254,7 +270,7 @@ Project.Milestones.Modal = React.createClass({displayName: "Modal",
 		case "view":
 			OI.updateMilestone($(e.target).serialize());
 			break;
-		default:
+		case "create":
 			OI.createMilestone($(e.target).serialize());
 			break;
 		}

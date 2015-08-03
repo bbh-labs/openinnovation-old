@@ -100,16 +100,11 @@ Project.Tasks.Item = React.createClass({
 	getInitialState: function() {
 		return {hovering: false};
 	},
-	componentDidMount: function() {
-		$(React.findDOMNode(this.refs.viewTask)).leanModal({
-			dismissable: true,
-		});
-	},
 	render: function() {
 		var task = this.props.task;
 		return (
 			<li className="collection-item" onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
-				<a ref="viewTask" href="#view-task" onClick={this.handleClick}>
+				<a href="" onClick={this.handleClick}>
 					{task.title}
 				</a>
 				<div className="secondary-content">
@@ -127,10 +122,14 @@ Project.Tasks.Item = React.createClass({
 		)
 	},
 	handleClick: function(e) {
+		e.preventDefault();
 		var task = this.props.task;
 		this.props.onTaskClicked(e, task.id);
 
-		e.preventDefault();
+		dispatcher.dispatch({
+			type: "viewTask",
+			data: task,
+		});
 	},
 	handleToggleStatus: function(e) {
 		OI.toggleTaskStatus({
@@ -163,10 +162,14 @@ Project.Tasks.Worker = React.createClass({
 	},
 	render: function() {
 		var worker = this.props.worker;
-		return <img className="task-worker tooltipped"
+		return (
+			<Link to="user" params={{userID: worker.id}}
 					data-position="bottom"
 					data-delay="50"
-					data-tooltip={worker.fullname}
-					src="images/profile-pics/1.jpg" />
+					data-tooltip={worker.fullname}>
+				<img className="task-worker tooltipped"
+						src={worker.avatarURL}/>
+			</Link>
+		)
 	},
 });

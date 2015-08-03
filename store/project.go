@@ -251,6 +251,18 @@ func queryProjects(rawSQL string, data ...interface{}) ([]Project, error) {
 			return nil, debug.Error(err)
 		}
 
+		if p.Tasks, err = GetTasks(p.ID); err != nil {
+			return ps, debug.Error(err)
+		}
+
+		if p.Milestones, err = GetMilestones(p.ID); err != nil {
+			return ps, debug.Error(err)
+		}
+
+		if p.Members, err = GetMembers(p.ID); err != nil {
+			return ps, debug.Error(err)
+		}
+
 		ps = append(ps, p)
 	}
 

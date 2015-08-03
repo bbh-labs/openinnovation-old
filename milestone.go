@@ -99,8 +99,7 @@ func UpdateMilestone(w http.ResponseWriter, r *http.Request) {
 	title := r.FormValue("title")
 	description := r.FormValue("description")
 
-	var err error
-	if milestoneID, err = store.UpdateMilestone(store.UpdateMilestoneParams{
+	if err := store.UpdateMilestone(store.UpdateMilestoneParams{
 		MilestoneID: milestoneID,
 		Title:       title,
 		Description: description,
@@ -110,7 +109,7 @@ func UpdateMilestone(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.OK(w, milestoneID)
+	response.OK(w, nil)
 }
 
 func DeleteMilestone(w http.ResponseWriter, r *http.Request) {
