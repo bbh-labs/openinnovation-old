@@ -190,3 +190,85 @@ Project.Tasks.WorkersModal.Item = React.createClass({
 		e.preventDefault();
 	},
 });
+
+Project.Milestones.Modal = React.createClass({
+	componentDidMount: function() {
+		var modal = React.findDOMNode(this);
+
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "viewMilestone":
+				if (this.props.type != "view") {
+					return;
+				}
+				var milestone = payload.data;
+				modal.elements["title"].value = milestone.title;
+				modal.elements["description"].value = milestone.description;
+				modal.elements["milestoneID"].value = milestone.id;
+				this.refs.date.set("select", "dd MMMM, yyyy");
+				$(modal).openModal();
+				break;
+			}
+		}.bind(this));
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
+	render: function() {
+		var project = this.props.project;
+		var type = this.props.type;
+		var active = type == "view" ? "active" : "";
+		var readOnly = !project.isMember;
+		return (
+			<form id={this.props.id} className="modal" onSubmit={this.handleSubmit}>
+				<div className="modal-content">
+					<div className="row">
+						<div className="input-field col s12">
+							<input id="milestone-title" type="text" className="validate" name="title" readOnly={readOnly} />
+							<label htmlFor="milestone-title" className={active}>Title</label>
+						</div>
+						<div className="input-field col s12">
+							<textarea id="milestone-description" className="materialize-textarea" name="description" readOnly={readOnly}></textarea>
+							<label htmlFor="milestone-description" className={active}>Description</label>
+						</div>
+						<div className="input-field col s6">
+							<DatePicker id="milestone-date" name="date" readOnly={readOnly} ref="date" />
+							<label htmlFor="milestone-date" className={active}>Date</label>
+						</div>
+						<input name="milestoneID" type="hidden" />
+						<input name="projectID" type="hidden" value={project.id} />
+					</div>
+				</div>
+				<div className="modal-footer">
+					{
+						type == "view" && !readOnly ?
+						<button className="btn modal-action modal-close waves-effect waves-green left red white-text" onClick={this.handleDelete}>Delete</button> : ""
+					}
+					<button type="submit" className="btn modal-action modal-close waves-effect waves-green right blue white-text">Done</button>
+				</div>
+			</form>
+		)
+	},
+	handleSubmit: function(e) {
+		switch (this.props.type) {
+		case "view":
+			OI.updateMilestone($(e.target).serialize());
+			break;
+		default:
+			OI.createMilestone($(e.target).serialize());
+			break;
+		}
+		e.preventDefault();
+	},
+	handleDelete: function(e) {
+		var form = React.findDOMNode(this);
+
+		switch (this.props.type) {
+		case "view":
+			OI.deleteMilestone($(form).serialize());
+			break;
+		}
+
+		e.preventDefault();
+	},
+});

@@ -67,11 +67,10 @@ func CreateMilestone(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	if milestoneID, err = store.CreateMilestone(store.CreateMilestoneParams{
-		ProjectID: projectID,
-		Title: title,
+		ProjectID:   projectID,
+		Title:       title,
 		Description: description,
-		Date: date,
-
+		Date:        date,
 	}); err != nil {
 		response.ServerError(w, err)
 		return
@@ -101,12 +100,11 @@ func UpdateMilestone(w http.ResponseWriter, r *http.Request) {
 	description := r.FormValue("description")
 
 	var err error
-	if milestoneID, err = store.CreateMilestone(store.CreateMilestoneParams{
-		ProjectID: projectID,
-		Title: title,
+	if milestoneID, err = store.UpdateMilestone(store.UpdateMilestoneParams{
+		MilestoneID: milestoneID,
+		Title:       title,
 		Description: description,
-		Date: date,
-
+		Date:        date,
 	}); err != nil {
 		response.ServerError(w, err)
 		return

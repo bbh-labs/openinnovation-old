@@ -190,3 +190,85 @@ Project.Tasks.WorkersModal.Item = React.createClass({displayName: "Item",
 		e.preventDefault();
 	},
 });
+
+Project.Milestones.Modal = React.createClass({displayName: "Modal",
+	componentDidMount: function() {
+		var modal = React.findDOMNode(this);
+
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "viewMilestone":
+				if (this.props.type != "view") {
+					return;
+				}
+				var milestone = payload.data;
+				modal.elements["title"].value = milestone.title;
+				modal.elements["description"].value = milestone.description;
+				modal.elements["milestoneID"].value = milestone.id;
+				this.refs.date.set("select", "dd MMMM, yyyy");
+				$(modal).openModal();
+				break;
+			}
+		}.bind(this));
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
+	render: function() {
+		var project = this.props.project;
+		var type = this.props.type;
+		var active = type == "view" ? "active" : "";
+		var readOnly = !project.isMember;
+		return (
+			React.createElement("form", {id: this.props.id, className: "modal", onSubmit: this.handleSubmit}, 
+				React.createElement("div", {className: "modal-content"}, 
+					React.createElement("div", {className: "row"}, 
+						React.createElement("div", {className: "input-field col s12"}, 
+							React.createElement("input", {id: "milestone-title", type: "text", className: "validate", name: "title", readOnly: readOnly}), 
+							React.createElement("label", {htmlFor: "milestone-title", className: active}, "Title")
+						), 
+						React.createElement("div", {className: "input-field col s12"}, 
+							React.createElement("textarea", {id: "milestone-description", className: "materialize-textarea", name: "description", readOnly: readOnly}), 
+							React.createElement("label", {htmlFor: "milestone-description", className: active}, "Description")
+						), 
+						React.createElement("div", {className: "input-field col s6"}, 
+							React.createElement(DatePicker, {id: "milestone-date", name: "date", readOnly: readOnly, ref: "date"}), 
+							React.createElement("label", {htmlFor: "milestone-date", className: active}, "Date")
+						), 
+						React.createElement("input", {name: "milestoneID", type: "hidden"}), 
+						React.createElement("input", {name: "projectID", type: "hidden", value: project.id})
+					)
+				), 
+				React.createElement("div", {className: "modal-footer"}, 
+					
+						type == "view" && !readOnly ?
+						React.createElement("button", {className: "btn modal-action modal-close waves-effect waves-green left red white-text", onClick: this.handleDelete}, "Delete") : "", 
+					
+					React.createElement("button", {type: "submit", className: "btn modal-action modal-close waves-effect waves-green right blue white-text"}, "Done")
+				)
+			)
+		)
+	},
+	handleSubmit: function(e) {
+		switch (this.props.type) {
+		case "view":
+			OI.updateMilestone($(e.target).serialize());
+			break;
+		default:
+			OI.createMilestone($(e.target).serialize());
+			break;
+		}
+		e.preventDefault();
+	},
+	handleDelete: function(e) {
+		var form = React.findDOMNode(this);
+
+		switch (this.props.type) {
+		case "view":
+			OI.deleteMilestone($(form).serialize());
+			break;
+		}
+
+		e.preventDefault();
+	},
+});

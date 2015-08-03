@@ -53,8 +53,23 @@ var Project = React.createClass({displayName: "Project",
 						break;
 					}
 				}
-
-				this.refs.content.updateSelectedTask();
+				break;
+			case "createMilestoneDone":
+			case "updateMilestoneDone":
+			case "deleteMilestoneDone":
+				var project = this.state.project;
+				if (!project) {
+					return;
+				}
+				OI.getProjectMilestones({projectID: project.id});
+				break;
+			case "getProjectMilestonesDone":
+				var project = this.state.project;
+				if (!project) {
+					return;
+				}
+				project.milestones = payload.data.data;
+				this.setState({project: project});
 				break;
 			}
 		}.bind(this));
@@ -135,7 +150,5 @@ Project.Content = React.createClass({displayName: "Content",
 				React.createElement(Project.Members, {user: user, project: project})
 			)
 		)
-	},
-	updateSelectedTask: function() {
 	},
 });

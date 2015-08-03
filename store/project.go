@@ -41,10 +41,11 @@ type Project struct {
 	UpdatedAt   time.Time `json:"updatedAt"`
 	CreatedAt   time.Time `json:"createdAt"`
 
-	Author   User   `json:"author"`
-	Tasks    []Task `json:"tasks"`
-	Members  []User `json:"members"`
-	IsMember bool   `json:"isMember"`
+	Author     User        `json:"author"`
+	Tasks      []Task      `json:"tasks"`
+	Milestones []Milestone `json:"milestones"`
+	Members    []User      `json:"members"`
+	IsMember   bool        `json:"isMember"`
 }
 
 func CreateProject(params map[string]string) (int64, error) {
@@ -155,6 +156,10 @@ func GetProject(projectID int64) (Project, error) {
 	}
 
 	if p.Tasks, err = GetTasks(projectID); err != nil {
+		return p, debug.Error(err)
+	}
+
+	if p.Milestones, err = GetMilestones(projectID); err != nil {
 		return p, debug.Error(err)
 	}
 

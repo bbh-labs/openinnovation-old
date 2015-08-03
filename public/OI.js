@@ -78,8 +78,8 @@ var OI = {
 			dataType: "json",
 		});
 	},
-	newProject: function(data) {
-		this.api("newProject", {
+	createProject: function(data) {
+		this.api("createProject", {
 			url: "/api/project",
 			method: "POST",
 			data: data,
@@ -120,8 +120,8 @@ var OI = {
 			data: data,
 		});
 	},
-	newTask: function(data) {
-		this.api("newTask", {
+	createTask: function(data) {
+		this.api("createTask", {
 			url: "/api/task",
 			method: "POST",
 			dataType: "json",
@@ -167,6 +167,14 @@ var OI = {
 			data: m(data, {type: "project"}),
 		});
 	},
+	getProjectMilestones: function(data) {
+		this.api("getProjectMilestones", {
+			url: "/api/milestone",
+			method: "GET",
+			dataType: "json",
+			data: m(data, {type: "project"}),
+		});
+	},
 	getProjectMembers: function(data) {
 		this.api("getProjectMembers", {
 			url: "/api/project/member",
@@ -181,6 +189,29 @@ var OI = {
 			method: "POST",
 			dataType: "json",
 			data: data,
+		});
+	},
+	createMilestone: function(data) {
+		this.api("createMilestone", {
+			url: "/api/milestone",
+			method: "POST",
+			dataType: "json",
+			data: data,
+		});
+	},
+	updateMilestone: function(data) {
+		this.api("updateMilestone", {
+			url: "/api/milestone",
+			method: "PUT",
+			dataType: "json",
+			data: data,
+		});
+	},
+	deleteMilestone: function(data) {
+		this.api("deleteMilestone", {
+			url: "/api/milestone?" + data,
+			method: "DELETE",
+			dataType: "json",
 		});
 	},
 };

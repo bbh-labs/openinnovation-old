@@ -35,6 +35,7 @@ func init() {
 	create("user_", createUserSQL)
 	create("project", createProjectSQL)
 	create("task", createTaskSQL)
+	create("milestone", createMilestoneSQL)
 	create("member", createMemberSQL)
 	create("worker", createWorkerSQL)
 

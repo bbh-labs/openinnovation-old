@@ -26,6 +26,8 @@ type milestone struct {
 	Date_        time.Time `json:"date"`
 	UpdatedAt_   time.Time `json:"updatedAt"`
 	CreatedAt_   time.Time `json:"createdAt"`
+
+	DateStr      string    `json:"dateStr"`
 }
 
 func GetMilestone(milestoneID int64) (Milestone, error) {
@@ -46,6 +48,8 @@ func GetMilestone(milestoneID int64) (Milestone, error) {
 		return nil, err
 	}
 
+	m.DateStr = m.Date_.Format("02 January, 2006")
+
 	return m, nil
 }
 
@@ -53,7 +57,7 @@ func GetMilestones(projectID int64) ([]Milestone, error) {
 	const rawSQL = `
 	SELECT * FROM milestone
 	WHERE project_id = $1
-	ORDER BY date DESC`
+	ORDER BY date`
 
 	return queryMilestones(rawSQL, projectID)
 }
@@ -78,6 +82,32 @@ func CreateMilestone(params CreateMilestoneParams) (int64, error) {
 		params.Title,
 		params.Description,
 		params.Date,
+	).Scan(&id); err != nil {
+		return 0, debug.Error(err)
+	}
+
+	return id, nil
+}
+
+type UpdateMilestoneParams struct {
+	MilestoneID int64
+	Title       string
+	Description string
+	Date        time.Time
+}
+
+func UpdateMilestone(params UpdateMilestoneParams) (int64, error) {
+	const rawSQL = `
+	UPDATE milestone SET title = $1, description = $2, date = $3
+	WHERE milestone_id = $4`
+
+	var id int64
+	if err := db.QueryRow(
+		rawSQL,
+		params.Title,
+		params.Description,
+		params.Date,
+		params.MilestoneID,
 	).Scan(&id); err != nil {
 		return 0, debug.Error(err)
 	}
@@ -118,6 +148,8 @@ func queryMilestones(rawSQL string, data ...interface{}) ([]Milestone, error) {
 		); err != nil && err != sql.ErrNoRows {
 			return nil, debug.Error(err)
 		}
+	
+		m.DateStr = m.Date_.Format("02 January, 2006")
 
 		ms = append(ms, m)
 	}
