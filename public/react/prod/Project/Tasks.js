@@ -22,7 +22,7 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 		var clickedTask = this.state.clickedTask;
 		return (
 			React.createElement("div", {id: "project-tasks", className: "col s12"}, 
-				React.createElement("div", {className: "main col l9"}, 
+				React.createElement("div", {className: "main col s12"}, 
 					React.createElement("div", {className: "col s12 margin-top"}, 
 						React.createElement("h5", null, "To Do")
 					), 
@@ -49,7 +49,7 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 						React.createElement("ul", {className: "collection"}, 
 							this.props.project.tasks ? this.props.project.tasks.map(function(t) {
 								if (!t.done) {
-									return React.createElement(Project.Tasks.Item, {key: t.id, task: t, onTaskClicked: this.onTaskClicked})
+									return React.createElement(Project.Tasks.Item, {key: t.id, project: project, task: t, onTaskClicked: this.onTaskClicked})
 								}
 							}.bind(this)) : ""
 						)
@@ -77,20 +77,9 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 							this.props.project.tasks ?
 							this.props.project.tasks.map(function(t) {
 								if (t.done) {
-									return React.createElement(Project.Tasks.Item, {key: t.id, task: t, onTaskClicked: this.onTaskClicked})
+									return React.createElement(Project.Tasks.Item, {key: t.id, project: project, task: t, onTaskClicked: this.onTaskClicked})
 								}
 							}.bind(this)) : ""
-						)
-					)
-				), 
-				React.createElement("div", {className: "sidebar col s12 m4 l3"}, 
-					React.createElement("div", {className: "card small"}, 
-						React.createElement("div", {className: "card-image"}, 
-							React.createElement("h5", {className: "card-title"}, "Completed")
-						), 
-						React.createElement("div", {className: "card-content"}, 
-							React.createElement("h1", null, "40/56"), 
-							React.createElement("p", null, "tasks")
 						)
 					)
 				)
@@ -144,7 +133,10 @@ Project.Tasks.Item = React.createClass({displayName: "Item",
 		e.preventDefault();
 	},
 	handleToggleStatus: function(e) {
-		OI.toggleTaskStatus({taskID: this.props.task.id});
+		OI.toggleTaskStatus({
+			projectID: this.props.project.id,
+			taskID: this.props.task.id
+		});
 	},
 	handleMouseEnter: function(e) {
 		this.setState({hovering: true});

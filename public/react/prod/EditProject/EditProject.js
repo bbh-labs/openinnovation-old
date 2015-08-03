@@ -59,10 +59,10 @@ EditProject.Cover = React.createClass({displayName: "Cover",
 
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
-			case "newProjectDone":
+			case "createProjectDone":
 				this.transitionTo("project", {projectID: payload.data.data});
 				break;
-			case "newProjectFail":
+			case "createProjectFail":
 				switch (payload.data.status) {
 				default:
 					Materialize.toast(payload.data.responseText, 3000, "red white-text");

@@ -20,7 +20,7 @@ Project.Members = React.createClass({
 	render: function() {
 		return (
 			<div id="project-members" className="col s12">
-				<div className="main col l9">
+				<div className="main col s12">
 					<div className="input-field col s12 m4">
 						<input id="task-search" type="text" required />
 						<label htmlFor="task-search">Search</label>
@@ -34,17 +34,6 @@ Project.Members = React.createClass({
 					<ul className="collection col s12">
 						{this.memberElements()}
 					</ul>
-				</div>
-				<div className="sidebar col s12 m4 l3">
-					<div className="card small">
-						<div className="card-image">
-							<h5 className="card-title">Members size</h5>
-						</div>
-						<div className="card-content">
-							<h1>9</h1>
-							<p>people</p>
-						</div>
-					</div>
 				</div>
 			</div>
 		)

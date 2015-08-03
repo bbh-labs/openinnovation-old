@@ -1,5 +1,22 @@
 var LatestProjects = React.createClass({displayName: "LatestProjects",
+	getInitialState: function() {
+		return {projects: []};
+	},
 	componentDidMount: function() {
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "latestProjectsDone":
+				this.setState({projects: payload.data.data});
+				break;
+			case "latestProjectsFail":
+				Materialize.toast("Failed to get latest projects", 1000, "red white-text");
+				break;
+			}
+		}.bind(this));
+
+		OI.latestProjects({count: 9});
+	},
+	componentDidUpdate: function() {
 		var slides = React.findDOMNode(this.refs.slides);
 		$(slides).owlCarousel({
 			loop: true,
@@ -20,33 +37,25 @@ var LatestProjects = React.createClass({displayName: "LatestProjects",
 			},
 		});
 	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
 	render: function() {
 		return (
 			React.createElement("div", {className: "latest-projects card"}, 
 				React.createElement("div", {className: "card-content"}, 
 					React.createElement("h5", null, "Latest Projects"), 
 					React.createElement("div", {ref: "slides"}, 
-						this.projectElements()
+						this.state.projects ?
+						this.state.projects.map(function(p) {
+							return React.createElement(ProjectItem, {key: p.id, project: p})
+						}) : ""
 					)
 				), 
 				React.createElement("div", {className: "card-action"}, 
 					React.createElement("a", {href: "#", className: "mdl-button"}, "View More")
 				)
 			)
-		)
-	},
-	projectElements: function() {
-		return buildElements(PROJECTS, function(i, p) {
-			return React.createElement(LatestProjects.Item, {key: p.id, project: p})
-		});
-	},
-});
-
-LatestProjects.Item = React.createClass({displayName: "Item",
-	render: function() {
-		var p = this.props.project;
-		return (
-			React.createElement("img", {src: p.imageURL})
 		)
 	},
 });

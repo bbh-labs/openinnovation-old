@@ -95,10 +95,10 @@ User.Content.Avatar = React.createClass({
 
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
-			case "newProjectDone":
+			case "createProjectDone":
 				this.transitionTo("project", {projectID: payload.data.data});
 				break;
-			case "newProjectFail":
+			case "createProjectFail":
 				switch (payload.data.status) {
 				default:
 					Materialize.toast(payload.data.responseText, 3000, "red white-text");
@@ -200,7 +200,7 @@ User.Content.Title = React.createClass({
 		var editMode = this.state.editMode;
 		return (
 			<div onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave} style={{minWidth: "16px", minHeight: "16px"}}>
-				<h5 ref="title" style={{display: "inline"}} contentEditable={this.state.editMode}>{this.props.user.title}</h5>
+				<p ref="title" style={{display: "inline"}} contentEditable={this.state.editMode}>{this.props.user.title}</p>
 				{
 					this.state.hovering || this.state.editMode ?
 					<i className="material-icons edit-icon" onClick={this.handleClick}>{this.state.editMode ? "done" : "edit mode"}</i> : ""

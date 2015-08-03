@@ -84,7 +84,7 @@ Project.Tasks.Modal = React.createClass({
 		var form = React.findDOMNode(this);
 		var type = this.props.type;
 		if (type == "create") {
-			OI.newTask($(form).serialize());
+			OI.createTask($(form).serialize());
 		} else if (type == "view") {
 			OI.updateTask($(form).serialize());
 		}

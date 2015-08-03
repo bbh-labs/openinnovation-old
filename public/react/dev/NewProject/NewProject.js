@@ -34,10 +34,10 @@ NewProject.Cover = React.createClass({
 
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
-			case "newProjectDone":
+			case "createProjectDone":
 				this.transitionTo("project", {projectID: payload.data.data});
 				break;
-			case "newProjectFail":
+			case "createProjectFail":
 				switch (payload.data.status) {
 				default:
 					Materialize.toast(payload.data.responseText, 3000, "red white-text");
@@ -158,7 +158,7 @@ NewProject.Form = React.createClass({
 		fd.append("tagline", tagline);
 		fd.append("description", description);
 
-		OI.newProject(fd);
+		OI.createProject(fd);
 	},
 	onProjectTypeChanged: function(e) {
 		if (e.target.value == "other") {

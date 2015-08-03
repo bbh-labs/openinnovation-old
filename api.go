@@ -22,9 +22,9 @@ func apiMiddleware(w http.ResponseWriter, r *http.Request, next http.HandlerFunc
 	}
 }
 
-// 
+//
 // /
-// 
+//
 func index(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		response.ClientError(w, http.StatusMethodNotAllowed)
@@ -37,9 +37,9 @@ func index(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 
+//
 // /login
-// 
+//
 func login(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
@@ -51,9 +51,9 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 
+//
 // /logout
-// 
+//
 func logout(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
@@ -64,9 +64,9 @@ func logout(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 
+//
 // /register
-// 
+//
 func register(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
@@ -76,19 +76,19 @@ func register(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 
+//
 // /verify
-// 
+//
 func verify(w http.ResponseWriter, r *http.Request) {
 	Verify(w, r)
 }
 
-// 
+//
 // /user
-// 
+//
 func user(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-	case "PUT":	
+	case "PUT":
 		switch r.FormValue("type") {
 		case "interests":
 			UpdateInterests(w, r)
@@ -104,9 +104,9 @@ func user(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 
+//
 // /user/project
-// 
+//
 func userProject(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
@@ -123,9 +123,9 @@ func userProject(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 
+//
 // /project
-// 
+//
 func project(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
@@ -202,6 +202,29 @@ func worker(w http.ResponseWriter, r *http.Request) {
 		AssignWorker(w, r)
 	case "DELETE":
 		UnassignWorker(w, r)
+	default:
+		response.ClientError(w, http.StatusMethodNotAllowed)
+	}
+}
+
+//
+// /milestone
+//
+func milestone(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		switch r.FormValue("type") {
+		case "project":
+			GetMilestones(w, r)
+		default:
+			GetMilestone(w, r)
+		}
+	case "POST":
+		CreateMilestone(w, r)
+	case "PUT":
+		UpdateMilestone(w, r)
+	case "DELETE":
+		DeleteMilestone(w, r)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}

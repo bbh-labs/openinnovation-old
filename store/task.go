@@ -21,37 +21,37 @@ end_date timestamp NOT NULL,
 updated_at timestamp NOT NULL,
 created_at timestamp NOT NULL`
 
-type Task interface {}
+type Task interface{}
 
 type task struct {
-	ID          int64       `json:"id"`
-	AuthorID    int64       `json:"authorID"`
-	ProjectID   int64       `json:"projectID"`
-	Title       string      `json:"title"`
-	Description string      `json:"description"`
-	Tags        string      `json:"tags"`
-	Done        bool        `json:"done"`
-	StartDate   time.Time   `json:"startDate"`
-	EndDate     time.Time   `json:"endDate"`
-	UpdatedAt   time.Time   `json:"updatedAt"`
-	CreatedAt   time.Time   `json:"createdAt"`
+	ID          int64     `json:"id"`
+	AuthorID    int64     `json:"authorID"`
+	ProjectID   int64     `json:"projectID"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Tags        string    `json:"tags"`
+	Done        bool      `json:"done"`
+	StartDate   time.Time `json:"startDate"`
+	EndDate     time.Time `json:"endDate"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+	CreatedAt   time.Time `json:"createdAt"`
 
-	Author       User       `json:"author"`
-	Workers      []User     `json:"workers"`
-	TagsArray    []string   `json:"tagsArray"`
-	StartDateStr string     `json:"startDateStr"`
-	EndDateStr   string     `json:"endDateStr"`
+	Author       User     `json:"author"`
+	Workers      []User   `json:"workers"`
+	TagsArray    []string `json:"tagsArray"`
+	StartDateStr string   `json:"startDateStr"`
+	EndDateStr   string   `json:"endDateStr"`
 }
 
 type CreateTaskParams struct {
-	AuthorID int64
-	ProjectID int64
-	Title string
+	AuthorID    int64
+	ProjectID   int64
+	Title       string
 	Description string
-	Done bool
-	Tags string
-	StartDate time.Time
-	EndDate time.Time
+	Done        bool
+	Tags        string
+	StartDate   time.Time
+	EndDate     time.Time
 }
 
 func CreateTask(params CreateTaskParams) (int64, error) {
@@ -63,15 +63,15 @@ func CreateTask(params CreateTaskParams) (int64, error) {
 
 	var id int64
 	if err := db.QueryRow(
-			rawSQL,
-			params.AuthorID,
-			params.ProjectID,
-			params.Title,
-			params.Description,
-			params.Done,
-			params.Tags,
-			params.StartDate,
-			params.EndDate,
+		rawSQL,
+		params.AuthorID,
+		params.ProjectID,
+		params.Title,
+		params.Description,
+		params.Done,
+		params.Tags,
+		params.StartDate,
+		params.EndDate,
 	).Scan(&id); err != nil {
 		return 0, debug.Error(err)
 	}
@@ -80,12 +80,12 @@ func CreateTask(params CreateTaskParams) (int64, error) {
 }
 
 type UpdateTaskParams struct {
-	TaskID string
-	Title string
+	TaskID      string
+	Title       string
 	Description string
-	Tags string
-	StartDate string
-	EndDate string
+	Tags        string
+	StartDate   string
+	EndDate     string
 }
 
 func UpdateTask(params UpdateTaskParams) error {
@@ -112,13 +112,13 @@ func UpdateTask(params UpdateTaskParams) error {
 	tags := params.Tags
 
 	if _, err := db.Exec(
-			rawSQL,
-			title,
-			description,
-			tags,
-			startDate,
-			endDate,
-			taskID,
+		rawSQL,
+		title,
+		description,
+		tags,
+		startDate,
+		endDate,
+		taskID,
 	); err != nil {
 		return debug.Error(err)
 	}
@@ -163,21 +163,20 @@ func GetTask(taskID int64) (Task, error) {
 	var err error
 
 	const rawSQL = `
-	SELECT * FROM task WHERE id = $1
-	ORDER BY created_at DESC LIMIT 1`
+	SELECT * FROM task WHERE id = $1`
 
 	if err = db.QueryRow(rawSQL, taskID).Scan(
-			&t.ID,
-			&t.AuthorID,
-			&t.ProjectID,
-			&t.Title,
-			&t.Description,
-			&t.Done,
-			&t.Tags,
-			&t.StartDate,
-			&t.EndDate,
-			&t.UpdatedAt,
-			&t.CreatedAt,
+		&t.ID,
+		&t.AuthorID,
+		&t.ProjectID,
+		&t.Title,
+		&t.Description,
+		&t.Done,
+		&t.Tags,
+		&t.StartDate,
+		&t.EndDate,
+		&t.UpdatedAt,
+		&t.CreatedAt,
 	); err != nil && err != sql.ErrNoRows {
 		return nil, err
 	}

@@ -20,7 +20,7 @@ Project.Members = React.createClass({displayName: "Members",
 	render: function() {
 		return (
 			React.createElement("div", {id: "project-members", className: "col s12"}, 
-				React.createElement("div", {className: "main col l9"}, 
+				React.createElement("div", {className: "main col s12"}, 
 					React.createElement("div", {className: "input-field col s12 m4"}, 
 						React.createElement("input", {id: "task-search", type: "text", required: true}), 
 						React.createElement("label", {htmlFor: "task-search"}, "Search")
@@ -33,17 +33,6 @@ Project.Members = React.createClass({displayName: "Members",
 					), 
 					React.createElement("ul", {className: "collection col s12"}, 
 						this.memberElements()
-					)
-				), 
-				React.createElement("div", {className: "sidebar col s12 m4 l3"}, 
-					React.createElement("div", {className: "card small"}, 
-						React.createElement("div", {className: "card-image"}, 
-							React.createElement("h5", {className: "card-title"}, "Members size")
-						), 
-						React.createElement("div", {className: "card-content"}, 
-							React.createElement("h1", null, "9"), 
-							React.createElement("p", null, "people")
-						)
 					)
 				)
 			)

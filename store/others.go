@@ -15,8 +15,8 @@ const (
 )
 
 type FeaturedProject struct {
-	ProjectID	int64		`json:"id,omitempty"`
-	CreatedAt	time.Time	`json:"createdAt,omitempty"`
+	ProjectID int64     `json:"id,omitempty"`
+	CreatedAt time.Time `json:"createdAt,omitempty"`
 }
 
 func FeaturedProjects(count int64) ([]Project, error) {

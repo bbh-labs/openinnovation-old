@@ -25,11 +25,11 @@ Project.Overview = React.createClass({displayName: "Overview",
 				React.createElement("div", {className: "sidebar col s12 m4 l3"}, 
 					React.createElement("div", {className: "card small"}, 
 						React.createElement("div", {className: "card-image"}, 
-							React.createElement("h5", {className: "card-title"}, "Next Deadline")
+							React.createElement("h5", {className: "card-title"}, "Team Size")
 						), 
 						React.createElement("div", {className: "card-content"}, 
-							React.createElement("h1", null, "59"), 
-							React.createElement("p", null, "days left")
+							React.createElement("h1", null, project.members.length), 
+							React.createElement("p", null, project.members.length <= 1 ? "person" : "people")
 						)
 					), 
 					

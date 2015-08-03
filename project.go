@@ -49,7 +49,6 @@ func GetProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
 	user := context.Get(r, "user").(store.User)
 	p.IsMember = store.IsMember(projectID, user.ID())
 

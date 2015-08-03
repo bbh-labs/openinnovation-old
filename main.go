@@ -35,6 +35,7 @@ func main() {
 	apiRouter.Handle("/api/project/member", p("/task/member", member))
 	apiRouter.Handle("/api/task", p("/task", task))
 	apiRouter.Handle("/api/task/worker", p("/task/worker", worker))
+	apiRouter.Handle("/api/milestone", p("/milestone", milestone))
 	router.PathPrefix("/api").Handler(negroni.New(
 		negroni.HandlerFunc(apiMiddleware),
 		negroni.Wrap(apiRouter),

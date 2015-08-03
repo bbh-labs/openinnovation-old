@@ -41,6 +41,7 @@ type User interface {
 	UpdateInterests(interests []string) error
 	UpdateAvatarURL(url string) error
 
+	IsMember(projectID int64) bool
 	IsAuthor(projectID int64) bool
 	IsAdmin() bool
 }
@@ -93,18 +94,18 @@ func GetUser(userID int64) (User, error) {
 
 	var u user
 	if err := db.QueryRow(rawSQL, userID).Scan(
-			&u.ID_,
-			&u.Email,
-			&u.Password,
-			&u.Fullname,
-			&u.Title,
-			&u.Description,
-			&u.AvatarURL,
-			&u.Interests,
-			&u.VerificationCode,
-			&u.IsAdmin_,
-			&u.UpdatedAt,
-			&u.CreatedAt,
+		&u.ID_,
+		&u.Email,
+		&u.Password,
+		&u.Fullname,
+		&u.Title,
+		&u.Description,
+		&u.AvatarURL,
+		&u.Interests,
+		&u.VerificationCode,
+		&u.IsAdmin_,
+		&u.UpdatedAt,
+		&u.CreatedAt,
 	); err != nil && err != sql.ErrNoRows {
 		return nil, err
 	}
@@ -286,6 +287,10 @@ func MaxCompletedProjectsCount() (int64, error) {
 	) as n`
 
 	return count(q)
+}
+
+func (u user) IsMember(projectID int64) bool {
+	return IsMember(projectID, u.ID_)
 }
 
 func (u user) IsAuthor(projectID int64) bool {

@@ -65,19 +65,24 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user := context.Get(r, "user").(store.User)
+	if !user.IsMember(projectID) {
+		response.ClientError(w, http.StatusForbidden)
+		return
+	}
+
 	var taskID int64
 	var err error
 
-	user := context.Get(r, "user").(store.User)
 	if taskID, err = store.CreateTask(store.CreateTaskParams{
-		AuthorID: user.ID(),
-		ProjectID: projectID,
-		Title: r.FormValue("title"),
+		AuthorID:    user.ID(),
+		ProjectID:   projectID,
+		Title:       r.FormValue("title"),
 		Description: r.FormValue("description"),
-		Done: false,
-		Tags: r.FormValue("tags"),
-		StartDate: startDate,
-		EndDate: endDate,
+		Done:        false,
+		Tags:        r.FormValue("tags"),
+		StartDate:   startDate,
+		EndDate:     endDate,
 	}); err != nil {
 		response.ServerError(w, err)
 		return
@@ -105,16 +110,28 @@ func LatestTasks(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateTask(w http.ResponseWriter, r *http.Request) {
-	var taskID int64
-	var err error
+	var parser store.Parser
 
-	if err = store.UpdateTask(store.UpdateTaskParams{
-		TaskID: r.FormValue("taskID"),
-		Title: r.FormValue("title"),
+	projectID := parser.Int(r.FormValue("projectID"))
+	if parser.Err != nil {
+		response.ServerError(w, parser.Err)
+		return
+	}
+
+	user := context.Get(r, "user").(store.User)
+	if !user.IsMember(projectID) {
+		response.ClientError(w, http.StatusForbidden)
+		return
+	}
+
+	var taskID int64
+	if err := store.UpdateTask(store.UpdateTaskParams{
+		TaskID:      r.FormValue("taskID"),
+		Title:       r.FormValue("title"),
 		Description: r.FormValue("description"),
-		Tags: r.FormValue("tags"),
-		StartDate: r.FormValue("startDate"),
-		EndDate: r.FormValue("endDate"),
+		Tags:        r.FormValue("tags"),
+		StartDate:   r.FormValue("startDate"),
+		EndDate:     r.FormValue("endDate"),
 	}); err != nil {
 		response.ServerError(w, err)
 		return
@@ -126,9 +143,16 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 func ToggleTaskStatus(w http.ResponseWriter, r *http.Request) {
 	var parser store.Parser
 
+	projectID := parser.Int(r.FormValue("projectID"))
 	taskID := parser.Int(r.FormValue("taskID"))
 	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	user := context.Get(r, "user").(store.User)
+	if !user.IsMember(projectID) {
+		response.ClientError(w, http.StatusForbidden)
 		return
 	}
 
@@ -150,9 +174,7 @@ func DeleteTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := context.Get(r, "user").(store.User)
-
-	// check if user is member of the project
-	if !store.IsMember(projectID, user.ID()) {
+	if !user.IsMember(projectID) {
 		response.ClientError(w, http.StatusForbidden)
 		return
 	}

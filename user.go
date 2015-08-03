@@ -178,10 +178,10 @@ func CreateProject(w http.ResponseWriter, r *http.Request) {
 
 	// basic project info
 	projectID, err := store.CreateProject(map[string]string{
-			"authorID": user.IDStr(),
-			"title": title,
-			"tagline": tagline,
-			"description": description,
+		"authorID":    user.IDStr(),
+		"title":       title,
+		"tagline":     tagline,
+		"description": description,
 	})
 	if err != nil {
 		response.ServerError(w, err)
@@ -265,4 +265,3 @@ func UnassignWorker(w http.ResponseWriter, r *http.Request) {
 
 	store.DeleteWorker(taskID, userID)
 }
-

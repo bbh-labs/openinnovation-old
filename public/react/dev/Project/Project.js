@@ -14,7 +14,7 @@ var Project = React.createClass({
 			case "projectFail":
 				this.transitionTo("dashboard");
 				break;
-			case "newTaskDone":
+			case "createTaskDone":
 			case "updateTaskDone":
 			case "deleteTaskDone":
 			case "toggleTaskStatusDone":
@@ -24,7 +24,7 @@ var Project = React.createClass({
 				}
 				OI.getProjectTasks({projectID: project.id});
 				break;
-			case "newTaskFail":
+			case "createTaskFail":
 				Materialize.toast("Failed to create new task!", 3000, "red white-text");
 				break;
 			case "deleteTaskFail":

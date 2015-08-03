@@ -22,7 +22,7 @@ Project.Tasks = React.createClass({
 		var clickedTask = this.state.clickedTask;
 		return (
 			<div id="project-tasks" className="col s12">
-				<div className="main col l9">
+				<div className="main col s12">
 					<div className="col s12 margin-top">
 						<h5>To Do</h5>
 					</div>
@@ -49,7 +49,7 @@ Project.Tasks = React.createClass({
 						<ul className="collection">{
 							this.props.project.tasks ? this.props.project.tasks.map(function(t) {
 								if (!t.done) {
-									return <Project.Tasks.Item key={t.id} task={t} onTaskClicked={this.onTaskClicked} />
+									return <Project.Tasks.Item key={t.id} project={project} task={t} onTaskClicked={this.onTaskClicked} />
 								}
 							}.bind(this)) : ""
 						}</ul>
@@ -77,21 +77,10 @@ Project.Tasks = React.createClass({
 							this.props.project.tasks ?
 							this.props.project.tasks.map(function(t) {
 								if (t.done) {
-									return <Project.Tasks.Item key={t.id} task={t} onTaskClicked={this.onTaskClicked} />
+									return <Project.Tasks.Item key={t.id} project={project} task={t} onTaskClicked={this.onTaskClicked} />
 								}
 							}.bind(this)) : ""
 						}</ul>
-					</div>
-				</div>
-				<div className="sidebar col s12 m4 l3">
-					<div className="card small">
-						<div className="card-image">
-							<h5 className="card-title">Completed</h5>
-						</div>
-						<div className="card-content">
-							<h1>40/56</h1>
-							<p>tasks</p>
-						</div>
 					</div>
 				</div>
 			</div>
@@ -144,7 +133,10 @@ Project.Tasks.Item = React.createClass({
 		e.preventDefault();
 	},
 	handleToggleStatus: function(e) {
-		OI.toggleTaskStatus({taskID: this.props.task.id});
+		OI.toggleTaskStatus({
+			projectID: this.props.project.id,
+			taskID: this.props.task.id
+		});
 	},
 	handleMouseEnter: function(e) {
 		this.setState({hovering: true});

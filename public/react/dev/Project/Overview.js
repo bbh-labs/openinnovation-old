@@ -25,11 +25,11 @@ Project.Overview = React.createClass({
 				<div className="sidebar col s12 m4 l3">
 					<div className="card small">
 						<div className="card-image">
-							<h5 className="card-title">Next Deadline</h5>
+							<h5 className="card-title">Team Size</h5>
 						</div>
 						<div className="card-content">
-							<h1>59</h1>
-							<p>days left</p>
+							<h1>{project.members.length}</h1>
+							<p>{project.members.length <= 1 ? "person" : "people"}</p>
 						</div>
 					</div>
 					{

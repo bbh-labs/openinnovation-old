@@ -54,4 +54,3 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	response.OK(w, "Successfully registered! Sent verification code to your email.")
 }
-

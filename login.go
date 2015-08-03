@@ -52,4 +52,3 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	response.OK(w, user)
 }
-

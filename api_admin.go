@@ -20,12 +20,12 @@ func adminMiddleware(w http.ResponseWriter, r *http.Request, next http.HandlerFu
 	}
 }
 
-// 
+//
 // /api/admin/user
-// 
-// PUT: 
-// GET: 
-// 
+//
+// PUT:
+// GET:
+//
 func adminUser(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "PUT":
@@ -47,13 +47,13 @@ func adminUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 
+//
 // /api/admin/project
-// 
+//
 // POST: create a new project
 // PUT: update an existing project
 // GET: get a project's information
-// 
+//
 func adminProject(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":

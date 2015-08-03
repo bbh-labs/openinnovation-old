@@ -34,12 +34,12 @@ func Register(email, password, fullname, title, description, avatarURL string) e
 
 	// insert user to database
 	if err := insertUser(map[string]string{
-		"email": email,
-		"password": string(hpassword),
-		"fullname": fullname,
-		"title": title,
-		"description": description,
-		"avatarURL": avatarURL,
+		"email":            email,
+		"password":         string(hpassword),
+		"fullname":         fullname,
+		"title":            title,
+		"description":      description,
+		"avatarURL":        avatarURL,
 		"verificationCode": verificationCode,
 	}); err != nil {
 		return debug.Error(err)
@@ -135,4 +135,3 @@ func insertUser(m map[string]string) error {
 
 	return nil
 }
-

@@ -30,7 +30,7 @@ func AddMember(w http.ResponseWriter, r *http.Request) {
 	var parser store.Parser
 
 	projectID := parser.Int(r.FormValue("projectID"))
-	userID:= parser.Int(r.FormValue("userID"))
+	userID := parser.Int(r.FormValue("userID"))
 	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
