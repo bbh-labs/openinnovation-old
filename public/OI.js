@@ -183,6 +183,21 @@ var OI = {
 			data: data,
 		});
 	},
+	joinProject: function(data) {
+		this.api("joinProject", {
+			url: "/api/project/member",
+			method: "POST",
+			data: data,
+			dataType: "json",
+		});
+	},
+	leaveProject: function(data) {
+		this.api("leaveProject", {
+			url: "/api/project/member?" + $.param(data),
+			method: "DELETE",
+			dataType: "json",
+		});
+	},
 	assignWorker: function(data) {
 		this.api("assignWorker", {
 			url: "/api/task/worker",

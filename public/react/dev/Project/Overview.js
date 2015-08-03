@@ -29,12 +29,15 @@ Project.Overview = React.createClass({
 						</div>
 						<div className="card-content">
 							<h1>{project.members.length}</h1>
-							<p>{project.members.length <= 1 ? "person" : "people"}</p>
+							<p>members</p>
 						</div>
 					</div>
 					{
 						user.id == project.authorID ?
-						<Link className="btn waves-effect waves-light col s12" to="edit-project" params={{projectID: project.id}}>Edit Project</Link> : ""
+						<Link className="btn waves-effect waves-light col s12" to="edit-project" params={{projectID: project.id}}>Edit project</Link> :
+							project.isMember ?
+							<button className="btn waves-effect waves-light red white-text col s12" onClick={this.leaveProject}>Leave project</button> :
+							<button className="btn waves-effect waves-light green white-text col s12" onClick={this.joinProject}>Join project</button>
 					}
 				</div>
 			</div>
@@ -52,6 +55,16 @@ Project.Overview = React.createClass({
 		this.setState({editMode: !editMode});
 	
 		e.preventDefault();
+	},
+	leaveProject: function(e) {
+		e.preventDefault();
+
+		OI.leaveProject({userID: this.props.user.id, projectID: this.props.project.id});
+	},
+	joinProject: function(e) {
+		e.preventDefault();
+
+		OI.joinProject({userID: this.props.user.id, projectID: this.props.project.id});
 	},
 	descriptionElement: function() {
 		if (this.state.editMode) {

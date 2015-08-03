@@ -35,7 +35,7 @@ func MemberExists(projectID, userID int64) (bool, error) {
 	SELECT COUNT(*) FROM member
 	WHERE project_id = $1 AND user_id = $2`
 
-	return Exists(rawSQL)
+	return Exists(rawSQL, projectID, userID)
 }
 
 func RemoveMember(projectID, userID int64) error {

@@ -38,7 +38,7 @@ Project.Milestones.Item = React.createClass({
 		var isAuthor = this.props.isAuthor;
 		var showButton = isAuthor && this.state.hovering;
 		return (
-			<div className="cd-timeline-block" onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
+			<div className="cd-timeline-block" onMouseOver={this.handleMouseOver} onMouseOut={this.handleMouseOut}>
 				<div className="cd-timeline-img cd-movie">
 					<img src="vertical-timeline/img/cd-icon-movie.svg" alt="Movie" />
 				</div>
@@ -46,7 +46,7 @@ Project.Milestones.Item = React.createClass({
 					<h2>{milestone.title}</h2>
 					<p>{milestone.description}</p>
 					<span className="cd-date">{milestone.dateStr}</span>
-					<button className="btn waves-effect waves-light grey"
+					<button className="btn waves-effect waves-light grey darken-2"
 							style={{border: "none", visibility: showButton ? "visible" : "hidden"}}
 							onClick={this.handleClick}>
 						Edit
@@ -63,10 +63,10 @@ Project.Milestones.Item = React.createClass({
 
 		e.preventDefault();
 	},
-	handleMouseEnter: function(e) {
+	handleMouseOver: function(e) {
 		this.setState({hovering: true});
 	},
-	handleMouseLeave: function(e) {
+	handleMouseOut: function(e) {
 		this.setState({hovering: false});
 	},
 });

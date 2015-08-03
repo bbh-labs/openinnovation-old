@@ -38,7 +38,7 @@ Project.Milestones.Item = React.createClass({displayName: "Item",
 		var isAuthor = this.props.isAuthor;
 		var showButton = isAuthor && this.state.hovering;
 		return (
-			React.createElement("div", {className: "cd-timeline-block", onMouseEnter: this.handleMouseEnter, onMouseLeave: this.handleMouseLeave}, 
+			React.createElement("div", {className: "cd-timeline-block", onMouseOver: this.handleMouseOver, onMouseOut: this.handleMouseOut}, 
 				React.createElement("div", {className: "cd-timeline-img cd-movie"}, 
 					React.createElement("img", {src: "vertical-timeline/img/cd-icon-movie.svg", alt: "Movie"})
 				), 
@@ -46,7 +46,7 @@ Project.Milestones.Item = React.createClass({displayName: "Item",
 					React.createElement("h2", null, milestone.title), 
 					React.createElement("p", null, milestone.description), 
 					React.createElement("span", {className: "cd-date"}, milestone.dateStr), 
-					React.createElement("button", {className: "btn waves-effect waves-light grey", 
+					React.createElement("button", {className: "btn waves-effect waves-light grey darken-2", 
 							style: {border: "none", visibility: showButton ? "visible" : "hidden"}, 
 							onClick: this.handleClick}, 
 						"Edit"
@@ -63,10 +63,10 @@ Project.Milestones.Item = React.createClass({displayName: "Item",
 
 		e.preventDefault();
 	},
-	handleMouseEnter: function(e) {
+	handleMouseOver: function(e) {
 		this.setState({hovering: true});
 	},
-	handleMouseLeave: function(e) {
+	handleMouseOut: function(e) {
 		this.setState({hovering: false});
 	},
 });

@@ -29,12 +29,15 @@ Project.Overview = React.createClass({displayName: "Overview",
 						), 
 						React.createElement("div", {className: "card-content"}, 
 							React.createElement("h1", null, project.members.length), 
-							React.createElement("p", null, project.members.length <= 1 ? "person" : "people")
+							React.createElement("p", null, "members")
 						)
 					), 
 					
 						user.id == project.authorID ?
-						React.createElement(Link, {className: "btn waves-effect waves-light col s12", to: "edit-project", params: {projectID: project.id}}, "Edit Project") : ""
+						React.createElement(Link, {className: "btn waves-effect waves-light col s12", to: "edit-project", params: {projectID: project.id}}, "Edit project") :
+							project.isMember ?
+							React.createElement("button", {className: "btn waves-effect waves-light red white-text col s12", onClick: this.leaveProject}, "Leave project") :
+							React.createElement("button", {className: "btn waves-effect waves-light green white-text col s12", onClick: this.joinProject}, "Join project")
 					
 				)
 			)
@@ -52,6 +55,16 @@ Project.Overview = React.createClass({displayName: "Overview",
 		this.setState({editMode: !editMode});
 	
 		e.preventDefault();
+	},
+	leaveProject: function(e) {
+		e.preventDefault();
+
+		OI.leaveProject({userID: this.props.user.id, projectID: this.props.project.id});
+	},
+	joinProject: function(e) {
+		e.preventDefault();
+
+		OI.joinProject({userID: this.props.user.id, projectID: this.props.project.id});
 	},
 	descriptionElement: function() {
 		if (this.state.editMode) {

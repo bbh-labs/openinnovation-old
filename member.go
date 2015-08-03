@@ -37,7 +37,7 @@ func AddMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := context.Get(r, "user").(store.User)
-	if !user.IsAuthor(projectID) {
+	if user.ID() != userID {
 		response.ClientError(w, http.StatusForbidden)
 		return
 	}
@@ -69,7 +69,7 @@ func RemoveMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := context.Get(r, "user").(store.User)
-	if !user.IsAuthor(projectID) {
+	if user.ID() != userID {
 		response.ClientError(w, http.StatusForbidden)
 		return
 	}
@@ -77,7 +77,7 @@ func RemoveMember(w http.ResponseWriter, r *http.Request) {
 	if exists, err := store.MemberExists(projectID, userID); err != nil {
 		response.ServerError(w, err)
 		return
-	} else if exists {
+	} else if !exists {
 		response.OK(w, nil)
 		return
 	}

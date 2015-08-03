@@ -156,6 +156,10 @@ func member(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		GetMembers(w, r)
+	case "POST":
+		AddMember(w, r)
+	case "DELETE":
+		RemoveMember(w, r)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}

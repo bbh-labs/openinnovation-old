@@ -71,6 +71,23 @@ var Project = React.createClass({
 				project.milestones = payload.data.data;
 				this.setState({project: project});
 				break;
+			case "joinProjectDone":
+			case "leaveProjectDone":
+				var project = this.state.project;
+				if (!project) {
+					return;
+				}
+				OI.getProjectMembers({projectID: project.id});
+				break;
+			case "getProjectMembersDone":
+				var project = this.state.project;
+				if (!project) {
+					return;
+				}
+				project.members = payload.data.data;
+				project.isMember = this.isMember(project.members);
+				this.setState({project: project});
+				break;
 			}
 		}.bind(this));
 	},
@@ -91,6 +108,17 @@ var Project = React.createClass({
 				<Project.Content ref="content" user={user} project={project} currentTask={currentTask} />
 			</main>
 		)
+	},
+	isMember: function(members) {
+		var user = this.props.user;
+
+		for (var i = 0; i < members.length; i++) {
+			if (user.id == members[i].id) {
+				return true;
+			}
+		}
+
+		return false;
 	},
 });
 

@@ -296,7 +296,7 @@ func IsMember(projectID, userID int64) bool {
 		return false
 	}
 
-	return true
+	return count > 0
 }
 
 func SetFeaturedProject(projectID int64) error {
