@@ -229,4 +229,12 @@ var OI = {
 			dataType: "json",
 		});
 	},
+	getChats: function(data) {
+		this.api("getChats", {
+			url: "/api/chat",
+			method: "GET",
+			data: data,
+			dataType: "json",
+		});
+	},
 };

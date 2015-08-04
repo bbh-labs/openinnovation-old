@@ -57,13 +57,24 @@ Project.Members.Item = React.createClass({displayName: "Item",
 			React.createElement("li", {className: "collection-item avatar"}, 
 				React.createElement(Link, {to: "user", params: {userID: member.id}}, 
 					React.createElement("img", {className: "circle", src: member.avatarURL}), 
-					React.createElement("span", {className: "title"}, React.createElement("strong", null, member.fullname)), 
+					React.createElement("span", {className: "title", style: {display: "block"}}, React.createElement("strong", null, member.fullname)), 
 					React.createElement("p", null, member.title)
 				), 
-				React.createElement(Link, {to: "user", params: {userID: member.id}, className: "secondary-content"}, 
-					React.createElement("i", {className: "material-icons"}, "send")
+				React.createElement("a", {href: "", className: "secondary-content", onClick: this.handleChat}, 
+					React.createElement("i", {className: "material-icons", style: {margin: "0 8px"}}, "message")
 				)
 			)
 		)
+	},
+	handleChat: function(e) {
+		dispatcher.dispatch({
+			type: "openChatModal",
+			data: {
+				data: this.props.member,
+				type: "user",
+			},
+		});
+
+		e.preventDefault();
 	},
 });

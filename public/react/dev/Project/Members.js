@@ -57,13 +57,24 @@ Project.Members.Item = React.createClass({
 			<li className="collection-item avatar">
 				<Link to="user" params={{userID: member.id}}>
 					<img className="circle" src={member.avatarURL} />
-					<span className="title"><strong>{member.fullname}</strong></span>
+					<span className="title" style={{display: "block"}}><strong>{member.fullname}</strong></span>
 					<p>{member.title}</p>
 				</Link>
-				<Link to="user" params={{userID: member.id}} className="secondary-content">
-					<i className="material-icons">send</i>
-				</Link>
+				<a href="" className="secondary-content" onClick={this.handleChat}>
+					<i className="material-icons" style={{margin: "0 8px"}}>message</i>
+				</a>
 			</li>
 		)
+	},
+	handleChat: function(e) {
+		dispatcher.dispatch({
+			type: "openChatModal",
+			data: {
+				data: this.props.member,
+				type: "user",
+			},
+		});
+
+		e.preventDefault();
 	},
 });

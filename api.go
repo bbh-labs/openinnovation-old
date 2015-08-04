@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"bbhoi.com/debug"
 	"bbhoi.com/response"
 	"bbhoi.com/session"
 	"bbhoi.com/store"
@@ -233,3 +234,39 @@ func milestone(w http.ResponseWriter, r *http.Request) {
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}
 }
+
+//
+// /chat
+//
+func chat(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		GetChats(w, r)
+	default:
+		response.ClientError(w, http.StatusMethodNotAllowed)
+	}
+}
+
+//
+// /ws
+//
+func ws(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		response.ClientError(w, http.StatusMethodNotAllowed)
+		return
+	}
+
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		debug.Warn(err)
+		return
+	}
+
+	user := context.Get(r, "user").(store.User)
+	c := &connection{send: make(chan []byte, 256), ws: ws, userID: user.ID()}
+	h.register <- c
+
+	go c.writePump()
+	c.readPump()
+}
+

@@ -43,6 +43,8 @@ var Header = React.createClass({
 						</ul>
 					</div>
 				</nav>
+
+				<ChatModal user={user}/>
 			</header>
 		)
 	},

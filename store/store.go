@@ -4,21 +4,25 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"time"
 
 	"bbhoi.com/debug"
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
 
 const (
+	ConnInfo = "user=bbh dbname=oi sslmode=disable password=Lion@123"
 	ContentFolder = "public"
 )
 
 var db *sql.DB
+var listener *pq.Listener
+var Notify func(channel, extra string)
 
 func init() {
 	var err error
 
-	db, err = sql.Open("postgres", "user=bbh dbname=oi sslmode=disable password=Lion@123")
+	db, err = sql.Open("postgres", ConnInfo)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -38,9 +42,32 @@ func init() {
 	create("milestone", createMilestoneSQL)
 	create("member", createMemberSQL)
 	create("worker", createWorkerSQL)
+	create("chat", createChatSQL)
 
 	// secondary tables
 	create("featured_project", createFeaturedProjectSQL)
+
+	// setup listener
+	listener = pq.NewListener(ConnInfo, 1 * time.Second, time.Minute, func(ev pq.ListenerEventType, err error) {
+		if err != nil {
+			fmt.Println(err)
+		}
+	})
+
+	if err := listener.Listen("chat"); err != nil {
+		panic(err)
+	}
+
+	go func() {
+		for {
+			select {
+			case notification := <-listener.Notify:
+				if Notify != nil {
+					Notify(notification.Channel, notification.Extra)
+				}
+			}
+		}
+	}()
 }
 
 func createTable(name, content string) error {
