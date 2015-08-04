@@ -57,11 +57,7 @@ User.Content = React.createClass({
 						</div>
 					</div>
 						<div className="col s12 m9 l8">
-							<div className="card">
-								<div className="card-content">
-									<User.Content.Description user={user} />
-								</div>
-							</div>
+							<User.Content.Description user={user} />
 						</div>
 						<div className="col s12 m9 l8">
 							<InvolvedProjects userID={user.id} />
@@ -234,15 +230,19 @@ User.Content.Description = React.createClass({
 		var user = this.props.user;
 		var editMode = this.state.editMode;
 		return (
-			<div onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
-				<h5 style={{display: "block"}}>
-					Description
-				{
-					this.state.hovering || this.state.editMode ?
-					<i className="material-icons edit-icon" onClick={this.handleClick}>{this.state.editMode ? "done" : "edit mode"}</i> : ""
-				}
-				</h5>
-				<p ref="description" contentEditable={this.state.editMode}>{user.description}</p>
+			<div className="card">
+				<div className={classNames("card-content", editMode && "blue white-text")}>
+					<div onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
+						<h5 style={{display: "block"}}>
+							Description
+						{
+							this.state.hovering || this.state.editMode ?
+							<i className="material-icons edit-icon" onClick={this.handleClick}>{this.state.editMode ? "done" : "edit mode"}</i> : ""
+						}
+						</h5>
+						<p ref="description" contentEditable={this.state.editMode}>{user.description}</p>
+					</div>
+				</div>
 			</div>
 		)
 	},

@@ -28,7 +28,7 @@ header > nav {
 
 /* Friends Panel */
 .friends-panel {
-	background: white;
+	background: #fcfcfc;
 	width: 250px;
 	height: 450px;
 	min-width: 250px;
@@ -54,13 +54,14 @@ header > nav {
 }
 
 .friends-myprofile {
-	background: #f0f0f0;
+	background: #f7f7f7;
 }
 
 .friends-list {
 	max-height: calc(100% - 150px);
 	margin: 8px;
 	padding: 8px;
+	border: 1px solid #f7f7f7;
 	background: linear-gradient(#f0f0f0, #ffffff);
 }
 

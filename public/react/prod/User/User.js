@@ -57,11 +57,7 @@ User.Content = React.createClass({displayName: "Content",
 						)
 					), 
 						React.createElement("div", {className: "col s12 m9 l8"}, 
-							React.createElement("div", {className: "card"}, 
-								React.createElement("div", {className: "card-content"}, 
-									React.createElement(User.Content.Description, {user: user})
-								)
-							)
+							React.createElement(User.Content.Description, {user: user})
 						), 
 						React.createElement("div", {className: "col s12 m9 l8"}, 
 							React.createElement(InvolvedProjects, {userID: user.id})
@@ -234,15 +230,19 @@ User.Content.Description = React.createClass({displayName: "Description",
 		var user = this.props.user;
 		var editMode = this.state.editMode;
 		return (
-			React.createElement("div", {onMouseEnter: this.handleMouseEnter, onMouseLeave: this.handleMouseLeave}, 
-				React.createElement("h5", {style: {display: "block"}}, 
-					"Description", 
-				
-					this.state.hovering || this.state.editMode ?
-					React.createElement("i", {className: "material-icons edit-icon", onClick: this.handleClick}, this.state.editMode ? "done" : "edit mode") : ""
-				
-				), 
-				React.createElement("p", {ref: "description", contentEditable: this.state.editMode}, user.description)
+			React.createElement("div", {className: "card"}, 
+				React.createElement("div", {className: classNames("card-content", editMode && "blue white-text")}, 
+					React.createElement("div", {onMouseEnter: this.handleMouseEnter, onMouseLeave: this.handleMouseLeave}, 
+						React.createElement("h5", {style: {display: "block"}}, 
+							"Description", 
+						
+							this.state.hovering || this.state.editMode ?
+							React.createElement("i", {className: "material-icons edit-icon", onClick: this.handleClick}, this.state.editMode ? "done" : "edit mode") : ""
+						
+						), 
+						React.createElement("p", {ref: "description", contentEditable: this.state.editMode}, user.description)
+					)
+				)
 			)
 		)
 	},
