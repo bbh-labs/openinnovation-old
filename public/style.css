@@ -18,6 +18,102 @@ header > nav {
 	cursor: pointer;
 }
 
+.no-pointer-events {
+	pointer-events: none;
+}
+
+.has-pointer-events {
+	pointer-events: all;
+}
+
+/* Friends Panel */
+.friends-panel {
+	background: white;
+	width: 250px;
+	height: 450px;
+	min-width: 250px;
+	min-height: 450px;
+	top: calc(100% - 550px);
+	left: calc(100% - 350px);
+	right: 0;
+	bottom: 0;
+	overflow: hidden;
+}
+
+.friends-panel > div {
+	padding: 8px;
+}
+
+.friends-header {
+	height: 36px;
+	background: #404040;
+}
+
+.friends-header * {
+	color: white;
+}
+
+.friends-myprofile {
+	background: #f0f0f0;
+}
+
+.friends-list {
+	max-height: calc(100% - 150px);
+	margin: 8px;
+	padding: 8px;
+	background: linear-gradient(#f0f0f0, #ffffff);
+}
+
+.friends-list .item {
+	padding: 8px 0 0 0;
+}
+
+.scroll-element {
+	border: none;
+	margin: 0;
+	padding: 0;
+	position: absolute;
+	z-index: 10;
+}
+
+.scroll-element div {
+	display: block;
+	height: 100%;
+	left: 0;
+	top: 0;
+	width: 100%;
+}
+
+.scroll-element_outer {
+	background: #f0f0f0;
+}
+
+.scroll-bar {
+	position: absolute;
+	width: 4px;
+	background: grey;
+}
+
+.scroll-y {
+	height: 100%;
+	right: 2px;
+	top: 0;
+	width: 8px;
+}
+
+.friends-avatar {
+	display: inline-block;
+	width: 64px;
+	margin: 0 8px;
+	border: 2px solid #808080;
+}
+
+.friends-status {
+	display: inline-block;
+	margin: 0;
+	vertical-align: top;
+}
+
 .edit-icon {
 	display: inline-block;
 	width: 24px;

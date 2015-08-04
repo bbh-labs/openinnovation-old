@@ -42,9 +42,7 @@ var Header = React.createClass({displayName: "Header",
 							React.createElement("li", null, React.createElement("a", {href: "#", onClick: this.logout}, "Logout"))
 						)
 					)
-				), 
-
-				React.createElement(ChatModal, {user: user})
+				)
 			)
 		)
 	},
