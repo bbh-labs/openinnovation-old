@@ -1,17 +1,19 @@
 var Window = React.createClass({
 	styles: {
 		container: {
+			display: "flex",
+			flexDirection: "column",
 			background: "#fcfcfc",
 		},
 	},
 	componentDidMount: function() {
 		$(React.findDOMNode(this))
-			.draggable({stack: ".window"})
+			.draggable({stack: ".window", cursor: "move"})
 			.resizable();
 	},
 	render: function() {
 		return (
-			<div className={classNames(this.props.className, "window z-depth-1")} style={m(this.styles.container, this.props.style)}>
+			<div className={classNames(this.props.className, "window z-depth-2")} style={m(this.styles.container, this.props.style)}>
 				{this.props.children}
 			</div>
 		)
@@ -21,20 +23,21 @@ var Window = React.createClass({
 Window.Header = React.createClass({
 	styles: {
 		container: {
-			height: "36px",
-			padding: "8px",
+			flex: "0 36px",
 		},
 		title: {
 			float: "left",
 			cursor: "default",
+			margin: "8px",
 		},
 		icons: {
 			float: "right",
+			margin: "8px",
 		},
 	},
 	render: function() {
 		return (
-			<div className={classNames("materialize-red white-text", this.props.className)} style={this.styles.container}>
+			<div className={classNames("materialize-red white-text", this.props.className)} style={m(this.styles.container, this.props.style)}>
 				<div style={this.styles.title}>
 					{this.props.children}
 				</div>
@@ -45,16 +48,37 @@ Window.Header = React.createClass({
 		)
 	},
 	handleClose: function(e) {
-		this.props.onClose();
+		if (this.props.onClose) {
+			this.props.onClose();
+		}
 		e.preventDefault();
 	},
 });
 
 Window.Content = React.createClass({
+	styles: {
+		container: {
+			flex: "1 auto",
+		},
+	},
 	render: function() {
 		return (
-			<div>
+			<div style={m(this.styles.container, this.props.style)}>
 				{this.props.children}
+			</div>
+		)
+	},
+});
+
+Window.Footer = React.createClass({
+	styles: {
+		container: {
+			flex: "0 36px",
+		},
+	},
+	render: function() {
+		return (
+			<div style={this.styles.container}>
 			</div>
 		)
 	},

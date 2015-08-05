@@ -39,7 +39,7 @@ var Overlay = React.createClass({
 				{
 					this.state.windows.length > 0 ?
 					this.state.windows.map(function(win) {
-						return <Friends.Chat windowID={win.id} user={win.user} />
+						return <Friends.Chat key={win.id} windowID={win.id} user={user} otherUser={win.user} />
 					}) : ""
 				}
 				<Friends user={user} friends={friends} showFriendsPanel={this.state.showFriendsPanel} />

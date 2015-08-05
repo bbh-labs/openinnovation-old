@@ -1,6 +1,7 @@
 var Friends = React.createClass({
 	styles: {
 		container: {
+			position: "absolute",
 			width: "300px",
 			height: "500px",
 			minWidth: "300px",
@@ -12,6 +13,11 @@ var Friends = React.createClass({
 			transform: "scale(0)",
 			transition: "transform .1s",
 		},
+		content: {
+			display: "flex",
+			flexDirection: "column",
+			overflowY: "auto",
+		},
 		materialize: {
 			transform: "scale(1)",
 		},
@@ -21,11 +27,13 @@ var Friends = React.createClass({
 		return (
 			<Window className="friends" style={m(this.styles.container, this.props.showFriendsPanel && this.styles.materialize)}>
 				<Window.Header onClose={this.toggleFriends}>Friends</Window.Header>
-				<Window.Content>
+				<Window.Content style={this.styles.content}>
 					<Friends.Item user={user} activates="me-dropdown" />
 					<Friends.MeDropdown />
 					<Friends.List user={user} />
 				</Window.Content>
+				<Window.Footer>
+				</Window.Footer>
 			</Window>
 		)
 	},
@@ -37,7 +45,8 @@ var Friends = React.createClass({
 Friends.Item = React.createClass({
 	styles: {
 		container: {
-			padding: "8px",
+			flex: "0 auto",
+			margin: "8px",
 		},
 		avatar: {
 			display: "inline-block",
@@ -84,35 +93,23 @@ Friends.Item = React.createClass({
 Friends.List = React.createClass({
 	styles: {
 		container: {
-			background: "linear-gradient(#ffffff, #f0f0f0)",
+			flex: "1 1 auto",
 			overflowY: "scroll",
+			background: "linear-gradient(#f0f0f0, #ffffff)",
+			border: "1px solid #f0f0f0",
 		},
-	},
-	getInitialState: function() {
-		return {maxHeight: 350};
-	},
-	componentDidMount: function(e) {
-		$("body").on("resize", ".friends", function(e, ui) {
-			var h = ui.size.height > ui.originalSize.height ? ui.size.height : ui.originalSize.height;
-			this.setState({maxHeight: h - 150});
-		}.bind(this));
-	},
-	componentWillUnmount: function(e) {
-		$("body").off("resize", ".friends");
 	},
 	render: function() {
 		var user = this.props.user;
 		return (
-			<div className="list" style={m(this.styles.container, {maxHeight: this.state.maxHeight + "px"})}>
-				<div>
-					<Friends.Item user={user} activates="friend-dropdown"/>
-					<Friends.Item user={user} activates="friend-dropdown"/>
-					<Friends.Item user={user} activates="friend-dropdown"/>
-					<Friends.Item user={user} activates="friend-dropdown"/>
-					<Friends.Item user={user} activates="friend-dropdown"/>
-					<Friends.Item user={user} activates="friend-dropdown"/>
-					<Friends.Item user={user} activates="friend-dropdown"/>
-				</div>
+			<div className="list" style={this.styles.container}>
+				<Friends.Item user={user} activates="friend-dropdown"/>
+				<Friends.Item user={user} activates="friend-dropdown"/>
+				<Friends.Item user={user} activates="friend-dropdown"/>
+				<Friends.Item user={user} activates="friend-dropdown"/>
+				<Friends.Item user={user} activates="friend-dropdown"/>
+				<Friends.Item user={user} activates="friend-dropdown"/>
+				<Friends.Item user={user} activates="friend-dropdown"/>
 				<Friends.FriendDropdown />
 			</div>
 		)
@@ -124,7 +121,7 @@ Friends.MeDropdown = React.createClass({
 	componentDidMount: function() {
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
-			case "openFriendDropdown":
+			case "openDropdown":
 				this.user = payload.data;
 				break;
 			}
@@ -159,7 +156,7 @@ Friends.FriendDropdown = React.createClass({
 	componentDidMount: function() {
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
-			case "openFriendDropdown":
+			case "openDropdown":
 				this.user = payload.data;
 				break;
 			}
@@ -186,158 +183,131 @@ Friends.FriendDropdown = React.createClass({
 	},
 });
 
-/*
-var Friends = React.createClass({
-	componentDidMount: function() {
-		$(React.findDOMNode(this)).draggable({stack: ".friends"}).resizable();
-	},
-	render: function() {
-		var user = this.props.user;
-		var friends = this.props.friends;
-		return (
-			<div className="friends window z-depth-2 has-pointer-events" style={{visibility: this.props.showFriendsPanel ? "visible" : "hidden"}}>
-				<div className="window-header materialize-red">
-					<div className="left">
-						Friends
-					</div>
-					<div className="right">
-						<a href="#" onClick={this.togglePanel}><i className="material-icons">close</i></a>
-					</div>
-				</div>
-				<div className="friends-myprofile">
-					<Friends.List.MyProfileItem user={user} />
-					<Friends.MyProfileDropdown />
-				</div>
-				<Friends.List user={user} friends={friends} />
-				<Friends.FriendDropdown />
-			</div>
-		)
-	},
-	togglePanel: function(e) {
-		dispatcher.dispatch({type: "toggleFriendsPanel"});
-
-		e.preventDefault();
-	},
-});
-
-Friends.List = React.createClass({
-	componentDidMount: function() {
-		$(React.findDOMNode(this)).scrollbar();
-	},
-	render: function() {
-		var friends = [
-			this.props.user,
-			this.props.user,
-			this.props.user,
-			this.props.user,
-			this.props.user,
-			this.props.user,
-			this.props.user,
-			this.props.user,
-		];
-		return (
-			<div className="friends-list">{
-				friends ?
-				friends.map(function(f) {
-					return <Friends.List.FriendItem friend={f} />
-				}) : ""
-			}</div>
-		)
-	},
-});
-
-Friends.List.MyProfileItem = React.createClass({
-	componentDidMount: function() {
-		$(React.findDOMNode(this.refs.dropdownButton)).dropdown();
-	},
-	render: function() {
-		var user = this.props.user;
-		return (
-			<div className="item">
-				<img src={user.avatarURL} className="avatar" />
-				<p className="status">
-					{user.fullname} <span ref="dropdownButton" className="friends-dropdown-button" data-activates="myprofile-dropdown">&#8964;</span><br/>
-					Online
-				</p>
-			</div>
-		)
-	},
-});
-
-Friends.List.FriendItem = React.createClass({
-	componentDidMount: function() {
-		$(React.findDOMNode(this.refs.dropdownButton)).dropdown();
-	},
-	render: function() {
-		var friend = this.props.friend;
-		return (
-			<div className="item">
-				<img src={friend.avatarURL} className="avatar" />
-				<p className="status">
-					{friend.fullname} <span ref="dropdownButton" className="friends-dropdown-button" data-activates="friend-dropdown" onClick={this.handleClick}>&#8964;</span><br/>
-					Online
-				</p>
-			</div>
-		)
-	},
-	handleClick: function(e) {
-		dispatcher.dispatch({type: "openFriendDropdown", data: this.props.friend});
-	},
-});
-
 Friends.Chat = React.createClass({
+	user: null,
+
+	styles: {
+		container: {
+			position: "absolute",
+			width: "500px",
+			height: "300px",
+			minWidth: "500px",
+			minHeight: "300px",
+			top: "calc(80% - 400px)",
+			left: "calc(80% - 600px)",
+			pointerEvents: "all",
+		},
+		content: {
+			display: "flex",
+			flexDirection: "column",
+			overflowY: "auto",
+		},
+	},
 	componentDidMount: function() {
-		$(React.findDOMNode(this)).draggable({stack: ".friends-chat"}).resizable();
+		$(React.findDOMNode(this)).draggable().resizable();
 	},
 	render: function() {
-		var user = this.props.user;
+		var otherUser = this.props.otherUser;
 		return (
-			<div className="friends-chat window z-depth-2 has-pointer-events">
-				<div className="window-header materialize-red">
-					<div className="left">
-						{user.fullname}
-					</div>
-					<div className="right">
-						<a href="#" onClick={this.handleCloseChat}><i className="material-icons">close</i></a>
-					</div>
-				</div>
-				<div className="col s12">
-					<img src={user.avatarURL} className="avatar" />
-					<p className="status">
-						{user.fullname} <span ref="dropdownButton" className="friends-dropdown-button" data-activates="friend-dropdown" onClick={this.handleClick}>&#8964;</span><br/>
-						Online
-					</p>
-				</div>
-				<Friends.Chat.List user={user} />
-			</div>
+			<Window className="chat" style={this.styles.container}>
+				<Window.Header onClose={this.handleClose}>{otherUser.fullname}</Window.Header>
+				<Window.Content style={this.styles.content}>
+					<Friends.Chat.Header otherUser={otherUser} />
+					<Friends.Chat.List />
+					<Friends.Chat.Input />
+				</Window.Content>
+			</Window>
 		)
 	},
-	handleCloseChat: function(e) {
+	handleClose: function() {
 		dispatcher.dispatch({type: "closeChat", data: this.props.windowID});
+	},
+});
 
-		e.preventDefault();
+Friends.Chat.Header = React.createClass({
+	styles: {
+		container: {
+			margin: "8px",
+		},
+		avatar: {
+			display: "inline-block",
+			width: "64px",
+			border: "2px solid #808080",
+		},
+		userInfo: {
+			display: "inline-block",
+			margin: "0 8px",
+			verticalAlign: "top",
+		},
+	},
+	render: function() {
+		var otherUser = this.props.otherUser;
+		return (
+			<div className="item" style={this.styles.container}>
+				<img src={otherUser.avatarURL} style={this.styles.avatar} />
+				<p style={this.styles.userInfo}>
+					{otherUser.fullname}
+					<span> &#8964;</span><br/>
+					Online
+				</p>
+			</div>
+		)
 	},
 });
 
 Friends.Chat.List = React.createClass({
-	componentDidMount: function() {
-		$(React.findDOMNode(this)).scrollbar();
+	styles: {
+		container: {
+			flex: "1 auto",
+			border: "1px solid #f7f7f7",
+			margin: "8px",
+			background: "linear-gradient(#f0f0f0, #ffffff)",
+			overflowY: "scroll",
+		},
+		text: {
+			padding: "0",
+			margin: "0 8px",
+		},
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
-		var user = this.props.user;
 		return (
-			<div className="col s12">
-				<p><span>{user.fullname}: </span>Lorem ipsum dolor sit amet</p>
-				<p><span>{user.fullname}: </span>Lorem ipsum dolor sit amet</p>
-				<p><span>{user.fullname}: </span>Lorem ipsum dolor sit amet</p>
-				<p><span>{user.fullname}: </span>Lorem ipsum dolor sit amet</p>
-				<p><span>{user.fullname}: </span>Lorem ipsum dolor sit amet</p>
-				<p><span>{user.fullname}: </span>Lorem ipsum dolor sit amet</p>
-				<p><span>{user.fullname}: </span>Lorem ipsum dolor sit amet</p>
-				<p><span>{user.fullname}: </span>Lorem ipsum dolor sit amet</p>
-				<p><span>{user.fullname}: </span>Lorem ipsum dolor sit amet</p>
+			<div className="list" style={this.styles.container}></div>
+		)
+	},
+	getUsername: function(m) {
+		var user = this.props.user;
+		if (m.data.userID == user.id) {
+			return user.fullname;
+		}
+		var otherUser = this.props.otherUser;
+		return otherUser.fullname;
+	},
+});
+
+Friends.Chat.Input = React.createClass({
+	styles: {
+		container: {
+			display: "flex",
+			margin: "16px 8px",
+		},
+		textarea: {
+			minHeight: "100px",
+			maxHeight: "100px",
+		},
+		button: {
+			width: "100px",
+			maxWidth: "100px",
+		},
+	},
+	render: function() {
+		return (
+			<div style={this.styles.container}>
+				<textarea style={this.styles.textarea}></textarea>
+				<button style={this.styles.button}>Send</button>
 			</div>
 		)
 	},
 });
-*/
