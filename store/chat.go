@@ -87,7 +87,7 @@ type NotifyChatParams struct {
 }
 
 func NotifyChat(params NotifyChatParams) error {
-	extra := fmt.Sprintf("s_%d_%d_%d_%s", params.ID, params.UserID, params.ChannelID, params.ChannelType)
+	extra := fmt.Sprintf("c/%d/%d/%d/%s", params.ID, params.UserID, params.ChannelID, params.ChannelType)
 
 	if _, err := db.Exec(`NOTIFY chat, '` + extra + `'`); err != nil {
 		return debug.Error(err)

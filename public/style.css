@@ -27,46 +27,48 @@ header > nav {
 }
 
 /* Friends Panel */
-.friends-panel {
+.friends {
 	background: #fcfcfc;
-	width: 250px;
-	height: 450px;
-	min-width: 250px;
-	min-height: 450px;
-	top: calc(100% - 550px);
-	left: calc(100% - 350px);
-	right: 0;
-	bottom: 0;
-	overflow: hidden;
+	width: 300px;
+	height: 500px;
+	min-width: 300px;
+	min-height: 500px;
+	top: calc(100% - 600px);
+	left: calc(100% - 400px);
 }
 
-.friends-panel > div {
+.friends-chat {
+	background: #fcfcfc;
+	width: 500px;
+	height: 300px;
+	min-width: 500px;
+	min-height: 300px;
+	top: calc(100% - 400px);
+	left: calc(100% - 600px);
+}
+
+/*
+.window > div {
 	padding: 8px;
 }
 
-.friends-header {
+.window-header {
 	height: 36px;
 	background: #404040;
 }
 
-.friends-header * {
+.window-header * {
 	color: white;
 }
+*/
 
-.friends-myprofile {
-	background: #f7f7f7;
-}
-
-.friends-list {
-	max-height: calc(100% - 150px);
-	margin: 8px;
+.friends .dropdown-content a {
+	font-size: 0.8rem !important;
 	padding: 8px;
-	border: 1px solid #f7f7f7;
-	background: linear-gradient(#f0f0f0, #ffffff);
 }
 
-.friends-list .item {
-	padding: 8px 0 0 0;
+.list {
+	overflow: hidden;
 }
 
 .scroll-element {
@@ -102,14 +104,14 @@ header > nav {
 	width: 8px;
 }
 
-.friends-avatar {
+.window .avatar {
 	display: inline-block;
 	width: 64px;
 	margin: 0 8px;
 	border: 2px solid #808080;
 }
 
-.friends-status {
+.window .status {
 	display: inline-block;
 	margin: 0;
 	vertical-align: top;

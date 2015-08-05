@@ -3,9 +3,6 @@ var App = React.createClass({displayName: "App",
 	getInitialState: function() {
 		return {user: null};
 	},
-	componentWillMount: function() {
-		this.initWS();
-	},
 	componentDidMount: function() {
 		OI.isLoggedIn();
 
@@ -41,20 +38,5 @@ var App = React.createClass({displayName: "App",
 	},
 	render: function() {
 		return React.createElement(RouteHandler, {user: this.state.user})
-	},
-	initWS: function() {
-		this.ws = new WebSocket("ws://localhost:8080/api/ws");
-		this.ws.onclose = this.onWSClose;
-		this.ws.onopen = this.onWSOpen; 
-		this.ws.onmessage = this.onWSMessage;
-	},
-	onWSOpen: function(e) {
-		console.log("WebSocket connection opened");
-	},
-	onWSClose: function(e) {
-		console.log("WebSocket connection closed");
-	},
-	onWSMessage: function(e) {
-		console.log("Got message: " + e.data);
 	},
 });
