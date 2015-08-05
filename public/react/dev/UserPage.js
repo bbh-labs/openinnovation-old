@@ -30,7 +30,7 @@ var UserPage = React.createClass({
 				<Header user={user} />
 				<RouteHandler user={user} />
 				<Footer />
-				<ChatOverlay user={user} showFriendsPanel={this.state.showFriendsPanel} />
+				<Overlay user={user} showFriendsPanel={this.state.showFriendsPanel} />
 			</div>
 		)
 	},

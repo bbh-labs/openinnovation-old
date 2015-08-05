@@ -30,7 +30,7 @@ var UserPage = React.createClass({displayName: "UserPage",
 				React.createElement(Header, {user: user}), 
 				React.createElement(RouteHandler, {user: user}), 
 				React.createElement(Footer, null), 
-				React.createElement(ChatOverlay, {user: user, showFriendsPanel: this.state.showFriendsPanel})
+				React.createElement(Overlay, {user: user, showFriendsPanel: this.state.showFriendsPanel})
 			)
 		)
 	},
