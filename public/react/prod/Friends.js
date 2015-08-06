@@ -207,14 +207,15 @@ Friends.Chat = React.createClass({displayName: "Chat",
 		$(React.findDOMNode(this)).draggable().resizable();
 	},
 	render: function() {
+		var user = this.props.user;
 		var otherUser = this.props.otherUser;
 		return (
 			React.createElement(Window, {className: "chat", style: this.styles.container}, 
 				React.createElement(Window.Header, {onClose: this.handleClose}, otherUser.fullname), 
 				React.createElement(Window.Content, {style: this.styles.content}, 
 					React.createElement(Friends.Chat.Header, {otherUser: otherUser}), 
-					React.createElement(Friends.Chat.List, null), 
-					React.createElement(Friends.Chat.Input, null)
+					React.createElement(Friends.Chat.List, {user: user, otherUser: otherUser}), 
+					React.createElement(Friends.Chat.Input, {user: user, otherUser: otherUser})
 				)
 			)
 		)
@@ -269,12 +270,21 @@ Friends.Chat.List = React.createClass({displayName: "List",
 			margin: "0 8px",
 		},
 	},
+	getInitialState: function() {
+		return {messages: []};
+	},
 	componentDidMount: function() {
+		var user = this.props.user;
+		var otherUser = this.props.otherUser;
+
 		this.dispatchID = dispatcher.register(function(payload) {
-			switch (payload.type) {
-			case "onWSMessage":
-				
-				break;
+			if (payload.type == "onWSMessage") {
+				var m = payload.data;
+				if (m.channelType == "user" && m.channelID == otherUser.id) {
+					var ms = this.state.messages;
+					ms.push(m);
+					this.setState({messages: ms});
+				}
 			}
 		}.bind(this));
 	},
@@ -283,12 +293,17 @@ Friends.Chat.List = React.createClass({displayName: "List",
 	},
 	render: function() {
 		return (
-			React.createElement("div", {className: "list", style: this.styles.container})
+			React.createElement("div", {className: "list", style: this.styles.container}, 
+				this.state.messages ?
+				this.state.messages.map(function(m) {
+					return React.createElement("p", {style: this.styles.text}, React.createElement("strong", null, this.getUsername(m), ": "), m.text)
+				}.bind(this)) : ""
+			)
 		)
 	},
 	getUsername: function(m) {
 		var user = this.props.user;
-		if (m.data.userID == user.id) {
+		if (m.userID == user.id) {
 			return user.fullname;
 		}
 		var otherUser = this.props.otherUser;
@@ -317,33 +332,24 @@ Friends.Chat.Input = React.createClass({displayName: "Input",
 	},
 	handleKeyPress: function(e) {
 		if (e.charCode == 13) {
-			var textarea = React.findDOMNode(this.refs.textarea);
-
-			OI.postChatMessage({
-				userID: 1,
-				channelID: 1,
-				channelType: "user",
-				text: textarea.value,
-			});
-
-			textarea.value = '';
+			this.sendMessage();
 			e.preventDefault();
 		}
 	},
 	handleClick: function(e) {
+		this.sendMessage();
+		e.preventDefault();
+	},
+	sendMessage: function() {
 		var textarea = React.findDOMNode(this.refs.textarea);
-		var message = {
+
+		OI.postChatMessage({
 			userID: this.props.user.id,
-			channelID: thisprops.otherUser.id,
+			channelID: this.props.otherUser.id,
 			channelType: "user",
 			text: textarea.value,
-		};
-
-		dispatcher.dispatch({
-			type: "sendWSMessage",
-			data: message,
 		});
 
-		e.preventDefault();
+		textarea.value = '';
 	},
 });

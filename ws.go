@@ -158,7 +158,12 @@ func (h *hub) broadcast(id, userID, channelID int64, channelType string) {
 
 	switch channelType {
 	case "user":
-		c := h.connections[channelID]
+		c, ok := h.connections[channelID]
+		if !ok {
+			println("Couldn't find connection", channelID)
+			break
+		}
+		println("Got message:", c.userID, channelID)
 		c.send <- m
 	default:
 	}

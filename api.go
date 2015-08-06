@@ -242,6 +242,8 @@ func chat(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		GetChats(w, r)
+	case "POST":
+		PostChat(w, r)
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}
