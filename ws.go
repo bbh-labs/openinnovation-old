@@ -140,23 +140,6 @@ func (h *hub) process(c *connection, m []byte) {
 	}
 
 	switch params.Type {
-	case "chat":
-		chatParams, ok := params.Data.(store.InsertChatParams)
-		if !ok {
-			return
-		}
-
-		id, err := store.InsertChat(chatParams)
-		if err != nil {
-			debug.Warn(err)
-			return
-		}
-
-		if err := store.NotifyChat(store.NotifyChatParams{id, chatParams}); err != nil {
-			debug.Warn(err)
-			return
-		}
-	default:
 	}
 }
 

@@ -269,6 +269,15 @@ Friends.Chat.List = React.createClass({displayName: "List",
 			margin: "0 8px",
 		},
 	},
+	componentDidMount: function() {
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "onWSMessage":
+				
+				break;
+			}
+		}.bind(this));
+	},
 	componentWillUnmount: function() {
 		dispatcher.unregister(this.dispatchID);
 	},
@@ -297,17 +306,44 @@ Friends.Chat.Input = React.createClass({displayName: "Input",
 			minHeight: "100px",
 			maxHeight: "100px",
 		},
-		button: {
-			width: "100px",
-			maxWidth: "100px",
-		},
 	},
 	render: function() {
 		return (
-			React.createElement("div", {style: this.styles.container}, 
-				React.createElement("textarea", {style: this.styles.textarea}), 
-				React.createElement("button", {style: this.styles.button}, "Send")
+			React.createElement("form", {style: this.styles.container}, 
+				React.createElement("textarea", {ref: "textarea", style: this.styles.textarea, onKeyPress: this.handleKeyPress}), 
+				React.createElement("button", {onClick: this.handleClick}, "Send")
 			)
 		)
+	},
+	handleKeyPress: function(e) {
+		if (e.charCode == 13) {
+			var textarea = React.findDOMNode(this.refs.textarea);
+
+			OI.postChatMessage({
+				userID: 1,
+				channelID: 1,
+				channelType: "user",
+				text: textarea.value,
+			});
+
+			textarea.value = '';
+			e.preventDefault();
+		}
+	},
+	handleClick: function(e) {
+		var textarea = React.findDOMNode(this.refs.textarea);
+		var message = {
+			userID: this.props.user.id,
+			channelID: thisprops.otherUser.id,
+			channelType: "user",
+			text: textarea.value,
+		};
+
+		dispatcher.dispatch({
+			type: "sendWSMessage",
+			data: message,
+		});
+
+		e.preventDefault();
 	},
 });

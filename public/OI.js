@@ -229,10 +229,18 @@ var OI = {
 			dataType: "json",
 		});
 	},
-	getChats: function(data) {
-		this.api("getChats", {
+	getChatMessages: function(data) {
+		this.api("getChatMessages", {
 			url: "/api/chat",
 			method: "GET",
+			data: data,
+			dataType: "json",
+		});
+	},
+	postChatMessage: function(data) {
+		this.api("postChatMessage", {
+			url: "/api/chat",
+			method: "POST",
 			data: data,
 			dataType: "json",
 		});

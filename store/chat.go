@@ -54,14 +54,14 @@ func GetChats(channelID int64, channelType string) ([]Chat, error) {
 	return queryChats(rawSQL, channelID, channelType)
 }
 
-type InsertChatParams struct {
+type PostChatParams struct {
 	UserID int64       `json:"userID"`
 	ChannelID int64    `json:"channelID"`
 	ChannelType string `json:"channelType"`
 	Text string        `json:"text"`
 }
 
-func InsertChat(params InsertChatParams) (int64, error) {
+func PostChat(params PostChatParams) (int64, error) {
 	const rawSQL = `
 	INSERT INTO chat (user_id, channel_id, channel_type, text, created_at)
 	VALUES ($1, $2, $3, $4, now())
@@ -83,7 +83,7 @@ func InsertChat(params InsertChatParams) (int64, error) {
 
 type NotifyChatParams struct {
 	ID int64 `json:"id"`
-	InsertChatParams
+	PostChatParams
 }
 
 func NotifyChat(params NotifyChatParams) error {

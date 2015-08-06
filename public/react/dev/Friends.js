@@ -306,18 +306,29 @@ Friends.Chat.Input = React.createClass({
 			minHeight: "100px",
 			maxHeight: "100px",
 		},
-		button: {
-			width: "100px",
-			maxWidth: "100px",
-		},
 	},
 	render: function() {
 		return (
-			<div style={this.styles.container}>
-				<textarea ref="textarea" style={this.styles.textarea}></textarea>
-				<button style={this.styles.button} onClick={this.handleClick}>Send</button>
-			</div>
+			<form style={this.styles.container}>
+				<textarea ref="textarea" style={this.styles.textarea} onKeyPress={this.handleKeyPress}></textarea>
+				<button onClick={this.handleClick}>Send</button>
+			</form>
 		)
+	},
+	handleKeyPress: function(e) {
+		if (e.charCode == 13) {
+			var textarea = React.findDOMNode(this.refs.textarea);
+
+			OI.postChatMessage({
+				userID: 1,
+				channelID: 1,
+				channelType: "user",
+				text: textarea.value,
+			});
+
+			textarea.value = '';
+			e.preventDefault();
+		}
 	},
 	handleClick: function(e) {
 		var textarea = React.findDOMNode(this.refs.textarea);

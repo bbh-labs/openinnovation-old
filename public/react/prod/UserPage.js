@@ -1,12 +1,27 @@
 var UserPage = React.createClass({displayName: "UserPage",
 	ws: null,
 
+	styles: {
+		container: {
+			height: "100%",
+		},
+	},
 	mixins: [ Navigation ],
 	getInitialState: function() {
 		return {friends: []};
 	},
 	componentDidMount: function() {
 		this.initWS();
+
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "sendWSMessage":
+				if (this.ws) {
+					this.ws.send(JSON.stringify(payload.data));
+				}
+				break;
+			}
+		});
 	},
 	componentDidUpdate: function() {
 		if (!this.props.user) {
@@ -14,6 +29,9 @@ var UserPage = React.createClass({displayName: "UserPage",
 		}
 	},
 	componentWillUnmount: function() {
+		if (this.ws) {
+			this.ws.close();
+		}
 		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
@@ -23,7 +41,7 @@ var UserPage = React.createClass({displayName: "UserPage",
 		}
 		var friends = this.state.friends;
 		return (
-			React.createElement("div", {style: {height: "100%"}}, 
+			React.createElement("div", {style: this.styles.container}, 
 				React.createElement(Header, {user: user}), 
 				React.createElement(RouteHandler, {user: user}), 
 				React.createElement(Footer, null), 
@@ -42,9 +60,13 @@ var UserPage = React.createClass({displayName: "UserPage",
 	},
 	onWSClose: function(e) {
 		console.log("WebSocket connection closed");
+		this.ws = null;
 	},
 	onWSMessage: function(e) {
 		var m = JSON.parse(e.data);
-		console.log(m);
+		dispatcher.dispatch({
+			type: "onWSMessage",
+			data: m,
+		});
 	},
 });
