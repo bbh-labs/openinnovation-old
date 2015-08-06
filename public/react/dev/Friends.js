@@ -269,6 +269,15 @@ Friends.Chat.List = React.createClass({
 			margin: "0 8px",
 		},
 	},
+	componentDidMount: function() {
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "onWSMessage":
+				
+				break;
+			}
+		}.bind(this));
+	},
 	componentWillUnmount: function() {
 		dispatcher.unregister(this.dispatchID);
 	},
@@ -305,9 +314,25 @@ Friends.Chat.Input = React.createClass({
 	render: function() {
 		return (
 			<div style={this.styles.container}>
-				<textarea style={this.styles.textarea}></textarea>
-				<button style={this.styles.button}>Send</button>
+				<textarea ref="textarea" style={this.styles.textarea}></textarea>
+				<button style={this.styles.button} onClick={this.handleClick}>Send</button>
 			</div>
 		)
+	},
+	handleClick: function(e) {
+		var textarea = React.findDOMNode(this.refs.textarea);
+		var message = {
+			userID: this.props.user.id,
+			channelID: thisprops.otherUser.id,
+			channelType: "user",
+			text: textarea.value,
+		};
+
+		dispatcher.dispatch({
+			type: "sendWSMessage",
+			data: message,
+		});
+
+		e.preventDefault();
 	},
 });
