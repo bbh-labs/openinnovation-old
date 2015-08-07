@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"bbhoi.com/debug"
+	"github.com/bbhasiapacific/bbhoi.com/debug"
 )
 
 const createTaskSQL = `

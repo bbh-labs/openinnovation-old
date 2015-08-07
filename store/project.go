@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	"bbhoi.com/debug"
-	"bbhoi.com/httputil"
+	"github.com/bbhasiapacific/bbhoi.com/debug"
+	"github.com/bbhasiapacific/bbhoi.com/httputil"
 )
 
 const (

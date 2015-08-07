@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"bbhoi.com/debug"
+	"github.com/bbhasiapacific/bbhoi.com/debug"
 )
 
 type responseJSON struct {

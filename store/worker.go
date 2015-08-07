@@ -1,7 +1,7 @@
 package store
 
 import (
-	"bbhoi.com/debug"
+	"github.com/bbhasiapacific/bbhoi.com/debug"
 )
 
 const createWorkerSQL = `

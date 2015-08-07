@@ -9,8 +9,8 @@ import (
 	"path"
 	"os"
 
-	"bbhoi.com/debug"
-	"bbhoi.com/response"
+	"github.com/bbhasiapacific/bbhoi.com/debug"
+	"github.com/bbhasiapacific/bbhoi.com/response"
 )
 
 const (

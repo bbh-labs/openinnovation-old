@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"bbhoi.com/debug"
+	"github.com/bbhasiapacific/bbhoi.com/debug"
 	"github.com/lib/pq"
 )
 

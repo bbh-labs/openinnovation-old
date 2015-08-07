@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"bbhoi.com/debug"
-	"bbhoi.com/store"
+	"github.com/bbhasiapacific/bbhoi.com/debug"
+	"github.com/bbhasiapacific/bbhoi.com/store"
 	"github.com/gorilla/websocket"
 )
 

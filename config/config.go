@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"bbhoi.com/debug"
+	"github.com/bbhasiapacific/bbhoi.com/debug"
 )
 
 type emailData struct {

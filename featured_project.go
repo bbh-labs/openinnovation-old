@@ -3,8 +3,8 @@ package main
 import (
 	"net/http"
 
-	"bbhoi.com/response"
-	"bbhoi.com/store"
+	"github.com/bbhasiapacific/bbhoi.com/response"
+	"github.com/bbhasiapacific/bbhoi.com/store"
 )
 
 func FeaturedProjects(w http.ResponseWriter, r *http.Request) {

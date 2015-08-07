@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"strings"
 
-	"bbhoi.com/debug"
-	"bbhoi.com/response"
-	"bbhoi.com/session"
-	"bbhoi.com/store"
+	"github.com/bbhasiapacific/bbhoi.com/debug"
+	"github.com/bbhasiapacific/bbhoi.com/response"
+	"github.com/bbhasiapacific/bbhoi.com/session"
+	"github.com/bbhasiapacific/bbhoi.com/store"
 
 	"github.com/gorilla/context"
 )

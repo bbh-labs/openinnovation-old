@@ -3,7 +3,7 @@ package store
 import (
 	"database/sql"
 
-	"bbhoi.com/debug"
+	"github.com/bbhasiapacific/bbhoi.com/debug"
 )
 
 func IsUserVerified(email string) bool {

@@ -6,10 +6,10 @@ import (
 	"os"
 	"strings"
 
-	"bbhoi.com/debug"
-	"bbhoi.com/httputil"
-	"bbhoi.com/response"
-	"bbhoi.com/store"
+	"github.com/bbhasiapacific/bbhoi.com/debug"
+	"github.com/bbhasiapacific/bbhoi.com/httputil"
+	"github.com/bbhasiapacific/bbhoi.com/response"
+	"github.com/bbhasiapacific/bbhoi.com/store"
 	"github.com/gorilla/context"
 )
 
