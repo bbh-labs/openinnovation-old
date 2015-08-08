@@ -119,6 +119,13 @@ func GetUser(userID int64) (User, error) {
 	return u, nil
 }
 
+func GetAllUsers() ([]User, error) {
+	const rawSQL = `
+	SELECT * FROM user_`
+
+	return queryUsers(rawSQL)
+}
+
 func queryUsers(q string, data ...interface{}) ([]User, error) {
 	rows, err := db.Query(q, data...)
 	if err != nil {

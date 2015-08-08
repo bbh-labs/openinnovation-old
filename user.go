@@ -42,6 +42,16 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, user)
 }
 
+func GetAllUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := store.GetAllUsers()
+	if err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	response.OK(w, users)
+}
+
 func Update(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {

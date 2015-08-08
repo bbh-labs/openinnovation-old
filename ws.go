@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"strings"
 	"time"
 
 	"github.com/bbhasiapacific/bbhoi.com/debug"
@@ -53,12 +52,14 @@ func (c *connection) readPump() {
 	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 
 	for {
+		/*
 		_, message, err := c.ws.ReadMessage()
 		if err != nil {
 			break
 		}
 
 		h.process(c, message)
+		*/
 	}
 }
 
@@ -126,65 +127,60 @@ func (h *hub) run() {
 	}
 }
 
-type Message struct {
-	Type string      `json:"type"`
-	Data interface{} `json:"data"`
-}
-
 func (h *hub) process(c *connection, m []byte) {
-	var params Message
-
-	if err := json.Unmarshal(m, &params); err != nil {
-		debug.Warn(err)
-		return
-	}
-
-	switch params.Type {
-	}
 }
 
-func (h *hub) broadcast(id, userID, channelID int64, channelType string) {
-	c, err := store.GetChat(id)
+func (h *hub) notifyUser(userID, otherUserID int64, data interface{}) {
+	c, ok := h.connections[userID]
+	if !ok {
+		println("Couldn't find connection", userID)
+		return
+	}
+
+	m, err := json.Marshal(data)
 	if err != nil {
 		debug.Warn(err)
 		return
 	}
 
-	m, err := json.Marshal(c)
-	if err != nil {
-		debug.Warn(err)
-		return
-	}
-
-	switch channelType {
-	case "user":
-		c, ok := h.connections[channelID]
-		if !ok {
-			println("Couldn't find connection", channelID)
-			break
-		}
-		println("Got message:", c.userID, channelID)
+	go func() {
 		c.send <- m
-	default:
-	}
-}
+	}()
 
-// format: userID/channelID/channelType
-func onNotify(channel, extra string) {
-	params := strings.Split(extra, "/")
-	if len(params) < 5 {
+	// chatting with yourself so just send the message once
+	if userID == otherUserID {
 		return
 	}
 
-	var parser store.Parser
-	id := parser.Int(params[1])
-	userID := parser.Int(params[2])
-	channelID := parser.Int(params[3])
-	channelType := params[4]
+	d, ok := h.connections[otherUserID]
+	if !ok {
+		println("Couldn't find connection", otherUserID)
+		return
+	}
 
-	h.broadcast(id, userID, channelID, channelType)
+	d.send <- m
 }
 
-func init() {
-	store.Notify = onNotify
+func (h *hub) notifyProject(projectID int64, data interface{}) {
+	ids, err := store.GetMemberIDs(projectID)
+	if err != nil {
+		debug.Warn(err)
+		return
+	}
+
+	m, err := json.Marshal(data)
+	if err != nil {
+		debug.Warn(err)
+		return
+	}
+
+	for _, id := range ids {
+		c, ok := h.connections[id]
+		if !ok {
+			println("Couldn't find connection", id)
+			continue
+		}
+
+		c.send <- m
+	}
 }

@@ -52,6 +52,14 @@ var OI = {
 			dataType: "json",
 		});
 	},
+	getAllUsers: function(data) {
+		this.api("getAllUsers", {
+			url: "/api/user",
+			method: "GET",
+			data: m(data, {type: "all"}),
+			dataType: "json",
+		});
+	},
 	updateUser: function(data) {
 		this.api("updateUser", {
 			url: "/api/user",

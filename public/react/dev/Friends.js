@@ -22,6 +22,23 @@ var Friends = React.createClass({
 			transform: "scale(1)",
 		},
 	},
+	getInitialState: function() {
+		return {users: []};
+	},
+	componentDidMount: function() {
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "getAllUsersDone":
+				this.setState({users: payload.data.data});
+				break;
+			}
+		}.bind(this));
+
+		OI.getAllUsers();
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
 	render: function() {
 		var user = this.props.user;
 		return (
@@ -30,7 +47,7 @@ var Friends = React.createClass({
 				<Window.Content style={this.styles.content}>
 					<Friends.Item user={user} activates="me-dropdown" />
 					<Friends.MeDropdown />
-					<Friends.List user={user} />
+					<Friends.List user={user} users={this.state.users} />
 				</Window.Content>
 				<Window.Footer>
 				</Window.Footer>
@@ -103,13 +120,12 @@ Friends.List = React.createClass({
 		var user = this.props.user;
 		return (
 			<div className="list" style={this.styles.container}>
-				<Friends.Item user={user} activates="friend-dropdown"/>
-				<Friends.Item user={user} activates="friend-dropdown"/>
-				<Friends.Item user={user} activates="friend-dropdown"/>
-				<Friends.Item user={user} activates="friend-dropdown"/>
-				<Friends.Item user={user} activates="friend-dropdown"/>
-				<Friends.Item user={user} activates="friend-dropdown"/>
-				<Friends.Item user={user} activates="friend-dropdown"/>
+			{
+				this.props.users ?
+				this.props.users.map(function(u) {
+					return <Friends.Item user={u} activates="friend-dropdown"/>
+				}) : ""
+			}
 				<Friends.FriendDropdown />
 			</div>
 		)
@@ -184,8 +200,9 @@ Friends.FriendDropdown = React.createClass({
 });
 
 Friends.Chat = React.createClass({
-	user: null,
-
+	getInitialState: function() {
+		return {messages: []};
+	},
 	styles: {
 		container: {
 			position: "absolute",
@@ -204,7 +221,46 @@ Friends.Chat = React.createClass({
 		},
 	},
 	componentDidMount: function() {
+		var user = this.props.user;
+		var otherUser = this.props.otherUser;
+
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "doFetchNewMessages":
+				var m = payload.data;
+				if (!(m.channelType == "user" && m.channelID == otherUser.id)) {
+					break;
+				}
+
+				var startID = 0;
+				var messages = this.state.messages;
+				if (messages) {
+					startID = messages[messages.length - 1].id;
+					console.log(startID);
+				}
+				OI.getChatMessages({channelID: otherUser.id, channelType: "user", startID: startID, count: -1});
+				break;
+			case "getChatMessagesDone":
+				var messages = this.state.messages;
+				var data = payload.data.data;
+				if (messages.length > 0 && data) {
+					messages = messages.concat(data);
+					this.props.playChatSound();
+					this.refs.list.scrollToBottom();
+				} else if (messages.length == 0) {
+					messages = data;
+				}
+				this.setState({messages: messages});
+				break;
+			}
+		}.bind(this));
+
 		$(React.findDOMNode(this)).draggable().resizable();
+
+		OI.getChatMessages({channelID: otherUser.id, channelType: "user"});
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
 		var user = this.props.user;
@@ -214,7 +270,7 @@ Friends.Chat = React.createClass({
 				<Window.Header onClose={this.handleClose}>{otherUser.fullname}</Window.Header>
 				<Window.Content style={this.styles.content}>
 					<Friends.Chat.Header otherUser={otherUser} />
-					<Friends.Chat.List user={user} otherUser={otherUser} />
+					<Friends.Chat.List ref="list" user={user} otherUser={otherUser} messages={this.state.messages} />
 					<Friends.Chat.Input user={user} otherUser={otherUser} />
 				</Window.Content>
 			</Window>
@@ -270,32 +326,11 @@ Friends.Chat.List = React.createClass({
 			margin: "0 8px",
 		},
 	},
-	getInitialState: function() {
-		return {messages: []};
-	},
-	componentDidMount: function() {
-		var user = this.props.user;
-		var otherUser = this.props.otherUser;
-
-		this.dispatchID = dispatcher.register(function(payload) {
-			if (payload.type == "onWSMessage") {
-				var m = payload.data;
-				if (m.channelType == "user" && m.channelID == otherUser.id) {
-					var ms = this.state.messages;
-					ms.push(m);
-					this.setState({messages: ms});
-				}
-			}
-		}.bind(this));
-	},
-	componentWillUnmount: function() {
-		dispatcher.unregister(this.dispatchID);
-	},
 	render: function() {
 		return (
 			<div className="list" style={this.styles.container}>{
-				this.state.messages ?
-				this.state.messages.map(function(m) {
+				this.props.messages ?
+				this.props.messages.map(function(m) {
 					return <p style={this.styles.text}><strong>{this.getUsername(m)}: </strong>{m.text}</p>
 				}.bind(this)) : ""
 			}</div>
@@ -308,6 +343,10 @@ Friends.Chat.List = React.createClass({
 		}
 		var otherUser = this.props.otherUser;
 		return otherUser.fullname;
+	},
+	scrollToBottom: function() {
+		var list = React.findDOMNode(this);
+		$(list).scrollTop(list.scrollHeight);
 	},
 });
 

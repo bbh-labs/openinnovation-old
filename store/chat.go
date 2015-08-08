@@ -45,13 +45,23 @@ func GetChat(id int64) (Chat, error) {
 	return c, nil
 }
 
-func GetChats(channelID int64, channelType string) ([]Chat, error) {
-	const rawSQL = `
-	SELECT * FROM chat
-	WHERE channel_id = $1 AND channel_type = $2
-	ORDER BY created_at`
+func GetChats(channelID int64, channelType string, startID, count int64) ([]Chat, error) {
+	if count == -1 {
+		const rawSQL = `
+		SELECT * FROM chat
+		WHERE channel_id = $1 AND channel_type = $2 AND id > $3
+		ORDER BY created_at`
 
-	return queryChats(rawSQL, channelID, channelType)
+		return queryChats(rawSQL, channelID, channelType, startID)
+	} else {
+		const rawSQL = `
+		SELECT * FROM chat
+		WHERE channel_id = $1 AND channel_type = $2 AND id >= $3
+		ORDER BY created_at
+		LIMIT $4`
+
+		return queryChats(rawSQL, channelID, channelType, startID, count)
+	}
 }
 
 type PostChatParams struct {

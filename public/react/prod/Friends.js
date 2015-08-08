@@ -22,6 +22,23 @@ var Friends = React.createClass({displayName: "Friends",
 			transform: "scale(1)",
 		},
 	},
+	getInitialState: function() {
+		return {users: []};
+	},
+	componentDidMount: function() {
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "getAllUsersDone":
+				this.setState({users: payload.data.data});
+				break;
+			}
+		}.bind(this));
+
+		OI.getAllUsers();
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
 	render: function() {
 		var user = this.props.user;
 		return (
@@ -30,7 +47,7 @@ var Friends = React.createClass({displayName: "Friends",
 				React.createElement(Window.Content, {style: this.styles.content}, 
 					React.createElement(Friends.Item, {user: user, activates: "me-dropdown"}), 
 					React.createElement(Friends.MeDropdown, null), 
-					React.createElement(Friends.List, {user: user})
+					React.createElement(Friends.List, {user: user, users: this.state.users})
 				), 
 				React.createElement(Window.Footer, null
 				)
@@ -103,13 +120,12 @@ Friends.List = React.createClass({displayName: "List",
 		var user = this.props.user;
 		return (
 			React.createElement("div", {className: "list", style: this.styles.container}, 
-				React.createElement(Friends.Item, {user: user, activates: "friend-dropdown"}), 
-				React.createElement(Friends.Item, {user: user, activates: "friend-dropdown"}), 
-				React.createElement(Friends.Item, {user: user, activates: "friend-dropdown"}), 
-				React.createElement(Friends.Item, {user: user, activates: "friend-dropdown"}), 
-				React.createElement(Friends.Item, {user: user, activates: "friend-dropdown"}), 
-				React.createElement(Friends.Item, {user: user, activates: "friend-dropdown"}), 
-				React.createElement(Friends.Item, {user: user, activates: "friend-dropdown"}), 
+			
+				this.props.users ?
+				this.props.users.map(function(u) {
+					return React.createElement(Friends.Item, {user: u, activates: "friend-dropdown"})
+				}) : "", 
+			
 				React.createElement(Friends.FriendDropdown, null)
 			)
 		)
@@ -184,8 +200,9 @@ Friends.FriendDropdown = React.createClass({displayName: "FriendDropdown",
 });
 
 Friends.Chat = React.createClass({displayName: "Chat",
-	user: null,
-
+	getInitialState: function() {
+		return {messages: []};
+	},
 	styles: {
 		container: {
 			position: "absolute",
@@ -204,7 +221,46 @@ Friends.Chat = React.createClass({displayName: "Chat",
 		},
 	},
 	componentDidMount: function() {
+		var user = this.props.user;
+		var otherUser = this.props.otherUser;
+
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "doFetchNewMessages":
+				var m = payload.data;
+				if (!(m.channelType == "user" && m.channelID == otherUser.id)) {
+					break;
+				}
+
+				var startID = 0;
+				var messages = this.state.messages;
+				if (messages) {
+					startID = messages[messages.length - 1].id;
+					console.log(startID);
+				}
+				OI.getChatMessages({channelID: otherUser.id, channelType: "user", startID: startID, count: -1});
+				break;
+			case "getChatMessagesDone":
+				var messages = this.state.messages;
+				var data = payload.data.data;
+				if (messages.length > 0 && data) {
+					messages = messages.concat(data);
+					this.props.playChatSound();
+					this.refs.list.scrollToBottom();
+				} else if (messages.length == 0) {
+					messages = data;
+				}
+				this.setState({messages: messages});
+				break;
+			}
+		}.bind(this));
+
 		$(React.findDOMNode(this)).draggable().resizable();
+
+		OI.getChatMessages({channelID: otherUser.id, channelType: "user"});
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
 		var user = this.props.user;
@@ -214,7 +270,7 @@ Friends.Chat = React.createClass({displayName: "Chat",
 				React.createElement(Window.Header, {onClose: this.handleClose}, otherUser.fullname), 
 				React.createElement(Window.Content, {style: this.styles.content}, 
 					React.createElement(Friends.Chat.Header, {otherUser: otherUser}), 
-					React.createElement(Friends.Chat.List, {user: user, otherUser: otherUser}), 
+					React.createElement(Friends.Chat.List, {ref: "list", user: user, otherUser: otherUser, messages: this.state.messages}), 
 					React.createElement(Friends.Chat.Input, {user: user, otherUser: otherUser})
 				)
 			)
@@ -270,32 +326,11 @@ Friends.Chat.List = React.createClass({displayName: "List",
 			margin: "0 8px",
 		},
 	},
-	getInitialState: function() {
-		return {messages: []};
-	},
-	componentDidMount: function() {
-		var user = this.props.user;
-		var otherUser = this.props.otherUser;
-
-		this.dispatchID = dispatcher.register(function(payload) {
-			if (payload.type == "onWSMessage") {
-				var m = payload.data;
-				if (m.channelType == "user" && m.channelID == otherUser.id) {
-					var ms = this.state.messages;
-					ms.push(m);
-					this.setState({messages: ms});
-				}
-			}
-		}.bind(this));
-	},
-	componentWillUnmount: function() {
-		dispatcher.unregister(this.dispatchID);
-	},
 	render: function() {
 		return (
 			React.createElement("div", {className: "list", style: this.styles.container}, 
-				this.state.messages ?
-				this.state.messages.map(function(m) {
+				this.props.messages ?
+				this.props.messages.map(function(m) {
 					return React.createElement("p", {style: this.styles.text}, React.createElement("strong", null, this.getUsername(m), ": "), m.text)
 				}.bind(this)) : ""
 			)
@@ -308,6 +343,10 @@ Friends.Chat.List = React.createClass({displayName: "List",
 		}
 		var otherUser = this.props.otherUser;
 		return otherUser.fullname;
+	},
+	scrollToBottom: function() {
+		var list = React.findDOMNode(this);
+		$(list).scrollTop(list.scrollHeight);
 	},
 });
 

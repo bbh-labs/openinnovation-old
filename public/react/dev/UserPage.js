@@ -1,5 +1,6 @@
 var UserPage = React.createClass({
 	ws: null,
+	chatSound: new Audio("sounds/message.wav"),
 
 	styles: {
 		container: {
@@ -45,7 +46,7 @@ var UserPage = React.createClass({
 				<Header user={user} />
 				<RouteHandler user={user} />
 				<Footer />
-				<Overlay user={user} friends={friends} />
+				<Overlay user={user} friends={friends} playChatSound={this.playChatSound} />
 			</div>
 		)
 	},
@@ -64,9 +65,12 @@ var UserPage = React.createClass({
 	},
 	onWSMessage: function(e) {
 		var m = JSON.parse(e.data);
-		dispatcher.dispatch({
-			type: "onWSMessage",
-			data: m,
-		});
+		dispatcher.dispatch({type: "doFetchNewMessages", data: m});
+		console.log(m);
+	},
+	playChatSound: function() {
+		if (this.chatSound) {
+			this.chatSound.play();
+		}
 	},
 });

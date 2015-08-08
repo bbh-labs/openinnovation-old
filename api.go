@@ -99,7 +99,12 @@ func user(w http.ResponseWriter, r *http.Request) {
 			Update(w, r)
 		}
 	case "GET":
-		GetUser(w, r)
+		switch r.FormValue("type") {
+		case "all":
+			GetAllUsers(w, r)
+		default:
+			GetUser(w, r)
+		}
 	default:
 		response.ClientError(w, http.StatusMethodNotAllowed)
 	}
@@ -268,7 +273,7 @@ func ws(w http.ResponseWriter, r *http.Request) {
 	c := &connection{send: make(chan []byte, 256), ws: ws, userID: user.ID()}
 	h.register <- c
 
-	go c.writePump()
-	c.readPump()
+	c.writePump()
+	//c.readPump()
 }
 

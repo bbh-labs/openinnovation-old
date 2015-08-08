@@ -48,3 +48,27 @@ func RemoveMember(projectID, userID int64) error {
 
 	return nil
 }
+
+func GetMemberIDs(projectID int64) ([]int64, error) {
+	const rawSQL = `
+	SELECT member.user_id FROM member WHERE project_id = $1`
+
+	var ids []int64
+
+	rows, err := db.Query(rawSQL, projectID)
+	if err != nil {
+		return nil, debug.Error(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int64
+		if err = rows.Scan(&id); err != nil {
+			return ids, debug.Error(err)
+		}
+
+		ids = append(ids, id)
+	}
+
+	return ids, nil
+}
