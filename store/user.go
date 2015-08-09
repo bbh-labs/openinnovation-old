@@ -61,6 +61,8 @@ type user struct {
 	UpdatedAt        time.Time `json:"updatedAt"`
 	CreatedAt        time.Time `json:"createdAt"`
 
+	IsFriend         bool      `json:"omitempty,isFriend"`
+
 	CreatedProjectsCount_   int64 `json:"created_projects_count"`
 	CompletedProjectsCount_ int64 `json:"completed_projects_count"`
 	InvolvedProjectsCount_  int64 `json:"involved_projects_count"`

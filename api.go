@@ -241,6 +241,20 @@ func milestone(w http.ResponseWriter, r *http.Request) {
 }
 
 //
+// /friend
+//
+func friend(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		GetFriends(w, r)
+	case "POST":
+		AddFriend(w, r)
+	case "DELETE":
+		RemoveFriend(w, r)
+	}
+}
+
+//
 // /chat
 //
 func chat(w http.ResponseWriter, r *http.Request) {

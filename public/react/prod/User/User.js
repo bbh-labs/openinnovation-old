@@ -52,16 +52,17 @@ User.Content = React.createClass({displayName: "Content",
 								React.createElement(User.Content.Title, {user: user})
 							), 
 							React.createElement("div", {className: "card-action"}, 
-								React.createElement("a", {href: "#"}, React.createElement("i", {className: "material-icons"}, "message"))
+								React.createElement("button", {className: "btn waves-effect waves-light"}, "Send Message"), 
+								React.createElement("button", {className: "btn waves-effect waves-light"}, "Add Friend")
 							)
 						)
 					), 
-						React.createElement("div", {className: "col s12 m9 l8"}, 
-							React.createElement(User.Content.Description, {user: user})
-						), 
-						React.createElement("div", {className: "col s12 m9 l8"}, 
-							React.createElement(InvolvedProjects, {userID: user.id})
-						)
+					React.createElement("div", {className: "col s12 m9 l8"}, 
+						React.createElement(User.Content.Description, {user: user})
+					), 
+					React.createElement("div", {className: "col s12 m9 l8"}, 
+						React.createElement(InvolvedProjects, {userID: user.id})
+					)
 				)
 			)
 		)

@@ -42,6 +42,7 @@ func init() {
 	create("milestone", createMilestoneSQL)
 	create("member", createMemberSQL)
 	create("worker", createWorkerSQL)
+	create("friend", createFriendSQL)
 	create("chat", createChatSQL)
 
 	// secondary tables

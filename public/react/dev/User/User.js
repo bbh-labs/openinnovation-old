@@ -52,16 +52,17 @@ User.Content = React.createClass({
 								<User.Content.Title user={user} />
 							</div>
 							<div className="card-action">
-								<a href="#"><i className="material-icons">message</i></a>
+								<button className="btn waves-effect waves-light">Send Message</button>
+								<button className="btn waves-effect waves-light">Add Friend</button>
 							</div>
 						</div>
 					</div>
-						<div className="col s12 m9 l8">
-							<User.Content.Description user={user} />
-						</div>
-						<div className="col s12 m9 l8">
-							<InvolvedProjects userID={user.id} />
-						</div>
+					<div className="col s12 m9 l8">
+						<User.Content.Description user={user} />
+					</div>
+					<div className="col s12 m9 l8">
+						<InvolvedProjects userID={user.id} />
+					</div>
 				</div>
 			</div>
 		)
