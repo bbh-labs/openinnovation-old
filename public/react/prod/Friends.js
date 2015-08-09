@@ -28,13 +28,13 @@ var Friends = React.createClass({displayName: "Friends",
 	componentDidMount: function() {
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
-			case "getAllUsersDone":
+			case "getFriendsDone":
 				this.setState({users: payload.data.data});
 				break;
 			}
 		}.bind(this));
 
-		OI.getAllUsers();
+		OI.getFriends({userID: this.props.user.id});
 	},
 	componentWillUnmount: function() {
 		dispatcher.unregister(this.dispatchID);

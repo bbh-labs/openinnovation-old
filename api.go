@@ -290,4 +290,3 @@ func ws(w http.ResponseWriter, r *http.Request) {
 	c.writePump()
 	//c.readPump()
 }
-

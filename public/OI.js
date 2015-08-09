@@ -237,6 +237,29 @@ var OI = {
 			dataType: "json",
 		});
 	},
+	getFriends: function(data) {
+		this.api("getFriends", {
+			url: "/api/friend",
+			method: "GET",
+			data: data,
+			dataType: "json",
+		});
+	},
+	addFriend: function(data) {
+		this.api("addFriend", {
+			url: "/api/friend",
+			method: "POST",
+			data: data,
+			dataType: "json",
+		});
+	},
+	removeFriend: function(data) {
+		this.api("removeFriend", {
+			url: "/api/friend?" + $.param(data),
+			method: "DELETE",
+			dataType: "json",
+		});
+	},
 	getChatMessages: function(data) {
 		this.api("getChatMessages", {
 			url: "/api/chat",
