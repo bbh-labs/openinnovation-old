@@ -1,101 +1,29 @@
-var Friends = React.createClass({
+Friends.Users = React.createClass({
 	styles: {
 		container: {
-			position: "absolute",
-			width: "300px",
-			height: "500px",
-			minWidth: "300px",
-			minHeight: "500px",
-			top: "calc(100% - 600px)",
-			left: "calc(100% - 400px)",
-			overflow: "hidden",
-			pointerEvents: "all",
-			transform: "scale(0)",
-			transition: "transform .1s",
-		},
-		content: {
-			display: "flex",
-			flexDirection: "column",
-			overflowY: "auto",
-		},
-		materialize: {
-			transform: "scale(1)",
-		},
-		tabContent: {
-			display: "flex",
-			flexDirection: "row",
 			flex: "1 1 auto",
+			display: "none",
+			overflowY: "scroll",
+			background: "linear-gradient(#f0f0f0, #ffffff)",
+			border: "1px solid #f0f0f0",
 		},
-		tabContainer: {
-			margin: 0,
-		},
-		tab: {
-			display: "inline-block",
-			padding: "0 16px",
-			margin: 0,
-			background: "#e0e0e0",
-			cursor: "pointer",
-		},
-		tabActive: {
-			background: "#f0f0f0",
-		},
-	},
-	getInitialState: function() {
-		return {users: [], tab: "users"};
-	},
-	componentDidMount: function() {
-		this.dispatchID = dispatcher.register(function(payload) {
-			switch (payload.type) {
-			case "getFriendsDone":
-				this.setState({users: payload.data.data});
-				break;
-			case "addFriendDone":
-			case "removeFriendDone":
-				OI.getFriends({userID: this.props.user.id});
-				break;
-			}
-		}.bind(this));
-
-		OI.getFriends({userID: this.props.user.id});
-	},
-	componentWillUnmount: function() {
-		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
 		var user = this.props.user;
-		var tab = this.state.tab;
 		return (
-			<Window className="friends" style={m(this.styles.container, this.props.showFriendsPanel && this.styles.materialize)}>
-				<Window.Header onClose={this.toggleFriends}>Friends</Window.Header>
-				<Window.Content style={this.styles.content}>
-					<Friends.Item user={user} activates="me-dropdown" />
-					<Friends.MeDropdown />
-					<ul style={this.styles.tabContainer}>
-						<li onClick={this.handleSwitchToUsersTab} style={m(this.styles.tab, tab == "users" && this.styles.tabActive)}>Users</li>
-						<li onClick={this.handleSwitchToProjectsTab} style={m(this.styles.tab, tab== "projects" && this.styles.tabActive)}>Projects</li>
-					</ul>
-					<div style={this.styles.tabContent}>
-						<Friends.Users user={user} users={this.state.users} style={this.state.tab == "users" && {visibility: "visible"}}/>
-						<Friends.Projects user={user} style={this.state.tab == "projects" && {visibility: "visible"}}/>
-					</div>
-				</Window.Content>
-				<Window.Footer>
-				</Window.Footer>
-			</Window>
+			<div id="users" style={m(this.styles.container, this.props.style)}>
+			{
+				this.props.users ?
+				this.props.users.map(function(u) {
+					return <Friends.UserItem key={u.id} user={u} activates="friend-dropdown"/>
+				}) : ""
+			}
+			</div>
 		)
-	},
-	toggleFriends: function() {
-		dispatcher.dispatch({type: "toggleFriendsPanel"});
-	},
-	handleSwitchToUsersTab: function(e) {
-		this.setState({tab: "users"});
-	},
-	handleSwitchToProjectsTab: function(e) {
-		this.setState({tab: "projects"});
 	},
 });
 
-Friends.Item = React.createClass({
+Friends.UserItem = React.createClass({
 	styles: {
 		container: {
 			flex: "0 auto",
@@ -136,48 +64,12 @@ Friends.Item = React.createClass({
 					<span ref="dropdownButton" style={this.styles.dropdownButton} data-activates={this.props.activates} onClick={this.handleClick}> &#8964;</span><br/>
 					Online
 				</p>
-				<Friends.FriendDropdown />
+				<Friends.UserDropdown />
 			</div>
 		)
 	},
 	handleClick: function(e) {
-		dispatcher.dispatch({type: "openDropdown", data: this.props.user});
-	},
-});
-
-Friends.Users = React.createClass({
-	styles: {
-		container: {
-			flex: "1 1 auto",
-			overflowY: "scroll",
-			background: "linear-gradient(#f0f0f0, #ffffff)",
-			border: "1px solid #f0f0f0",
-			position: "absolute",
-			visibility: "hidden",
-		},
-	},
-	render: function() {
-		var user = this.props.user;
-		return (
-			<div className="list" style={m(this.styles.container, this.props.style)}>
-			{
-				this.props.users ?
-				this.props.users.map(function(u) {
-					return <Friends.Item user={u} activates="friend-dropdown"/>
-				}) : ""
-			}
-			</div>
-		)
-	},
-});
-
-Friends.Projects = React.createClass({
-	styles: {
-		position: "absolute",
-		visibility: "hidden",
-	},
-	render: function() {
-		return <div>Projects Content</div>
+		dispatcher.dispatch({type: "openUserDropdown", data: this.props.user});
 	},
 });
 
@@ -186,7 +78,7 @@ Friends.MeDropdown = React.createClass({
 	componentDidMount: function() {
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
-			case "openDropdown":
+			case "openUserDropdown":
 				this.user = payload.data;
 				break;
 			}
@@ -216,12 +108,12 @@ Friends.MeDropdown = React.createClass({
 	},
 });
 
-Friends.FriendDropdown = React.createClass({
+Friends.UserDropdown = React.createClass({
 	user: null,
 	componentDidMount: function() {
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
-			case "openDropdown":
+			case "openUserDropdown":
 				this.user = payload.data;
 				break;
 			}
@@ -248,7 +140,7 @@ Friends.FriendDropdown = React.createClass({
 	},
 });
 
-Friends.Chat = React.createClass({
+Friends.UserChat = React.createClass({
 	getInitialState: function() {
 		return {messages: []};
 	},
@@ -284,7 +176,9 @@ Friends.Chat = React.createClass({
 				var startID = 0;
 				var messages = this.state.messages;
 				if (messages) {
-					startID = messages[messages.length - 1].id;
+					if (messages.length > 0) {
+						startID = messages[messages.length - 1].id;
+					}
 				}
 				OI.getChatMessages({channelID: otherUser.id, channelType: "user", startID: startID, count: -1});
 				break;
@@ -317,9 +211,9 @@ Friends.Chat = React.createClass({
 			<Window className="chat" style={this.styles.container}>
 				<Window.Header onClose={this.handleClose}>{otherUser.fullname}</Window.Header>
 				<Window.Content style={this.styles.content}>
-					<Friends.Chat.Header otherUser={otherUser} />
-					<Friends.Chat.List ref="list" user={user} otherUser={otherUser} messages={this.state.messages} />
-					<Friends.Chat.Input user={user} otherUser={otherUser} />
+					<Friends.UserChat.Header otherUser={otherUser} />
+					<Friends.UserChat.List ref="list" user={user} otherUser={otherUser} messages={this.state.messages} />
+					<Friends.UserChat.Input user={user} otherUser={otherUser} />
 				</Window.Content>
 			</Window>
 		)
@@ -329,7 +223,7 @@ Friends.Chat = React.createClass({
 	},
 });
 
-Friends.Chat.Header = React.createClass({
+Friends.UserChat.Header = React.createClass({
 	styles: {
 		container: {
 			margin: "8px",
@@ -360,7 +254,7 @@ Friends.Chat.Header = React.createClass({
 	},
 });
 
-Friends.Chat.List = React.createClass({
+Friends.UserChat.List = React.createClass({
 	styles: {
 		container: {
 			flex: "1 auto",
@@ -398,7 +292,7 @@ Friends.Chat.List = React.createClass({
 	},
 });
 
-Friends.Chat.Input = React.createClass({
+Friends.UserChat.Input = React.createClass({
 	styles: {
 		container: {
 			display: "flex",

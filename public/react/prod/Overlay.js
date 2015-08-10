@@ -22,6 +22,12 @@ var Overlay = React.createClass({displayName: "Overlay",
 			case "closeChat":
 				this.closeChat(payload.data);
 				break;
+			case "openProjectChat":
+				this.openProjectChat(payload.data);
+				break;
+			case "closeProjectChat":
+				this.closeProjectChat(payload.data);
+				break;
 			case "toggleFriendsPanel":
 				this.setState({showFriendsPanel: !this.state.showFriendsPanel});
 				break;
@@ -39,11 +45,11 @@ var Overlay = React.createClass({displayName: "Overlay",
 				
 					this.state.windows.length > 0 ?
 					this.state.windows.map(function(win) {
-						return React.createElement(Friends.Chat, {key: win.id, 
-								     windowID: win.id, 
-								     user: user, 
-								     otherUser: win.user, 
-								     playChatSound: this.props.playChatSound})
+						if (win.user) {
+							return React.createElement(Friends.UserChat, {key: win.id, windowID: win.id, user: user, otherUser: win.user, playChatSound: this.props.playChatSound})
+						} else if (win.project) {
+							return React.createElement(Friends.ProjectChat, {key: win.id, windowID: win.id, user: user, project: win.project, playChatSound: this.props.playChatSound})
+						}
 					}.bind(this)) : "", 
 				
 				React.createElement(Friends, {user: user, friends: friends, showFriendsPanel: this.state.showFriendsPanel}), 
@@ -60,6 +66,25 @@ var Overlay = React.createClass({displayName: "Overlay",
 		this.setState({windows: windows});
 	},
 	closeChat: function(windowID) {
+		var windows = this.state.windows;
+
+		for (var i = 0; i < windows.length; i++) {
+			if (windows[i].id == windowID) {
+				windows.splice(i);
+				this.setState({windows: windows});
+				break;
+			}
+		}
+	},
+	openProjectChat: function(project) {
+		var windows = this.state.windows;
+
+		windows.push({id: this.windowID, project: project});
+		this.windowID++;
+
+		this.setState({windows: windows});
+	},
+	closeProjectChat: function(windowID) {
 		var windows = this.state.windows;
 
 		for (var i = 0; i < windows.length; i++) {

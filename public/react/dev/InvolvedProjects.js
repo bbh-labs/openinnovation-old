@@ -5,16 +5,16 @@ var InvolvedProjects = React.createClass({
 	componentDidMount: function() {
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
-			case "involvedProjectsDone":
+			case "getInvolvedProjectsDone":
 				this.setState({projects: payload.data.data});
 				break;
-			case "involvedProjectsFail":
+			case "getInvolvedProjectsFail":
 				Materialize.toast(payload.data.responseText, 1000, "red white-text");
 				break;
 			}
 		}.bind(this));
 
-		OI.involvedProjects({userID: this.props.userID});
+		OI.getInvolvedProjects({userID: this.props.userID});
 	},
 	componentDidUpdate: function() {
 		var slides = React.findDOMNode(this.refs.slides);

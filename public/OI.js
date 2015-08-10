@@ -78,8 +78,8 @@ var OI = {
 			contentType: false,
 		});
 	},
-	involvedProjects: function(data) {
-		this.api("involvedProjects", {
+	getInvolvedProjects: function(data) {
+		this.api("getInvolvedProjects", {
 			url: "/api/user/project",
 			method: "GET",
 			data: m(data, {type: "involved"}),
