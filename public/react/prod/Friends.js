@@ -21,15 +21,37 @@ var Friends = React.createClass({displayName: "Friends",
 		materialize: {
 			transform: "scale(1)",
 		},
+		tabContent: {
+			display: "flex",
+			flexDirection: "row",
+			flex: "1 1 auto",
+		},
+		tabContainer: {
+			margin: 0,
+		},
+		tab: {
+			display: "inline-block",
+			padding: "0 16px",
+			margin: 0,
+			background: "#e0e0e0",
+			cursor: "pointer",
+		},
+		tabActive: {
+			background: "#f0f0f0",
+		},
 	},
 	getInitialState: function() {
-		return {users: []};
+		return {users: [], tab: "users"};
 	},
 	componentDidMount: function() {
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
 			case "getFriendsDone":
 				this.setState({users: payload.data.data});
+				break;
+			case "addFriendDone":
+			case "removeFriendDone":
+				OI.getFriends({userID: this.props.user.id});
 				break;
 			}
 		}.bind(this));
@@ -41,13 +63,21 @@ var Friends = React.createClass({displayName: "Friends",
 	},
 	render: function() {
 		var user = this.props.user;
+		var tab = this.state.tab;
 		return (
 			React.createElement(Window, {className: "friends", style: m(this.styles.container, this.props.showFriendsPanel && this.styles.materialize)}, 
 				React.createElement(Window.Header, {onClose: this.toggleFriends}, "Friends"), 
 				React.createElement(Window.Content, {style: this.styles.content}, 
 					React.createElement(Friends.Item, {user: user, activates: "me-dropdown"}), 
 					React.createElement(Friends.MeDropdown, null), 
-					React.createElement(Friends.List, {user: user, users: this.state.users})
+					React.createElement("ul", {style: this.styles.tabContainer}, 
+						React.createElement("li", {onClick: this.handleSwitchToUsersTab, style: m(this.styles.tab, tab == "users" && this.styles.tabActive)}, "Users"), 
+						React.createElement("li", {onClick: this.handleSwitchToProjectsTab, style: m(this.styles.tab, tab== "projects" && this.styles.tabActive)}, "Projects")
+					), 
+					React.createElement("div", {style: this.styles.tabContent}, 
+						React.createElement(Friends.Users, {user: user, users: this.state.users, style: this.state.tab == "users" && {visibility: "visible"}}), 
+						React.createElement(Friends.Projects, {user: user, style: this.state.tab == "projects" && {visibility: "visible"}})
+					)
 				), 
 				React.createElement(Window.Footer, null
 				)
@@ -57,6 +87,12 @@ var Friends = React.createClass({displayName: "Friends",
 	toggleFriends: function() {
 		dispatcher.dispatch({type: "toggleFriendsPanel"});
 	},
+	handleSwitchToUsersTab: function(e) {
+		this.setState({tab: "users"});
+	},
+	handleSwitchToProjectsTab: function(e) {
+		this.setState({tab: "projects"});
+	},
 });
 
 Friends.Item = React.createClass({displayName: "Item",
@@ -64,6 +100,7 @@ Friends.Item = React.createClass({displayName: "Item",
 		container: {
 			flex: "0 auto",
 			margin: "8px",
+			position: "relative",
 		},
 		avatar: {
 			display: "inline-block",
@@ -98,7 +135,8 @@ Friends.Item = React.createClass({displayName: "Item",
 					user.fullname, 
 					React.createElement("span", {ref: "dropdownButton", style: this.styles.dropdownButton, "data-activates": this.props.activates, onClick: this.handleClick}, " ⌄"), React.createElement("br", null), 
 					"Online"
-				)
+				), 
+				React.createElement(Friends.FriendDropdown, null)
 			)
 		)
 	},
@@ -107,28 +145,39 @@ Friends.Item = React.createClass({displayName: "Item",
 	},
 });
 
-Friends.List = React.createClass({displayName: "List",
+Friends.Users = React.createClass({displayName: "Users",
 	styles: {
 		container: {
 			flex: "1 1 auto",
 			overflowY: "scroll",
 			background: "linear-gradient(#f0f0f0, #ffffff)",
 			border: "1px solid #f0f0f0",
+			position: "absolute",
+			visibility: "hidden",
 		},
 	},
 	render: function() {
 		var user = this.props.user;
 		return (
-			React.createElement("div", {className: "list", style: this.styles.container}, 
+			React.createElement("div", {className: "list", style: m(this.styles.container, this.props.style)}, 
 			
 				this.props.users ?
 				this.props.users.map(function(u) {
 					return React.createElement(Friends.Item, {user: u, activates: "friend-dropdown"})
-				}) : "", 
+				}) : ""
 			
-				React.createElement(Friends.FriendDropdown, null)
 			)
 		)
+	},
+});
+
+Friends.Projects = React.createClass({displayName: "Projects",
+	styles: {
+		position: "absolute",
+		visibility: "hidden",
+	},
+	render: function() {
+		return React.createElement("div", null, "Projects Content")
 	},
 });
 
@@ -226,9 +275,9 @@ Friends.Chat = React.createClass({displayName: "Chat",
 
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
-			case "doFetchNewMessages":
+			case "newChatMessage":
 				var m = payload.data;
-				if (!(m.channelType == "user" && m.channelID == otherUser.id)) {
+				if (!(m.channelType == "user" && (m.channelID == otherUser.id || m.userID == otherUser.id))) {
 					break;
 				}
 
@@ -236,7 +285,6 @@ Friends.Chat = React.createClass({displayName: "Chat",
 				var messages = this.state.messages;
 				if (messages) {
 					startID = messages[messages.length - 1].id;
-					console.log(startID);
 				}
 				OI.getChatMessages({channelID: otherUser.id, channelType: "user", startID: startID, count: -1});
 				break;
@@ -257,7 +305,7 @@ Friends.Chat = React.createClass({displayName: "Chat",
 
 		$(React.findDOMNode(this)).draggable().resizable();
 
-		OI.getChatMessages({channelID: otherUser.id, channelType: "user"});
+		OI.getChatMessages({channelID: otherUser.id, channelType: "user", count: -1});
 	},
 	componentWillUnmount: function() {
 		dispatcher.unregister(this.dispatchID);

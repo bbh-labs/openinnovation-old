@@ -21,25 +21,26 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var parser store.Parser
-
 	userID := parser.Int(userIDStr)
 	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
 
-	user, err := store.GetUser(userID)
+	user := context.Get(r, "user").(store.User)
+
+	otherUser, err := store.GetUserWithParams(userID, store.GetUserParams{user.ID()})
 	if err != nil {
 		response.ServerError(w, err)
 		return
 	}
 
-	if user == nil {
+	if otherUser == nil {
 		response.ClientError(w, http.StatusNotFound)
 		return
 	}
 
-	response.OK(w, user)
+	response.OK(w, otherUser)
 }
 
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {

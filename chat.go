@@ -7,6 +7,7 @@ import (
 	"github.com/bbhasiapacific/bbhoi.com/debug"
 	"github.com/bbhasiapacific/bbhoi.com/response"
 	"github.com/bbhasiapacific/bbhoi.com/store"
+	"github.com/gorilla/context"
 )
 
 func init() {
@@ -43,9 +44,9 @@ func onNotify(channel, extra string) {
 
 	switch channelType {
 	case "user":
-		h.notifyUser(userID, channelID, notification)
+		h.notifyUser(userID, channelID, "newChatMessage", notification)
 	case "project":
-		h.notifyProject(channelID, notification)
+		h.notifyProject(channelID, "newChatMessage", notification)
 	}
 }
 
@@ -74,7 +75,8 @@ func GetChats(w http.ResponseWriter, r *http.Request) {
 	}
 	channelType := r.FormValue("channelType")
 
-	chats, err := store.GetChats(channelID, channelType, startID, count)
+	user := context.Get(r, "user").(store.User)
+	chats, err := store.GetChats(user.ID(), channelID, channelType, startID, count)
 	if err != nil {
 		response.ServerError(w, err)
 		return

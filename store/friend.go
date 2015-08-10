@@ -13,14 +13,15 @@ const (
 func GetFriends(userID int64) ([]User, error) {
 	const rawSQL = `
 	SELECT user_.* FROM user_
-	INNER JOIN friend ON user_.id = friend.user1_id`
+	INNER JOIN friend ON user_.id = friend.user1_id
+	WHERE user_.id != $1`
 
-	return queryUsers(rawSQL)
+	return queryUsers(rawSQL, userID)
 }
 
 func AddFriend(userID, otherUserID int64) error {
 	const rawSQL = `
-	INSERT IGNORE INTO friend
+	INSERT INTO friend
 	VALUES ($1, $2), ($3, $4)`
 
 	if _, err := db.Exec(rawSQL, userID, otherUserID, otherUserID, userID); err != nil {

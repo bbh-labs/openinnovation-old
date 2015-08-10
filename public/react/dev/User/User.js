@@ -15,6 +15,10 @@ var User = React.createClass({
 			case "updateUserAvatarDone":
 				OI.user({userID: this.getParams().userID});
 				break;
+			case "addFriendDone":
+			case "removeFriendDone":
+				OI.user({userID: this.getParams().userID});
+				break;
 			}
 		}.bind(this));
 
@@ -52,8 +56,10 @@ User.Content = React.createClass({
 								<User.Content.Title user={user} />
 							</div>
 							<div className="card-action">
-								<button className="btn waves-effect waves-light">Send Message</button>
-								<button className="btn waves-effect waves-light">Add Friend</button>
+							{
+								user.isFriend ? <button className="btn waves-effect waves-light" onClick={this.handleRemoveFriend}>Remove Friend</button> :
+												<button className="btn waves-effect waves-light" onClick={this.handleAddFriend}>Add Friend</button>
+							}
 							</div>
 						</div>
 					</div>
@@ -66,6 +72,14 @@ User.Content = React.createClass({
 				</div>
 			</div>
 		)
+	},
+	handleAddFriend: function(e) {
+		OI.addFriend({userID: this.props.user.id});
+		e.preventDefault();
+	},
+	handleRemoveFriend: function(e) {
+		OI.removeFriend({userID: this.props.user.id});
+		e.preventDefault();
 	},
 });
 
@@ -161,14 +175,14 @@ User.Content.Avatar = React.createClass({
 User.Content.Overlay = React.createClass({
 	styles: {
 		container: {
-			 position: "absolute",
-			 width: "100%",
-			 height: "100%",
-			 borderRadius: "50%",
-			 background: "black",
-			 transition: "opacity .2s",
-			 pointerEvents: "none",
-			 opacity: 0,
+			position: "absolute",
+			width: "100%",
+			height: "100%",
+			borderRadius: "50%",
+			background: "black",
+			transition: "opacity .2s",
+			pointerEvents: "none",
+			opacity: 0,
 		},
 		hovering: {
 			opacity: 0.5,

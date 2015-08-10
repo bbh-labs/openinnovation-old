@@ -45,22 +45,23 @@ func GetChat(id int64) (Chat, error) {
 	return c, nil
 }
 
-func GetChats(channelID int64, channelType string, startID, count int64) ([]Chat, error) {
+func GetChats(userID, channelID int64, channelType string, startID, count int64) ([]Chat, error) {
 	if count == -1 {
 		const rawSQL = `
 		SELECT * FROM chat
-		WHERE channel_id = $1 AND channel_type = $2 AND id > $3
+		WHERE ((user_id = $1 AND channel_id = $2) OR (user_id = $2 AND channel_id = $1)) AND channel_type = $3 AND id > $4
 		ORDER BY created_at`
 
-		return queryChats(rawSQL, channelID, channelType, startID)
+		println(startID)
+		return queryChats(rawSQL, userID, channelID, channelType, startID)
 	} else {
 		const rawSQL = `
 		SELECT * FROM chat
-		WHERE channel_id = $1 AND channel_type = $2 AND id >= $3
+		WHERE ((user_id = $1 AND channel_id = $2) OR (user_id = $2 AND channel_id = $1)) AND channel_type = $3 AND id > $4
 		ORDER BY created_at
-		LIMIT $4`
+		LIMIT $5`
 
-		return queryChats(rawSQL, channelID, channelType, startID, count)
+		return queryChats(rawSQL, userID, channelID, channelType, startID, count)
 	}
 }
 

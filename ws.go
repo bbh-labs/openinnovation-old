@@ -130,22 +130,27 @@ func (h *hub) run() {
 func (h *hub) process(c *connection, m []byte) {
 }
 
-func (h *hub) notifyUser(userID, otherUserID int64, data interface{}) {
+type message struct {
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
+}
+
+func (h *hub) notifyUser(userID, otherUserID int64, typ string, v interface{}) {
+	m := message{typ, v}
+
 	c, ok := h.connections[userID]
 	if !ok {
 		println("Couldn't find connection", userID)
 		return
 	}
 
-	m, err := json.Marshal(data)
+	b, err := json.Marshal(m)
 	if err != nil {
 		debug.Warn(err)
 		return
 	}
 
-	go func() {
-		c.send <- m
-	}()
+	c.send <- b
 
 	// chatting with yourself so just send the message once
 	if userID == otherUserID {
@@ -154,21 +159,22 @@ func (h *hub) notifyUser(userID, otherUserID int64, data interface{}) {
 
 	d, ok := h.connections[otherUserID]
 	if !ok {
-		println("Couldn't find connection", otherUserID)
 		return
 	}
 
-	d.send <- m
+	d.send <- b
 }
 
-func (h *hub) notifyProject(projectID int64, data interface{}) {
+func (h *hub) notifyProject(projectID int64, typ string, v interface{}) {
+	m := message{typ, v}
+
 	ids, err := store.GetMemberIDs(projectID)
 	if err != nil {
 		debug.Warn(err)
 		return
 	}
 
-	m, err := json.Marshal(data)
+	b, err := json.Marshal(m)
 	if err != nil {
 		debug.Warn(err)
 		return
@@ -181,6 +187,6 @@ func (h *hub) notifyProject(projectID int64, data interface{}) {
 			continue
 		}
 
-		c.send <- m
+		c.send <- b
 	}
 }

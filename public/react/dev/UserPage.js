@@ -64,9 +64,7 @@ var UserPage = React.createClass({
 		this.ws = null;
 	},
 	onWSMessage: function(e) {
-		var m = JSON.parse(e.data);
-		dispatcher.dispatch({type: "doFetchNewMessages", data: m});
-		console.log(m);
+		dispatcher.dispatch(JSON.parse(e.data));
 	},
 	playChatSound: function() {
 		if (this.chatSound) {

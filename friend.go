@@ -5,6 +5,7 @@ import (
 
 	"github.com/bbhasiapacific/bbhoi.com/response"
 	"github.com/bbhasiapacific/bbhoi.com/store"
+	"github.com/gorilla/context"
 )
 
 func GetFriends(w http.ResponseWriter, r *http.Request) {
@@ -27,15 +28,22 @@ func GetFriends(w http.ResponseWriter, r *http.Request) {
 
 func AddFriend(w http.ResponseWriter, r *http.Request) {
 	var parser store.Parser
-
-	userID := parser.Int(r.FormValue("userID"))
-	otherUserID := parser.Int(r.FormValue("otherUserID"))
+	otherUserID := parser.Int(r.FormValue("userID"))
 	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
 
-	if err := store.AddFriend(userID, otherUserID); err != nil {
+	user := context.Get(r, "user").(store.User)
+	if isFriend, err := store.IsFriend(user.ID(), otherUserID); err != nil {
+		response.ServerError(w, err)
+		return
+	} else if isFriend {
+		response.OK(w, nil)
+		return
+	}
+
+	if err := store.AddFriend(user.ID(), otherUserID); err != nil {
 		response.ServerError(w, err)
 		return
 	}
@@ -45,15 +53,22 @@ func AddFriend(w http.ResponseWriter, r *http.Request) {
 
 func RemoveFriend(w http.ResponseWriter, r *http.Request) {
 	var parser store.Parser
-
-	userID := parser.Int(r.FormValue("userID"))
-	otherUserID := parser.Int(r.FormValue("otherUserID"))
+	otherUserID := parser.Int(r.FormValue("userID"))
 	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)
 		return
 	}
 
-	if err := store.RemoveFriend(userID, otherUserID); err != nil {
+	user := context.Get(r, "user").(store.User)
+	if isFriend, err := store.IsFriend(user.ID(), otherUserID); err != nil {
+		response.ServerError(w, err)
+		return
+	} else if !isFriend {
+		response.OK(w, nil)
+		return
+	}
+
+	if err := store.RemoveFriend(user.ID(), otherUserID); err != nil {
 		response.ServerError(w, err)
 		return
 	}

@@ -10,7 +10,6 @@ import (
 
 func GetTask(w http.ResponseWriter, r *http.Request) {
 	var parser store.Parser
-
 	taskID := parser.Int(r.FormValue("taskID"))
 	if parser.Err != nil {
 		response.ClientError(w, http.StatusBadRequest)

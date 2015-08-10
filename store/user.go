@@ -61,17 +61,7 @@ type user struct {
 	UpdatedAt        time.Time `json:"updatedAt"`
 	CreatedAt        time.Time `json:"createdAt"`
 
-	IsFriend         bool      `json:"omitempty,isFriend"`
-
-	CreatedProjectsCount_   int64 `json:"created_projects_count"`
-	CompletedProjectsCount_ int64 `json:"completed_projects_count"`
-	InvolvedProjectsCount_  int64 `json:"involved_projects_count"`
-	CompletedTasksCount_    int64 `json:"completed_tasks_count"`
-
-	MaxCreatedProjectsCount_   int64 `json:"max_created_projects_count"`
-	MaxCompletedProjectsCount_ int64 `json:"max_completed_projects_count"`
-	MaxInvolvedProjectsCount_  int64 `json:"max_involved_projects_count"`
-	MaxCompletedTasksCount_    int64 `json:"max_completed_tasks_count"`
+	IsFriend         bool      `json:"isFriend,omitempty"`
 }
 
 func (u user) ID() int64 {
@@ -116,6 +106,48 @@ func GetUser(userID int64) (User, error) {
 
 	if len(u.AvatarURL) == 0 {
 		u.AvatarURL = "avatar.jpg"
+	}
+
+	return u, nil
+}
+
+type GetUserParams struct {
+	CurrentUserID int64
+}
+
+func GetUserWithParams(userID int64, params GetUserParams) (User, error) {
+	const rawSQL = `
+	SELECT * FROM user_ WHERE id = $1 LIMIT 1`
+
+	var u user
+	if err := db.QueryRow(rawSQL, userID).Scan(
+		&u.ID_,
+		&u.Email,
+		&u.Password,
+		&u.Fullname,
+		&u.Title,
+		&u.Description,
+		&u.AvatarURL,
+		&u.Interests,
+		&u.VerificationCode,
+		&u.IsAdmin_,
+		&u.UpdatedAt,
+		&u.CreatedAt,
+	); err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	u.IDStr_ = strconv.FormatInt(u.ID_, 10)
+
+	if len(u.AvatarURL) == 0 {
+		u.AvatarURL = "avatar.jpg"
+	}
+
+	if params.CurrentUserID > 0 {
+		var err error
+		if u.IsFriend, err = IsFriend(params.CurrentUserID, u.ID_); err != nil {
+			return nil, err
+		}
 	}
 
 	return u, nil
