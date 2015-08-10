@@ -56,6 +56,10 @@ var Friends = React.createClass({displayName: "Friends",
 			case "removeFriendDone":
 				OI.getFriends({userID: this.props.user.id});
 				break;
+			case "joinProjectDone":
+			case "leaveProjectDone":
+				OI.getInvolvedProjects({userID: this.props.user.id});
+				break;
 			}
 		}.bind(this));
 

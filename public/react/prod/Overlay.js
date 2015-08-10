@@ -16,11 +16,11 @@ var Overlay = React.createClass({displayName: "Overlay",
 	componentDidMount: function() {
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
-			case "openChat":
-				this.openChat(payload.data);
+			case "openUserChat":
+				this.openUserChat(payload.data);
 				break;
-			case "closeChat":
-				this.closeChat(payload.data);
+			case "closeUserChat":
+				this.closeUserChat(payload.data);
 				break;
 			case "openProjectChat":
 				this.openProjectChat(payload.data);
@@ -57,7 +57,7 @@ var Overlay = React.createClass({displayName: "Overlay",
 			)
 		)
 	},
-	openChat: function(user) {
+	openUserChat: function(user) {
 		var windows = this.state.windows;
 
 		windows.push({id: this.windowID, user: user});
@@ -65,7 +65,7 @@ var Overlay = React.createClass({displayName: "Overlay",
 
 		this.setState({windows: windows});
 	},
-	closeChat: function(windowID) {
+	closeUserChat: function(windowID) {
 		var windows = this.state.windows;
 
 		for (var i = 0; i < windows.length; i++) {

@@ -135,20 +135,30 @@ Friends.ProjectChat = React.createClass({displayName: "ProjectChat",
 			switch (payload.type) {
 			case "newChatMessage":
 				var m = payload.data;
-				if (!(m.channelType == "project" && (m.channelID == project.id))) {
+				if (!(m.channelType == "project" && m.channelID == project.id)) {
 					break;
 				}
 
 				var startID = 0;
 				var messages = this.state.messages;
 				if (messages) {
-					startID = messages[messages.length - 1].id;
+					if (messages.length > 0 ) {
+						startID = messages[messages.length - 1].id;
+					}
 				}
 				OI.getChatMessages({channelID: project.id, channelType: "project", startID: startID, count: -1});
 				break;
 			case "getChatMessagesDone":
-				var messages = this.state.messages;
 				var data = payload.data.data;
+				if (data) {
+					if (data.length > 0) {
+						if (!(data[0].channelType == "project" && data[0].channelID == project.id)) {
+							break;
+						}
+					}
+				}
+
+				var messages = this.state.messages;
 				if (messages.length > 0 && data) {
 					messages = messages.concat(data);
 					this.props.playChatSound();
@@ -237,18 +247,10 @@ Friends.ProjectChat.List = React.createClass({displayName: "List",
 			React.createElement("div", {className: "list", style: this.styles.container}, 
 				this.props.messages ?
 				this.props.messages.map(function(m) {
-					return React.createElement("p", {style: this.styles.text}, React.createElement("strong", null, this.getUsername(m), ": "), m.text)
+					return React.createElement("p", {style: this.styles.text}, React.createElement("strong", null, m.username, ": "), m.text)
 				}.bind(this)) : ""
 			)
 		)
-	},
-	getUsername: function(m) {
-		var user = this.props.user;
-		if (m.userID == user.id) {
-			return user.fullname;
-		}
-		var otherUser = this.props.otherUser;
-		return otherUser.fullname;
 	},
 	scrollToBottom: function() {
 		var list = React.findDOMNode(this);

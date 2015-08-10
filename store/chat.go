@@ -23,6 +23,8 @@ type Chat struct {
 	ChannelType_ string    `json:"channelType"`
 	Text_        string    `json:"text"`
 	CreatedAt_   time.Time `json:"createdAt"`
+
+	Username_    string    `json:"username"`
 }
 
 func GetChat(id int64) (Chat, error) {
@@ -46,22 +48,46 @@ func GetChat(id int64) (Chat, error) {
 }
 
 func GetChats(userID, channelID int64, channelType string, startID, count int64) ([]Chat, error) {
-	if count == -1 {
-		const rawSQL = `
-		SELECT * FROM chat
-		WHERE ((user_id = $1 AND channel_id = $2) OR (user_id = $2 AND channel_id = $1)) AND channel_type = $3 AND id > $4
-		ORDER BY created_at`
+	if channelType == "user" {
+		if count == -1 {
+			const rawSQL = `
+			SELECT chat.*, user_.fullname FROM chat
+			INNER JOIN user_ ON user_.id = user_id
+			WHERE ((user_id = $1 AND channel_id = $2) OR (user_id = $2 AND channel_id = $1)) AND channel_type = $3 AND chat.id > $4
+			ORDER BY created_at`
 
-		println(startID)
-		return queryChats(rawSQL, userID, channelID, channelType, startID)
+			println(startID)
+			return queryChats(rawSQL, userID, channelID, channelType, startID)
+		} else {
+			const rawSQL = `
+			SELECT chat.*, user_.fullname FROM chat
+			INNER JOIN user_ ON user_.id = user_id
+			WHERE ((user_id = $1 AND channel_id = $2) OR (user_id = $2 AND channel_id = $1)) AND channel_type = $3 AND chat.id > $4
+			ORDER BY created_at
+			LIMIT $5`
+
+			return queryChats(rawSQL, userID, channelID, channelType, startID, count)
+		}
 	} else {
-		const rawSQL = `
-		SELECT * FROM chat
-		WHERE ((user_id = $1 AND channel_id = $2) OR (user_id = $2 AND channel_id = $1)) AND channel_type = $3 AND id > $4
-		ORDER BY created_at
-		LIMIT $5`
+		if count == -1 {
+			const rawSQL = `
+			SELECT chat.*, user_.fullname FROM chat
+			INNER JOIN user_ ON user_.id = user_id
+			WHERE channel_id = $1 AND channel_type = $2 AND chat.id > $3
+			ORDER BY created_at`
 
-		return queryChats(rawSQL, userID, channelID, channelType, startID, count)
+			println(startID)
+			return queryChats(rawSQL, channelID, channelType, startID)
+		} else {
+			const rawSQL = `
+			SELECT chat.*, user_.fullname FROM chat
+			INNER JOIN user_ ON user_.id = user_id
+			WHERE channel_id = $1 AND channel_type = $2 AND chat.id > $3
+			ORDER BY created_at
+			LIMIT $4`
+
+			return queryChats(rawSQL, channelID, channelType, startID, count)
+		}
 	}
 }
 
@@ -125,6 +151,7 @@ func queryChats(rawSQL string, data ...interface{}) ([]Chat, error) {
 			&c.ChannelType_,
 			&c.Text_,
 			&c.CreatedAt_,
+			&c.Username_,
 		); err != nil && err != sql.ErrNoRows {
 			return nil, debug.Error(err)
 		}

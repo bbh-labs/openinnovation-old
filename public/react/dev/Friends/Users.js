@@ -100,7 +100,7 @@ Friends.MeDropdown = React.createClass({
 	},
 	handleOpenChat: function(e) {
 		dispatcher.dispatch({
-			type: "openChat",
+			type: "openUserChat",
 			data: this.user,
 		});
 
@@ -132,7 +132,7 @@ Friends.UserDropdown = React.createClass({
 	},
 	handleOpenChat: function(e) {
 		dispatcher.dispatch({
-			type: "openChat",
+			type: "openUserChat",
 			data: this.user,
 		});
 
@@ -219,7 +219,7 @@ Friends.UserChat = React.createClass({
 		)
 	},
 	handleClose: function() {
-		dispatcher.dispatch({type: "closeChat", data: this.props.windowID});
+		dispatcher.dispatch({type: "closeUserChat", data: this.props.windowID});
 	},
 });
 
