@@ -41,14 +41,16 @@ var InvolvedProjects = React.createClass({displayName: "InvolvedProjects",
 		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
+		var projects = this.state.projects;
 		return (
 			React.createElement("div", {className: "involved-projects card"}, 
 				React.createElement("div", {className: "card-content"}, 
 					React.createElement("h5", null, "Involved Projects"), 
 					React.createElement("div", {ref: "slides"}, 
-						this.state.projects.map(function(p) {
+						projects ?
+						projects.map(function(p) {
 							return React.createElement(InvolvedProjects.Item, {key: p.id, project: p})
-						})
+						}) : ""
 					)
 				), 
 				React.createElement("div", {className: "card-action"}, 

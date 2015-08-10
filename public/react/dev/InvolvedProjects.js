@@ -41,14 +41,16 @@ var InvolvedProjects = React.createClass({
 		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
+		var projects = this.state.projects;
 		return (
 			<div className="involved-projects card">
 				<div className="card-content">
 					<h5>Involved Projects</h5>
 					<div ref="slides">{
-						this.state.projects.map(function(p) {
+						projects ?
+						projects.map(function(p) {
 							return <InvolvedProjects.Item key={p.id} project={p} />
-						})
+						}) : ""
 					}</div>
 				</div>
 				<div className="card-action">

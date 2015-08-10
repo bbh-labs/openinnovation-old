@@ -20,7 +20,7 @@ const (
 	title text NOT NULL,
 	description text NOT NULL,
 	avatar_url text NOT NULL,
-	interests text[],
+	interests text NOT NULL,
 	verification_code text NOT NULL,
 	is_admin boolean NOT NULL,
 	updated_at timestamp NOT NULL,
@@ -38,7 +38,7 @@ type User interface {
 	UpdateFullname(fullname string) error
 	UpdateTitle(title string) error
 	UpdateDescription(description string) error
-	UpdateInterests(interests []string) error
+	UpdateInterests(interests string) error
 	UpdateAvatarURL(url string) error
 
 	IsMember(projectID int64) bool
@@ -55,7 +55,7 @@ type user struct {
 	Title            string    `json:"title"`
 	Description      string    `json:"description"`
 	AvatarURL        string    `json:"avatarURL"`
-	Interests        []byte    `json:"interests"`
+	Interests        string    `json:"interests"`
 	VerificationCode string    `json:"-"`
 	IsAdmin_         bool      `json:"isAdmin"`
 	UpdatedAt        time.Time `json:"updatedAt"`
@@ -233,7 +233,7 @@ func (u user) UpdateDescription(description string) error {
 	return nil
 }
 
-func (u user) UpdateInterests(interests []string) error {
+func (u user) UpdateInterests(interests string) error {
 	const q = `UPDATE user_ SET interests = $1, updated_at = now() WHERE id = $2`
 
 	if _, err := db.Exec(q, interests, u.ID_); err != nil {

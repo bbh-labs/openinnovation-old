@@ -18,7 +18,7 @@ Project.Tasks.Modal = React.createClass({
 				form.elements["taskID"].value = task.id;
 				form.elements["title"].value = task.title;
 				form.elements["description"].value = task.description;
-				form.elements["tags"].value = task.tags;
+				$(tags).importTags(task.tags);
 
 				this.refs.startDate.set("select", task.startDateStr, {format: "dd mmmm, yyyy"});
 				this.refs.endDate.set("select", task.endDateStr, {format: "dd mmmm, yyyy"});

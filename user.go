@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/bbhasiapacific/bbhoi.com/debug"
 	"github.com/bbhasiapacific/bbhoi.com/httputil"
@@ -70,6 +69,8 @@ func Update(w http.ResponseWriter, r *http.Request) {
 			err = user.UpdateTitle(v[0])
 		case "description":
 			err = user.UpdateDescription(v[0])
+		case "interests":
+			err = user.UpdateInterests(v[0])
 		}
 
 		if err != nil {
@@ -103,18 +104,6 @@ func UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = user.UpdateAvatarURL(finalURL); err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
-	response.OK(w, nil)
-}
-
-func UpdateInterests(w http.ResponseWriter, r *http.Request) {
-	user := context.Get(r, "user").(store.User)
-	interests := strings.Split(r.FormValue("interests"), ",")
-
-	if err := user.UpdateInterests(interests); err != nil {
 		response.ServerError(w, err)
 		return
 	}

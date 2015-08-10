@@ -118,7 +118,7 @@ func HasUserWithEmail(email string) bool {
 func insertUser(m map[string]string) error {
 	const q = `
 	INSERT INTO user_ (email, password, fullname, title, description, avatar_url, interests, verification_code, is_admin, updated_at, created_at)
-	VALUES ($1, $2, $3, $4, $5, $6, '{"test"}', $7, FALSE, now(), now())`
+	VALUES ($1, $2, $3, $4, $5, $6, '', $7, FALSE, now(), now())`
 
 	if _, err := db.Exec(q,
 		m["email"],
@@ -128,7 +128,6 @@ func insertUser(m map[string]string) error {
 		m["description"],
 		m["avatarURL"],
 		"verified",
-		//FIXME: m["verificationCode"],
 	); err != nil {
 		return debug.Error(err)
 	}

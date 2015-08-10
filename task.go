@@ -108,6 +108,10 @@ func LatestTasks(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, tasks)
 }
 
+func RelatedTasks(w http.ResponseWriter, r *http.Request) {
+	
+}
+
 func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	var parser store.Parser
 

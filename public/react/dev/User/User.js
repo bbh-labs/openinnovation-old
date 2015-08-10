@@ -1,13 +1,13 @@
 var User = React.createClass({
 	mixins: [ State ],
 	getInitialState: function() {
-		return {user: null};
+		return {viewedUser: null};
 	},
 	componentDidMount: function() {
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
 			case "userDone":
-				this.setState({user: payload.data.data});
+				this.setState({viewedUser: payload.data.data});
 				break;
 			case "userFail":
 				Materialize.toast("Failed to get user", 1000, "red white-text");
@@ -28,12 +28,12 @@ var User = React.createClass({
 		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
-		if (!this.state.user) {
+		if (!this.state.viewedUser) {
 			return <div />
 		}
 		return (
 			<main className="user">
-				<User.Content user={this.state.user} />
+				<User.Content user={this.props.user} viewedUser={this.state.viewedUser} />
 			</main>
 		)
 	},
@@ -42,43 +42,45 @@ var User = React.createClass({
 User.Content = React.createClass({
 	render: function() {
 		var user = this.props.user;
+		var viewedUser = this.props.viewedUser;
 		return (
 			<div className="row">
 				<div className="container">
 					<div className="col s12 m4 l3">
 						<div className="card">
 							<div className="card-content">
-								<User.Content.AvatarContainer user={user} />
-								<User.Content.ImageCropperModal user={user} />
+								<User.Content.AvatarContainer viewedUser={viewedUser} />
+								<User.Content.ImageCropperModal viewedUser={viewedUser} />
 							</div>
 							<div className="card-action">
-								<User.Content.Fullname user={user} />
-								<User.Content.Title user={user} />
+								<User.Content.Fullname viewedUser={viewedUser} />
+								<User.Content.Title viewedUser={viewedUser} />
+								<User.Content.Interests user={user} viewedUser={viewedUser} />
 							</div>
 							<div className="card-action">
 							{
-								user.isFriend ? <button className="btn waves-effect waves-light" onClick={this.handleRemoveFriend}>Remove Friend</button> :
+								viewedUser.isFriend ? <button className="btn waves-effect waves-light" onClick={this.handleRemoveFriend}>Remove Friend</button> :
 												<button className="btn waves-effect waves-light" onClick={this.handleAddFriend}>Add Friend</button>
 							}
 							</div>
 						</div>
 					</div>
 					<div className="col s12 m9 l8">
-						<User.Content.Description user={user} />
+						<User.Content.Description viewedUser={viewedUser} />
 					</div>
 					<div className="col s12 m9 l8">
-						<InvolvedProjects userID={user.id} />
+						<InvolvedProjects userID={viewedUser.id} />
 					</div>
 				</div>
 			</div>
 		)
 	},
 	handleAddFriend: function(e) {
-		OI.addFriend({userID: this.props.user.id});
+		OI.addFriend({userID: this.props.viewedUser.id});
 		e.preventDefault();
 	},
 	handleRemoveFriend: function(e) {
-		OI.removeFriend({userID: this.props.user.id});
+		OI.removeFriend({userID: this.props.viewedUser.id});
 		e.preventDefault();
 	},
 });
@@ -96,10 +98,10 @@ User.Content.AvatarContainer = React.createClass({
 		return {hovering: false};
 	},
 	render: function() {
-		var user = this.props.user;
+		var viewedUser = this.props.viewedUser;
 		return (
 			<div style={this.styles.container} onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
-				<User.Content.Avatar user={user} />
+				<User.Content.Avatar viewedUser={viewedUser} />
 				<User.Content.Overlay hovering={this.state.hovering} />
 			</div>
 		)
@@ -147,12 +149,12 @@ User.Content.Avatar = React.createClass({
 		}.bind(this));
 	},
 	render: function() {
-		var user = this.props.user;
+		var viewedUser = this.props.viewedUser;
 		var date = new Date();
 		return (
 			<div style={this.styles.container}>
 				<label htmlFor="avatar-input">
-					<img style={this.styles.image} className="circle" src={user.avatarURL + "?" + date.getTime()} />
+					<img style={this.styles.image} className="circle" src={viewedUser.avatarURL + "?" + date.getTime()} />
 				</label>
 				<input id="avatar-input" type="file" style={this.styles.input} onChange={this.onChange} />
 			</div>
@@ -210,7 +212,7 @@ User.Content.Fullname = React.createClass({
 		var editMode = this.state.editMode;
 		return (
 			<div onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
-				<h5 ref="fullname" style={{display: "inline"}} contentEditable={this.state.editMode}>{this.props.user.fullname}</h5>
+				<h5 ref="fullname" style={{display: "inline"}} contentEditable={this.state.editMode}>{this.props.viewedUser.fullname}</h5>
 				{
 					this.state.hovering || this.state.editMode ?
 					<i className="material-icons edit-icon" onClick={this.handleClick}>{this.state.editMode ? "done" : "edit mode"}</i> : ""
@@ -242,7 +244,7 @@ User.Content.Description = React.createClass({
 		return {hovering: false, editMode: false};
 	},
 	render: function() {
-		var user = this.props.user;
+		var viewedUser = this.props.viewedUser;
 		var editMode = this.state.editMode;
 		return (
 			<div className="card">
@@ -255,7 +257,7 @@ User.Content.Description = React.createClass({
 							<i className="material-icons edit-icon" onClick={this.handleClick}>{this.state.editMode ? "done" : "edit mode"}</i> : ""
 						}
 						</h5>
-						<p ref="description" contentEditable={this.state.editMode}>{user.description}</p>
+						<p ref="description" contentEditable={this.state.editMode}>{viewedUser.description}</p>
 					</div>
 				</div>
 			</div>
@@ -288,7 +290,7 @@ User.Content.Title = React.createClass({
 		var editMode = this.state.editMode;
 		return (
 			<div onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave} style={{minWidth: "16px", minHeight: "16px"}}>
-				<p ref="title" style={{display: "inline"}} contentEditable={this.state.editMode}>{this.props.user.title}</p>
+				<p ref="title" style={{display: "inline"}} contentEditable={this.state.editMode}>{this.props.viewedUser.title}</p>
 				{
 					this.state.hovering || this.state.editMode ?
 					<i className="material-icons edit-icon" onClick={this.handleClick}>{this.state.editMode ? "done" : "edit mode"}</i> : ""
@@ -312,5 +314,40 @@ User.Content.Title = React.createClass({
 			$(title).html(text);
 			OI.updateUser({title: text});
 		}
+	},
+});
+
+User.Content.Interests = React.createClass({
+	getInitialState: function() {
+		return {hovering: false, editMode: false};
+	},
+	componentDidMount: function() {
+		$(React.findDOMNode(this.refs.interests)).importTags(this.props.user.interests);
+	},
+	render: function() {
+		var viewedUser = this.props.viewedUser;
+		var editMode = this.state.editMode;
+		return (
+			<div onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave} style={{minWidth: "16px", minHeight: "16px"}}>
+				<TagsInput ref="interests" option={{defaultText: "interests", width: "auto", onChange: this.handleOnChange}} />
+			</div>
+		)
+	},
+	handleMouseEnter: function(e) {
+		this.setState({hovering: true});
+	},
+	handleMouseLeave: function(e) {
+		this.setState({hovering: false});
+	},
+	handleOnChange: function(e) {
+		var user = this.props.user;
+		var viewedUser = this.props.viewedUser;
+		if (viewedUser.id != user.id) {
+			return;
+		}
+	
+		var interests = React.findDOMNode(this.refs.interests);
+		var text = $(interests).val();
+		OI.updateUser({interests: text});
 	},
 });

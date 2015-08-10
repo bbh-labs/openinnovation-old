@@ -91,8 +91,6 @@ func user(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "PUT":
 		switch r.FormValue("type") {
-		case "interests":
-			UpdateInterests(w, r)
 		case "image":
 			UpdateAvatar(w, r)
 		default:
@@ -182,6 +180,8 @@ func task(w http.ResponseWriter, r *http.Request) {
 			GetTasks(w, r)
 		case "latest":
 			LatestTasks(w, r)
+		case "related":
+			RelatedTasks(w, r)
 		default:
 			GetTask(w, r)
 		}
