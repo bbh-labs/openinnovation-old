@@ -4,7 +4,11 @@ var TagsInput = React.createClass({
 	},
 	render: function() {
 		return (
-			<input name={this.props.name} id={this.props.id} className={classNames(this.props.className)} value={this.props.value} />
+			<input id={this.props.id}
+			       className={classNames(this.props.className)}
+			       name={this.props.name}
+			       value={this.props.value}
+			       style={m(this.props.style)} />
 		)
 	},
 });

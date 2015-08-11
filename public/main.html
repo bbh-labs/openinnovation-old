@@ -7,14 +7,39 @@
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
 	<link rel="stylesheet" href="jquery-ui/jquery-ui.css" />
+
+	<!-- Inline Input Editing -->
+	<link rel="stylesheet" href="jquery-editable/css/jquery-editable.css" />
+	<link rel="stylesheet" href="custom/jquery-editable.css" />
+
 	<link rel="stylesheet" href="owlcarousel/assets/owl.carousel.css" />
 	<link rel="stylesheet" href="vertical-timeline/css/style.css" />
 	<link rel="stylesheet" href="cropper/cropper.css" />
 	<link rel="stylesheet" href="tagsinput/jquery.tagsinput.min.css" />
 	<link rel="stylesheet" href="style.css" />
 
+	<!-- Google Sign-In -->
+	<script>
+		function onGoogleReady() {
+			gapi.load("auth2", function() {
+				auth2 = gapi.auth2.init({
+					client_id: "320643691401-5m3ipff7ghamacndnvipda0uqi3eranu.apps.googleusercontent.com",
+				});
+			});
+		}
+	</script>
+	<script src="https://apis.google.com/js/platform.js" async defer onload="onGoogleReady()"></script>
+
 	<script src="jquery/jquery.js"></script>
 	<script src="jquery-ui/jquery-ui.js"></script>
+
+	<!-- Inline Input Editing -->
+	<script src="jquery-editable/js/jquery-editable-poshytip.js"></script>
+	<script>
+		$.fn.editable.defaults.mode = "inline";
+		$.fn.editable.defaults.ajaxOptions = {type: "PUT", dataType: "json"};
+	</script>
+
 	<script src="materialize/js/materialize.js"></script>
 	<script src="owlcarousel/owl.carousel.js"></script>
 	<script src="dropzone/dropzone.js"></script>
@@ -66,9 +91,6 @@
 	<script src="react/prod/InvolvedProjects.js"></script>
 
 	<script src="react/prod/Intro.js"></script>
-	<script src="react/prod/Login.js"></script>
-	<script src="react/prod/Register.js"></script>
-	<script src="react/prod/ForgotPassword.js"></script>
 	<script src="react/prod/Dashboard.js"></script>
 	
 	<script src="react/prod/GuestPage.js"></script>

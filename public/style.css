@@ -6,6 +6,10 @@ header > nav {
 	margin-bottom: 0 !important;
 }
 
+.google {
+	background: #db4437;
+}
+
 .margin-top {
 	margin-top: 32px;
 }

@@ -53,8 +53,8 @@ User.Content = React.createClass({
 								<User.Content.ImageCropperModal viewedUser={viewedUser} />
 							</div>
 							<div className="card-action">
-								<User.Content.Fullname viewedUser={viewedUser} />
-								<User.Content.Title viewedUser={viewedUser} />
+								<User.Content.Fullname user={user} viewedUser={viewedUser} />
+								<User.Content.Title user={user} viewedUser={viewedUser} />
 								<User.Content.Interests user={user} viewedUser={viewedUser} />
 							</div>
 							<div className="card-action">
@@ -129,6 +129,7 @@ User.Content.Avatar = React.createClass({
 			display: "none",
 		},
 	},
+	mixins: [ Navigation ],
 	componentDidMount: function() {
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
@@ -154,7 +155,7 @@ User.Content.Avatar = React.createClass({
 		return (
 			<div style={this.styles.container}>
 				<label htmlFor="avatar-input">
-					<img style={this.styles.image} className="circle" src={viewedUser.avatarURL + "?" + date.getTime()} />
+					<img style={this.styles.image} className="circle" src={viewedUser.avatarURL + "?tmp=" + date.getTime()} />
 				</label>
 				<input id="avatar-input" type="file" style={this.styles.input} onChange={this.onChange} />
 			</div>
@@ -205,37 +206,80 @@ User.Content.Overlay = React.createClass({
 });
 
 User.Content.Fullname = React.createClass({
-	getInitialState: function() {
-		return {hovering: false, editMode: false};
+	componentDidMount: function() {
+		if (this.props.user.id != this.props.viewedUser.id) {
+			return;
+		}
+
+		var fullname = React.findDOMNode(this);
+		$(fullname).editable({
+			url: "/api/user",
+			send: "always",
+			params: function(params) {
+				params.fullname = params.value;
+				return params;
+			},
+			success: function(resp) {
+				dispatcher.dispatch({type: "updateUserDone"});
+			},
+		});
 	},
 	render: function() {
-		var editMode = this.state.editMode;
 		return (
-			<div onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
-				<h5 ref="fullname" style={{display: "inline"}} contentEditable={this.state.editMode}>{this.props.viewedUser.fullname}</h5>
-				{
-					this.state.hovering || this.state.editMode ?
-					<i className="material-icons edit-icon" onClick={this.handleClick}>{this.state.editMode ? "done" : "edit mode"}</i> : ""
-				}
-			</div>
+			<h5>{this.props.viewedUser.fullname}</h5>
 		)
 	},
-	handleMouseEnter: function(e) {
-		this.setState({hovering: true});
-	},
-	handleMouseLeave: function(e) {
-		this.setState({hovering: false});
-	},
-	handleClick: function(e) {
-		var editMode = this.state.editMode;
-		this.setState({editMode: !editMode});
+});
 
-		var fullname = React.findDOMNode(this.refs.fullname);
-		if (editMode) {
-			var text = $(fullname).text();
-			$(fullname).html(text);
-			OI.updateUser({fullname: text});
+User.Content.Title = React.createClass({
+	styles: {
+		container: {
+			display: "inline",
+		},
+	},
+	componentDidMount: function() {
+		if (this.props.user.id != this.props.viewedUser.id) {
+			return;
 		}
+
+		var title = React.findDOMNode(this);
+		$(title).editable({
+			url: "/api/user",
+			send: "always",
+			params: function(params) {
+				params.title = params.value;
+				return params;
+			},
+			success: function(resp) {
+				dispatcher.dispatch({type: "updateUserDone"});
+			},
+		});
+	},
+	render: function() {
+		return (
+			<p style={this.styles.container}>{this.props.viewedUser.title}</p>
+		)
+	},
+});
+
+User.Content.Interests = React.createClass({
+	componentDidMount: function() {
+		$(React.findDOMNode(this.refs.interests)).importTags(this.props.user.interests);
+	},
+	render: function() {
+		var viewedUser = this.props.viewedUser;
+		return <TagsInput ref="interests" option={{defaultText: "interests", width: "auto", onChange: this.handleOnChange}} />
+	},
+	handleOnChange: function(e) {
+		var user = this.props.user;
+		var viewedUser = this.props.viewedUser;
+		if (viewedUser.id != user.id) {
+			return;
+		}
+	
+		var interests = React.findDOMNode(this.refs.interests);
+		var text = $(interests).val();
+		OI.updateUser({interests: text});
 	},
 });
 
@@ -279,75 +323,5 @@ User.Content.Description = React.createClass({
 			$(description).html(text);
 			OI.updateUser({description: text});
 		}
-	},
-});
-
-User.Content.Title = React.createClass({
-	getInitialState: function() {
-		return {hovering: false, editMode: false};
-	},
-	render: function() {
-		var editMode = this.state.editMode;
-		return (
-			<div onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave} style={{minWidth: "16px", minHeight: "16px"}}>
-				<p ref="title" style={{display: "inline"}} contentEditable={this.state.editMode}>{this.props.viewedUser.title}</p>
-				{
-					this.state.hovering || this.state.editMode ?
-					<i className="material-icons edit-icon" onClick={this.handleClick}>{this.state.editMode ? "done" : "edit mode"}</i> : ""
-				}
-			</div>
-		)
-	},
-	handleMouseEnter: function(e) {
-		this.setState({hovering: true});
-	},
-	handleMouseLeave: function(e) {
-		this.setState({hovering: false});
-	},
-	handleClick: function(e) {
-		var editMode = this.state.editMode;
-		this.setState({editMode: !editMode});
-
-		var title = React.findDOMNode(this.refs.title);
-		if (editMode) {
-			var text = $(title).text();
-			$(title).html(text);
-			OI.updateUser({title: text});
-		}
-	},
-});
-
-User.Content.Interests = React.createClass({
-	getInitialState: function() {
-		return {hovering: false, editMode: false};
-	},
-	componentDidMount: function() {
-		$(React.findDOMNode(this.refs.interests)).importTags(this.props.user.interests);
-	},
-	render: function() {
-		var viewedUser = this.props.viewedUser;
-		var editMode = this.state.editMode;
-		return (
-			<div onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave} style={{minWidth: "16px", minHeight: "16px"}}>
-				<TagsInput ref="interests" option={{defaultText: "interests", width: "auto", onChange: this.handleOnChange}} />
-			</div>
-		)
-	},
-	handleMouseEnter: function(e) {
-		this.setState({hovering: true});
-	},
-	handleMouseLeave: function(e) {
-		this.setState({hovering: false});
-	},
-	handleOnChange: function(e) {
-		var user = this.props.user;
-		var viewedUser = this.props.viewedUser;
-		if (viewedUser.id != user.id) {
-			return;
-		}
-	
-		var interests = React.findDOMNode(this.refs.interests);
-		var text = $(interests).val();
-		OI.updateUser({interests: text});
 	},
 });

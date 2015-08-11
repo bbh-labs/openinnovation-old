@@ -36,6 +36,7 @@ var OI = {
 			dataType: "json",
 		});
 	},
+	/* (unused)
 	register: function(data) {
 		this.api("register", {
 			url: "/register",
@@ -44,6 +45,7 @@ var OI = {
 			dataType: "json",
 		});
 	},
+	*/
 	user: function(data) {
 		this.api("user", {
 			url: "/api/user",

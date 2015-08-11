@@ -30,6 +30,9 @@ var App = React.createClass({
 			case "logoutFail":
 				Materialize.toast(resp.responseText, 1000, "red");
 				break;
+			case "updateUserDone":
+				OI.isLoggedIn();
+				break;
 			}
 		}.bind(this));
 	},

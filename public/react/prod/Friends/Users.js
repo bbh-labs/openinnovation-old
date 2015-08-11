@@ -92,9 +92,7 @@ Friends.MeDropdown = React.createClass({displayName: "MeDropdown",
 			React.createElement("ul", {id: "me-dropdown", className: "dropdown-content"}, 
 				React.createElement("li", null, React.createElement("a", {href: "#"}, "Online")), 
 				React.createElement("li", null, React.createElement("a", {href: "#"}, "Away")), 
-				React.createElement("li", null, React.createElement("a", {href: "#"}, "Busy")), 
-				React.createElement("li", {className: "divider"}, "View Profile"), 
-				React.createElement("li", null, React.createElement("a", {href: "#"}, "Edit Profile"))
+				React.createElement("li", null, React.createElement("a", {href: "#"}, "Busy"))
 			)
 		)
 	},

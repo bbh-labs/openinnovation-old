@@ -6,14 +6,8 @@ var Intro = React.createClass({displayName: "Intro",
 					React.createElement("nav", {className: "row"}, 
 						React.createElement("div", {className: "nav-wrapper container"}, 
 							React.createElement(Link, {to: "intro", className: "brand-logo"}, "BBH OI"), 
-							React.createElement("a", {href: "#", "data-activates": "mobile-menu", className: "button-collapse", ref: "mobileButton"}, React.createElement("i", {className: "material-icons"}, "menu")), 
-							React.createElement("ul", {className: "right"}, 
-								React.createElement("li", null, React.createElement(Link, {to: "login"}, "Login")), 
-								React.createElement("li", null, React.createElement(Link, {to: "register"}, "Register"))
-							), 
-							React.createElement("ul", {className: "side-nav", id: "mobile-menu"}, 
-								React.createElement("li", null, React.createElement(Link, {to: "login"}, "Login")), 
-								React.createElement("li", null, React.createElement(Link, {to: "register"}, "Register"))
+							React.createElement("a", {href: "#", "data-activates": "mobile-menu", className: "button-collapse", ref: "mobileButton"}, 
+								React.createElement("i", {className: "material-icons"}, "menu")
 							)
 						)
 					)
@@ -22,10 +16,21 @@ var Intro = React.createClass({displayName: "Intro",
 					React.createElement("div", {className: "valign"}, 
 						React.createElement("img", {className: "img-responsive", src: "images/sheep.png", width: "25%"}), 
 						React.createElement("h1", null, "OPEN INNOVATION"), 
-						React.createElement("h5", null, "A platform for enabling collaboration between people with different disciplines.")
+						React.createElement("h5", null, "A platform for enabling collaboration between people with different disciplines."), 
+						React.createElement("button", {className: "btn google", onClick: this.handleClick}, "SIGN IN")
 					)
 				)
 			)
 		)
+	},
+	handleClick: function(e) {
+		if (!auth2) {
+			return;
+		}
+
+		auth2.grantOfflineAccess({"scope": "profile email", "redirect_uri": "postmessage"}).then(this.handleSignIn);
+	},
+	handleSignIn: function(resp) {
+		OI.login({code: resp.code});
 	},
 });

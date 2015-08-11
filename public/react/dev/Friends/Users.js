@@ -93,8 +93,6 @@ Friends.MeDropdown = React.createClass({
 				<li><a href="#">Online</a></li>
 				<li><a href="#">Away</a></li>
 				<li><a href="#">Busy</a></li>
-				<li className="divider">View Profile</li>
-				<li><a href="#">Edit Profile</a></li>
 			</ul>
 		)
 	},

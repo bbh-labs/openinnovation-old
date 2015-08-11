@@ -193,7 +193,7 @@ Friends.ProjectChat = React.createClass({
 		)
 	},
 	handleClose: function() {
-		dispatcher.dispatch({type: "closeChat", data: this.props.windowID});
+		dispatcher.dispatch({type: "closeProjectChat", data: this.props.windowID});
 	},
 });
 

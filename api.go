@@ -66,7 +66,7 @@ func logout(w http.ResponseWriter, r *http.Request) {
 }
 
 //
-// /register
+// /register (unused)
 //
 func register(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
