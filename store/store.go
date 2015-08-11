@@ -47,6 +47,9 @@ func init() {
 
 	// secondary tables
 	create("featured_project", createFeaturedProjectSQL)
+	create("user_tag", createUserTagSQL)
+	create("task_tag", createTaskTagSQL)
+	create("tag", createTagSQL)
 
 	// setup listener
 	listener = pq.NewListener(ConnInfo, 1 * time.Second, time.Minute, func(ev pq.ListenerEventType, err error) {

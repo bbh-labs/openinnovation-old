@@ -20,7 +20,6 @@ const (
 	title text NOT NULL,
 	description text NOT NULL,
 	avatar_url text NOT NULL,
-	interests text NOT NULL,
 	verification_code text NOT NULL,
 	is_admin boolean NOT NULL,
 	updated_at timestamp NOT NULL,
@@ -38,7 +37,7 @@ type User interface {
 	UpdateFullname(fullname string) error
 	UpdateTitle(title string) error
 	UpdateDescription(description string) error
-	UpdateInterests(interests string) error
+	UpdateInterests(interests []string) error
 	UpdateAvatarURL(url string) error
 
 	IsMember(projectID int64) bool
@@ -55,13 +54,13 @@ type user struct {
 	Title            string    `json:"title"`
 	Description      string    `json:"description"`
 	AvatarURL        string    `json:"avatarURL"`
-	Interests        string    `json:"interests"`
 	VerificationCode string    `json:"-"`
 	IsAdmin_         bool      `json:"isAdmin"`
 	UpdatedAt        time.Time `json:"updatedAt"`
 	CreatedAt        time.Time `json:"createdAt"`
 
 	IsFriend         bool      `json:"isFriend,omitempty"`
+	Interests_       []string  `json:"interests"`
 }
 
 func (u user) ID() int64 {
@@ -84,31 +83,7 @@ func GetUser(userID int64) (User, error) {
 	const rawSQL = `
 	SELECT * FROM user_ WHERE id = $1 LIMIT 1`
 
-	var u user
-	if err := db.QueryRow(rawSQL, userID).Scan(
-		&u.ID_,
-		&u.Email,
-		&u.Password,
-		&u.Fullname,
-		&u.Title,
-		&u.Description,
-		&u.AvatarURL,
-		&u.Interests,
-		&u.VerificationCode,
-		&u.IsAdmin_,
-		&u.UpdatedAt,
-		&u.CreatedAt,
-	); err != nil && err != sql.ErrNoRows {
-		return nil, err
-	}
-
-	u.IDStr_ = strconv.FormatInt(u.ID_, 10)
-
-	if len(u.AvatarURL) == 0 {
-		u.AvatarURL = "avatar.jpg"
-	}
-
-	return u, nil
+	return queryUser(rawSQL, userID)
 }
 
 type GetUserParams struct {
@@ -120,27 +95,10 @@ func GetUserWithParams(userID int64, params GetUserParams) (User, error) {
 	SELECT * FROM user_ WHERE id = $1 LIMIT 1`
 
 	var u user
-	if err := db.QueryRow(rawSQL, userID).Scan(
-		&u.ID_,
-		&u.Email,
-		&u.Password,
-		&u.Fullname,
-		&u.Title,
-		&u.Description,
-		&u.AvatarURL,
-		&u.Interests,
-		&u.VerificationCode,
-		&u.IsAdmin_,
-		&u.UpdatedAt,
-		&u.CreatedAt,
-	); err != nil && err != sql.ErrNoRows {
-		return nil, err
-	}
+	var err error
 
-	u.IDStr_ = strconv.FormatInt(u.ID_, 10)
-
-	if len(u.AvatarURL) == 0 {
-		u.AvatarURL = "avatar.jpg"
+	if u, err = queryUser(rawSQL, userID); err != nil {
+		return nil, debug.Error(err)
 	}
 
 	if params.CurrentUserID > 0 {
@@ -158,6 +116,38 @@ func GetAllUsers() ([]User, error) {
 	SELECT * FROM user_`
 
 	return queryUsers(rawSQL)
+}
+
+func queryUser(q string, data ...interface{}) (user, error) {
+	var u user
+	var err error
+
+	if err = db.QueryRow(q, data...).Scan(
+		&u.ID_,
+		&u.Email,
+		&u.Password,
+		&u.Fullname,
+		&u.Title,
+		&u.Description,
+		&u.AvatarURL,
+		&u.VerificationCode,
+		&u.IsAdmin_,
+		&u.UpdatedAt,
+		&u.CreatedAt,
+	); err != nil && err != sql.ErrNoRows {
+		return u, debug.Error(err)
+	}
+
+	u.IDStr_ = strconv.FormatInt(u.ID_, 10)
+	if u.Interests_, err = UserTags(u.ID_); err != nil {
+		return u, debug.Error(err)
+	}
+
+	if len(u.AvatarURL) == 0 {
+		u.AvatarURL = "avatar.jpg"
+	}
+
+	return u, nil
 }
 
 func queryUsers(q string, data ...interface{}) ([]User, error) {
@@ -179,7 +169,6 @@ func queryUsers(q string, data ...interface{}) ([]User, error) {
 			&u.Title,
 			&u.Description,
 			&u.AvatarURL,
-			&u.Interests,
 			&u.VerificationCode,
 			&u.IsAdmin_,
 			&u.UpdatedAt,
@@ -189,6 +178,9 @@ func queryUsers(q string, data ...interface{}) ([]User, error) {
 		}
 
 		u.IDStr_ = strconv.FormatInt(u.ID_, 10)
+		if u.Interests_, err = UserTags(u.ID_); err != nil {
+			return nil, debug.Error(err)
+		}
 
 		if len(u.AvatarURL) == 0 {
 			u.AvatarURL = "avatar.jpg"
@@ -233,13 +225,10 @@ func (u user) UpdateDescription(description string) error {
 	return nil
 }
 
-func (u user) UpdateInterests(interests string) error {
-	const q = `UPDATE user_ SET interests = $1, updated_at = now() WHERE id = $2`
-
-	if _, err := db.Exec(q, interests, u.ID_); err != nil {
+func (u user) UpdateInterests(interests []string) error {
+	if err := UpdateUserTags(u.ID_, interests); err != nil {
 		return debug.Error(err)
 	}
-
 	return nil
 }
 
@@ -396,69 +385,11 @@ func GetAdmins(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, users)
 }
 
-func GetUserByID(userID int64) (User, error) {
-	const rawSQL = `
-	SELECT * FROM user_ WHERE id = $1`
-
-	var u user
-	if err := db.QueryRow(rawSQL, userID).Scan(
-		&u.ID_,
-		&u.Email,
-		&u.Password,
-		&u.Fullname,
-		&u.Title,
-		&u.Description,
-		&u.AvatarURL,
-		&u.Interests,
-		&u.VerificationCode,
-		&u.IsAdmin_,
-		&u.UpdatedAt,
-		&u.CreatedAt,
-	); err != nil && err != sql.ErrNoRows {
-		return nil, debug.Error(err)
-	}
-
-	u.IDStr_ = strconv.FormatInt(u.ID_, 10)
-
-	if len(u.AvatarURL) == 0 {
-		u.AvatarURL = "avatar.jpg"
-	}
-
-	return u, nil
-}
-
 func GetUserByEmail(email string) (User, error) {
 	const rawSQL = `
 	SELECT * FROM user_ WHERE email = $1`
 
-	var u user
-	if err := db.QueryRow(rawSQL, email).Scan(
-		&u.ID_,
-		&u.Email,
-		&u.Password,
-		&u.Fullname,
-		&u.Title,
-		&u.Description,
-		&u.AvatarURL,
-		&u.Interests,
-		&u.VerificationCode,
-		&u.IsAdmin_,
-		&u.UpdatedAt,
-		&u.CreatedAt,
-	); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, debug.Error(err)
-	}
-
-	u.IDStr_ = strconv.FormatInt(u.ID_, 10)
-
-	if len(u.AvatarURL) == 0 {
-		u.AvatarURL = "avatar.jpg"
-	}
-
-	return u, nil
+	return queryUser(rawSQL, email)
 }
 
 func CurrentUser(r *http.Request) User {

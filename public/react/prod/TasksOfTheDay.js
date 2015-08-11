@@ -1,34 +1,32 @@
 var TasksOfTheDay = React.createClass({displayName: "TasksOfTheDay",
+	mixins: [ Navigation ],
+	getInitialState: function() {
+		return {tasks: []};
+	},
+	componentDidMount: function() {
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "getPersonalizedTasksDone":
+				this.setState({tasks: payload.data.data});
+				break;
+			}
+		}.bind(this));
+
+		OI.getPersonalizedTasks();
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
 	render: function() {
 		return (
 			React.createElement("div", {className: "tasks-of-the-day card"}, 
 				React.createElement("div", {className: "card-content"}, 
 					React.createElement("h4", {className: ""}, "Tasks of the Day"), 
 					React.createElement("ul", {className: "collection"}, 
-						React.createElement("li", {className: "collection-item avatar"}, 
-							React.createElement("img", {className: "circle", src: "images/profile-pics/1.jpg"}), 
-							React.createElement("span", {className: "title"}, "Title"), 
-							React.createElement("p", null, "First line ", React.createElement("br", null), 
-							   "Second line"
-							), 
-							React.createElement("a", {href: "#", className: "secondary-content"}, React.createElement("i", {className: "material-icons"}, "send"))
-						), 
-						React.createElement("li", {className: "collection-item avatar"}, 
-							React.createElement("img", {className: "circle", src: "images/profile-pics/1.jpg"}), 
-							React.createElement("span", {className: "title"}, "Title"), 
-							React.createElement("p", null, "First line ", React.createElement("br", null), 
-							   "Second line"
-							), 
-							React.createElement("a", {href: "#", className: "secondary-content"}, React.createElement("i", {className: "material-icons"}, "send"))
-						), 
-						React.createElement("li", {className: "collection-item avatar"}, 
-							React.createElement("img", {className: "circle", src: "images/profile-pics/1.jpg"}), 
-							React.createElement("span", {className: "title"}, "Title"), 
-							React.createElement("p", null, "First line ", React.createElement("br", null), 
-							   "Second line"
-							), 
-							React.createElement("a", {href: "#", className: "secondary-content"}, React.createElement("i", {className: "material-icons"}, "send"))
-						)
+						this.state.tasks ?
+						this.state.tasks.map(function(t) {
+							return React.createElement(TaskItem, {key: t.id, task: t, onTaskClicked: this.handleTaskClicked})
+						}.bind(this)) : ""
 					)
 				), 
 				React.createElement("div", {className: "card-action"}, 
@@ -36,5 +34,8 @@ var TasksOfTheDay = React.createClass({displayName: "TasksOfTheDay",
 				)
 			)
 		)
+	},
+	handleTaskClicked: function(e, t) {
+		this.transitionTo("project", {projectID: t.projectID});
 	},
 });

@@ -44,7 +44,7 @@ func GetProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if p.Author, err = store.GetUserByID(p.AuthorID); err != nil {
+	if p.Author, err = store.GetUser(p.AuthorID); err != nil {
 		response.ServerError(w, err)
 		return
 	}

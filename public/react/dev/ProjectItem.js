@@ -18,7 +18,7 @@ var ProjectItem = React.createClass({
 		var p = this.props.project;
 		return (
 			<Link to="project" params={{projectID: p.id}} style={this.styles.container} onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
-				<img className="responsive-img" src={p.imageURL} style={this.styles.image} />
+				<div className="responsive-img" style={m(this.styles.image, {background: "url(" + p.imageURL + ") center / cover"})} />
 				<ProjectItem.Overlay project={p} hovering={this.state.hovering} />
 			</Link>
 		)

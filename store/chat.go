@@ -34,12 +34,12 @@ func GetChat(id int64) (Chat, error) {
 
 	var c Chat
 	if err := db.QueryRow(rawSQL, id).Scan(
-			&c.ID_,
-			&c.UserID_,
-			&c.ChannelID_,
-			&c.ChannelType_,
-			&c.Text_,
-			&c.CreatedAt_,
+		&c.ID_,
+		&c.UserID_,
+		&c.ChannelID_,
+		&c.ChannelType_,
+		&c.Text_,
+		&c.CreatedAt_,
 	); err != nil {
 		return c, debug.Error(err)
 	}
@@ -56,7 +56,6 @@ func GetChats(userID, channelID int64, channelType string, startID, count int64)
 			WHERE ((user_id = $1 AND channel_id = $2) OR (user_id = $2 AND channel_id = $1)) AND channel_type = $3 AND chat.id > $4
 			ORDER BY created_at`
 
-			println(startID)
 			return queryChats(rawSQL, userID, channelID, channelType, startID)
 		} else {
 			const rawSQL = `
@@ -76,7 +75,6 @@ func GetChats(userID, channelID int64, channelType string, startID, count int64)
 			WHERE channel_id = $1 AND channel_type = $2 AND chat.id > $3
 			ORDER BY created_at`
 
-			println(startID)
 			return queryChats(rawSQL, channelID, channelType, startID)
 		} else {
 			const rawSQL = `

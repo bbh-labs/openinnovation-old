@@ -130,7 +130,7 @@ func loginGoogle(w http.ResponseWriter, r *http.Request, conf *oauth2.Config, to
 
 	fullname := firstname
 	if lastname != "" {
-		fullname += lastname
+		fullname += " " + lastname
 	}
 
 	if err := store.Register(email, "", fullname, "", description, imageURL); err != nil {

@@ -18,7 +18,7 @@ var ProjectItem = React.createClass({displayName: "ProjectItem",
 		var p = this.props.project;
 		return (
 			React.createElement(Link, {to: "project", params: {projectID: p.id}, style: this.styles.container, onMouseEnter: this.handleMouseEnter, onMouseLeave: this.handleMouseLeave}, 
-				React.createElement("img", {className: "responsive-img", src: p.imageURL, style: this.styles.image}), 
+				React.createElement("div", {className: "responsive-img", style: m(this.styles.image, {background: "url(" + p.imageURL + ") center / cover"})}), 
 				React.createElement(ProjectItem.Overlay, {project: p, hovering: this.state.hovering})
 			)
 		)

@@ -19,7 +19,6 @@ func ValidLogin(email, password string) (bool, error) {
 		&u.Title,
 		&u.Description,
 		&u.AvatarURL,
-		&u.Interests,
 		&u.VerificationCode,
 		&u.IsAdmin_,
 		&u.UpdatedAt,

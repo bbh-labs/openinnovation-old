@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/bbhasiapacific/bbhoi.com/debug"
 	"github.com/bbhasiapacific/bbhoi.com/httputil"
@@ -70,7 +71,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		case "description":
 			err = user.UpdateDescription(v[0])
 		case "interests":
-			err = user.UpdateInterests(v[0])
+			err = user.UpdateInterests(strings.Split(v[0], ","))
 		}
 
 		if err != nil {

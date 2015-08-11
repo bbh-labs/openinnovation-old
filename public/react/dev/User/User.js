@@ -264,7 +264,10 @@ User.Content.Title = React.createClass({
 
 User.Content.Interests = React.createClass({
 	componentDidMount: function() {
-		$(React.findDOMNode(this.refs.interests)).importTags(this.props.user.interests);
+		var interests = this.props.user.interests;
+		if (interests) {
+			$(React.findDOMNode(this.refs.interests)).importTags(interests.join(","));
+		}
 	},
 	render: function() {
 		var viewedUser = this.props.viewedUser;

@@ -18,7 +18,9 @@ Project.Tasks.Modal = React.createClass({
 				form.elements["taskID"].value = task.id;
 				form.elements["title"].value = task.title;
 				form.elements["description"].value = task.description;
-				$(tags).importTags(task.tags);
+				if (task.tags) {
+					$(tags).importTags(task.tags.join(","));
+				}
 
 				this.refs.startDate.set("select", task.startDateStr, {format: "dd mmmm, yyyy"});
 				this.refs.endDate.set("select", task.endDateStr, {format: "dd mmmm, yyyy"});
@@ -127,7 +129,10 @@ Project.Tasks.WorkersModal = React.createClass({
 					<div className="container">
 						<ul className="collection">{
 							this.props.project.members.map(function(m) {
-								return <Project.Tasks.WorkersModal.Item key={m.id} member={m} isWorker={this.isWorker(m)} task={task} />
+								return <Project.Tasks.WorkersModal.Item key={m.id}
+													member={m}
+													isWorker={this.isWorker(m)}
+													task={task} />
 							}.bind(this))
 						}</ul>
 					</div>

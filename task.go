@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/bbhasiapacific/bbhoi.com/response"
 	"github.com/bbhasiapacific/bbhoi.com/store"
@@ -79,7 +80,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		Title:       r.FormValue("title"),
 		Description: r.FormValue("description"),
 		Done:        false,
-		Tags:        r.FormValue("tags"),
+		Tags:        strings.Split(r.FormValue("tags"), ","),
 		StartDate:   startDate,
 		EndDate:     endDate,
 	}); err != nil {
@@ -108,8 +109,24 @@ func LatestTasks(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, tasks)
 }
 
-func RelatedTasks(w http.ResponseWriter, r *http.Request) {
-	
+func PersonalizedTasks(w http.ResponseWriter, r *http.Request) {
+	var parser store.Parser
+
+	count := parser.Int(r.FormValue("count"))
+	if parser.Err != nil {
+		response.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	user := context.Get(r, "user").(store.User)
+
+	tasks, err := store.PersonalizedTasks(user.ID(), count)
+	if err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	response.OK(w, tasks)
 }
 
 func UpdateTask(w http.ResponseWriter, r *http.Request) {
@@ -132,7 +149,7 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 		TaskID:      r.FormValue("taskID"),
 		Title:       r.FormValue("title"),
 		Description: r.FormValue("description"),
-		Tags:        r.FormValue("tags"),
+		Tags:        strings.Split(r.FormValue("tags"), ","),
 		StartDate:   r.FormValue("startDate"),
 		EndDate:     r.FormValue("endDate"),
 	}); err != nil {

@@ -49,7 +49,7 @@ Project.Tasks = React.createClass({
 						<ul className="collection">{
 							this.props.project.tasks ? this.props.project.tasks.map(function(t) {
 								if (!t.done) {
-									return <Project.Tasks.Item key={t.id} project={project} task={t} onTaskClicked={this.onTaskClicked} />
+									return <TaskItem key={t.id} task={t} onTaskClicked={this.onTaskClicked} />
 								}
 							}.bind(this)) : ""
 						}</ul>
@@ -77,7 +77,7 @@ Project.Tasks = React.createClass({
 							this.props.project.tasks ?
 							this.props.project.tasks.map(function(t) {
 								if (t.done) {
-									return <Project.Tasks.Item key={t.id} project={project} task={t} onTaskClicked={this.onTaskClicked} />
+									return <TaskItem key={t.id} task={t} onTaskClicked={this.onTaskClicked} />
 								}
 							}.bind(this)) : ""
 						}</ul>
@@ -91,68 +91,13 @@ Project.Tasks = React.createClass({
 			return <option key={p} value={p}>{p}</option>
 		});
 	},
-	onTaskClicked: function(e, i) {
-		this.setState({clickedTask: i});
-	},
-});
-
-Project.Tasks.Item = React.createClass({
-	getInitialState: function() {
-		return {hovering: false};
-	},
-	render: function() {
-		var task = this.props.task;
-		return (
-			<li className="collection-item" onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
-				<a href="" onClick={this.handleClick}>
-					{task.title}
-				</a>
-				<div className="secondary-content">
-				{
-					this.props.task.workers ?
-					this.props.task.workers.map(function(w) {
-						return <Project.Tasks.Worker worker={w} />
-					}) : ""
-				}
-					<i style={{cursor: "pointer", visibility: this.state.hovering || task.done ? "visible" : "hidden"}}
-							  onClick={this.handleToggleStatus}
-							  className={classNames("material-icons", task.done && "green-text")}>done</i>
-				</div>
-			</li>
-		)
-	},
-	handleClick: function(e) {
-		e.preventDefault();
-		var task = this.props.task;
-		this.props.onTaskClicked(e, task.id);
+	onTaskClicked: function(e, task) {
+		this.setState({clickedTask: task.id});
 
 		dispatcher.dispatch({
 			type: "viewTask",
 			data: task,
 		});
-	},
-	handleToggleStatus: function(e) {
-		OI.toggleTaskStatus({
-			projectID: this.props.project.id,
-			taskID: this.props.task.id
-		});
-	},
-	handleMouseEnter: function(e) {
-		this.setState({hovering: true});
-	},
-	handleMouseLeave: function(e) {
-		this.setState({hovering: false});
-	},
-	workerElements: function(e) {
-		return workers.map(function(w) {
-			return <Project.Tasks.Worker worker={w} />
-		});
-	},
-	doneElement: function(e) {
-		var task = this.props.task;
-		return <i style={{cursor: "pointer", visibility: this.state.hovering || task.done ? "visible" : "hidden"}}
-				  onClick={this.handleToggleStatus}
-				  className={classNames("material-icons", task.done && "green-text")}>done</i>
 	},
 });
 

@@ -161,6 +161,14 @@ var OI = {
 			data: data,
 		});
 	},
+	getPersonalizedTasks: function(data) {
+		this.api("getPersonalizedTasks", {
+			url: "/api/task",
+			method: "GET",
+			dataType: "json",
+			data: m({type: "personalized", count: 9}, data),
+		});
+	},
 	toggleTaskStatus: function(data) {
 		this.api("toggleTaskStatus", {
 			url: "/api/task",

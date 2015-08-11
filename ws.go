@@ -140,7 +140,6 @@ func (h *hub) notifyUser(userID, otherUserID int64, typ string, v interface{}) {
 
 	c, ok := h.connections[userID]
 	if !ok {
-		println("Couldn't find connection", userID)
 		return
 	}
 
@@ -183,7 +182,6 @@ func (h *hub) notifyProject(projectID int64, typ string, v interface{}) {
 	for _, id := range ids {
 		c, ok := h.connections[id]
 		if !ok {
-			println("Couldn't find connection", id)
 			continue
 		}
 

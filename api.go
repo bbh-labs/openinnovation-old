@@ -180,8 +180,8 @@ func task(w http.ResponseWriter, r *http.Request) {
 			GetTasks(w, r)
 		case "latest":
 			LatestTasks(w, r)
-		case "related":
-			RelatedTasks(w, r)
+		case "personalized":
+			PersonalizedTasks(w, r)
 		default:
 			GetTask(w, r)
 		}
