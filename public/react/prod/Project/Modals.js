@@ -1,8 +1,5 @@
 Project.Tasks.Modal = React.createClass({displayName: "Modal",
 	componentDidMount: function() {
-		var tags = React.findDOMNode(this.refs.tags);
-		$(tags).tagsInput();
-	
 		var modalTrigger = React.findDOMNode(this.refs.modalTrigger);
 		$(modalTrigger).leanModal();
 
@@ -18,8 +15,12 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 				form.elements["taskID"].value = task.id;
 				form.elements["title"].value = task.title;
 				form.elements["description"].value = task.description;
+
+				this.refs.tags.removeAll();
 				if (task.tags) {
-					$(tags).importTags(task.tags.join(","));
+					task.tags.forEach(function(tag) {
+						this.refs.tags.createTag(tag);
+					}.bind(this));
 				}
 
 				this.refs.startDate.set("select", task.startDateStr, {format: "dd mmmm, yyyy"});
@@ -59,11 +60,12 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 							React.createElement("label", {htmlFor: "task-end-date", className: active}, "End Date")
 						), 
 						React.createElement("div", {className: "input-field col s12"}, 
-							React.createElement("input", {name: "tags", ref: "tags", readOnly: readOnly})
+							React.createElement(TagIt, {ref: "tags", onChange: this.handleTagsChange})
 						), 
 						React.createElement("div", {className: "col s12 margin-top"}, 
 							React.createElement("a", {className: "waves-effect waves-light btn modal-trigger", href: "#modal-workers", ref: "modalTrigger"}, "Assign Someone")
 						), 
+						React.createElement("input", {type: "hidden", ref: "tagsInput"}), 
 						React.createElement("input", {name: "taskID", type: "hidden"}), 
 						React.createElement("input", {name: "projectID", type: "hidden", value: project.id})
 					)
@@ -90,7 +92,9 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 		if (type == "create") {
 			OI.createTask($(form).serialize());
 		} else if (type == "view") {
-			OI.updateTask($(form).serialize());
+			var ff = $(form).serialize();
+			console.log(ff);
+			OI.updateTask(ff);
 		}
 	},
 	handleDelete: function(e) {
@@ -105,6 +109,10 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 			projectID: form.elements["projectID"].value,
 			taskID: form.elements["taskID"].value,
 		});
+	},
+	handleTagsChange: function(e, ui) {
+		var tags = $(e.target).tagit("assignedTags").join(",");
+		React.findDOMNode(this.refs.tagsInput).value = tags;
 	},
 });
 

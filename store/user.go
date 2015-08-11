@@ -398,5 +398,10 @@ func CurrentUser(r *http.Request) User {
 		debug.Warn(err)
 		return nil
 	}
+
+	if user.ID() == 0 {
+		return nil
+	}
+
 	return user
 }

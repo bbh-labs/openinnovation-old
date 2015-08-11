@@ -264,26 +264,26 @@ User.Content.Title = React.createClass({
 });
 
 User.Content.Interests = React.createClass({
-	componentDidMount: function() {
-		var interests = this.props.user.interests;
-		if (interests) {
-			$(React.findDOMNode(this.refs.interests)).importTags(interests.join(","));
-		}
-	},
 	render: function() {
-		var viewedUser = this.props.viewedUser;
-		return <TagsInput ref="interests" option={{defaultText: "interests", width: "auto", onChange: this.handleOnChange}} />
+		var interests = this.props.viewedUser.interests;
+		return (
+			<TagIt onChange={this.handleOnChange}>{
+				interests ?
+				interests.map(function(interest) {
+					return <li>{interest}</li>
+				}) : ""
+			}</TagIt>
+		)
 	},
-	handleOnChange: function(e) {
+	handleOnChange: function(e, ui) {
 		var user = this.props.user;
 		var viewedUser = this.props.viewedUser;
 		if (viewedUser.id != user.id) {
 			return;
 		}
-	
-		var interests = React.findDOMNode(this.refs.interests);
-		var text = $(interests).val();
-		OI.updateUser({interests: text});
+
+		var interests = $(e.target).tagit("assignedTags").join(",");
+		OI.updateUser({interests: interests});
 	},
 });
 

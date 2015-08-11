@@ -1,14 +1,25 @@
-var TagsInput = React.createClass({
+var TagIt = React.createClass({
 	componentDidMount: function() {
-		$(React.findDOMNode(this)).tagsInput(m(this.props.option));
+		$(React.findDOMNode(this)).tagit({
+			afterTagAdded: function(e, ui) {
+				if (this.props.onChange) {
+					this.props.onChange(e, ui);
+				}
+			}.bind(this),
+			afterTagRemoved: function(e, ui) {
+				if (this.props.onChange) {
+					this.props.onChange(e, ui);
+				}
+			}.bind(this),
+		});
 	},
 	render: function() {
-		return (
-			<input id={this.props.id}
-			       className={classNames(this.props.className)}
-			       name={this.props.name}
-			       value={this.props.value}
-			       style={m(this.props.style)} />
-		)
+		return <ul>{this.props.children}</ul>
+	},
+	createTag: function(tag) {
+		$(React.findDOMNode(this)).tagit("createTag", tag);
+	},
+	removeAll: function(tag) {
+		$(React.findDOMNode(this)).tagit("removeAll");
 	},
 });

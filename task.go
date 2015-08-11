@@ -149,7 +149,7 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 		TaskID:      r.FormValue("taskID"),
 		Title:       r.FormValue("title"),
 		Description: r.FormValue("description"),
-		Tags:        strings.Split(r.FormValue("tags"), ","),
+		Tags:        r.Form["tags"],
 		StartDate:   r.FormValue("startDate"),
 		EndDate:     r.FormValue("endDate"),
 	}); err != nil {
