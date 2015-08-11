@@ -50,6 +50,17 @@ func DeleteWorker(taskID, userID int64) error {
 	return nil
 }
 
+func DeleteWorkers(taskID int64) error {
+	const rawSQL = `
+	DELETE FROM worker WERE task_id = $1`
+
+	if _, err := db.Exec(rawSQL, taskID); err != nil {
+		return debug.Error(err)
+	}
+
+	return nil
+}
+
 func ToggleWorker(taskID, userID, assignerID int64) error {
 	var is bool
 	var err error

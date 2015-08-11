@@ -23,22 +23,7 @@ Project.Tasks = React.createClass({
 		return (
 			<div id="project-tasks" className="col s12">
 				<div className="main col s12">
-					<div className="col s12 margin-top">
-						<h5>To Do</h5>
-					</div>
-					<div className="input-field col s12 m3">
-						<input id="task-search" type="text" required />
-						<label htmlFor="task-search">Search</label>
-					</div>
-					<div className="input-field col s12 m3">
-						<select className="browser-default" defaultValue="">
-							<option value="">Any type</option>{
-							this.state.titles.map(function(i, p) {
-								return <option key={p} value={p}>{p}</option>
-							})
-						}</select>
-					</div>
-					<div className="input-field col s12 m3 offset-m3">
+					<div className="input-field col s12 m3 offset-m9">
 						<button className="btn waves-effect waves-light modal-trigger input-button col s12"
 								ref="modalTrigger"
 								data-target="create-task">
@@ -46,7 +31,10 @@ Project.Tasks = React.createClass({
 						</button>
 					</div>
 					<div className="col s12">
-						<ul className="collection">{
+						<h5>To Do</h5>
+					</div>
+					<div className="col s12">
+						<ul ref="todo" className="collection task-group">{
 							this.props.project.tasks ? this.props.project.tasks.map(function(t) {
 								if (!t.done) {
 									return <TaskItem key={t.id} task={t} onTaskClicked={this.onTaskClicked} />
@@ -55,25 +43,13 @@ Project.Tasks = React.createClass({
 						}</ul>
 					</div>
 					<div className="col s12 margin-top">
-						<h5>Finished</h5>
-					</div>
-					<div className="input-field col s12 m3">
-						<input id="task-search" type="text" required />
-						<label htmlFor="task-search">Search</label>
-					</div>
-					<div className="input-field col s12 m3">
-						<select className="browser-default" defaultValue="">
-							<option value="">Any type</option>{
-							this.state.titles.map(function(i, p) {
-								return <option key={p} value={p}>{p}</option>
-							})
-						}</select>
+						<h5>Done</h5>
 					</div>
 					<div className="col s12">
 						<Project.Tasks.WorkersModal project={project} clickedTask={clickedTask} />
 						<Project.Tasks.Modal id="create-task" project={project} clickedTask={clickedTask} type="create" />
 						<Project.Tasks.Modal id="view-task" project={project} clickedTask={clickedTask} type="view" />
-						<ul className="collection">{
+						<ul ref="done" className="collection task-group">{
 							this.props.project.tasks ?
 							this.props.project.tasks.map(function(t) {
 								if (t.done) {

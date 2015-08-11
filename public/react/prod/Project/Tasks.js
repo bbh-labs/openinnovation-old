@@ -23,22 +23,7 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 		return (
 			React.createElement("div", {id: "project-tasks", className: "col s12"}, 
 				React.createElement("div", {className: "main col s12"}, 
-					React.createElement("div", {className: "col s12 margin-top"}, 
-						React.createElement("h5", null, "To Do")
-					), 
-					React.createElement("div", {className: "input-field col s12 m3"}, 
-						React.createElement("input", {id: "task-search", type: "text", required: true}), 
-						React.createElement("label", {htmlFor: "task-search"}, "Search")
-					), 
-					React.createElement("div", {className: "input-field col s12 m3"}, 
-						React.createElement("select", {className: "browser-default", defaultValue: ""}, 
-							React.createElement("option", {value: ""}, "Any type"), 
-							this.state.titles.map(function(i, p) {
-								return React.createElement("option", {key: p, value: p}, p)
-							})
-						)
-					), 
-					React.createElement("div", {className: "input-field col s12 m3 offset-m3"}, 
+					React.createElement("div", {className: "input-field col s12 m3 offset-m9"}, 
 						React.createElement("button", {className: "btn waves-effect waves-light modal-trigger input-button col s12", 
 								ref: "modalTrigger", 
 								"data-target": "create-task"}, 
@@ -46,7 +31,10 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 						)
 					), 
 					React.createElement("div", {className: "col s12"}, 
-						React.createElement("ul", {className: "collection"}, 
+						React.createElement("h5", null, "To Do")
+					), 
+					React.createElement("div", {className: "col s12"}, 
+						React.createElement("ul", {ref: "todo", className: "collection task-group"}, 
 							this.props.project.tasks ? this.props.project.tasks.map(function(t) {
 								if (!t.done) {
 									return React.createElement(TaskItem, {key: t.id, task: t, onTaskClicked: this.onTaskClicked})
@@ -55,25 +43,13 @@ Project.Tasks = React.createClass({displayName: "Tasks",
 						)
 					), 
 					React.createElement("div", {className: "col s12 margin-top"}, 
-						React.createElement("h5", null, "Finished")
-					), 
-					React.createElement("div", {className: "input-field col s12 m3"}, 
-						React.createElement("input", {id: "task-search", type: "text", required: true}), 
-						React.createElement("label", {htmlFor: "task-search"}, "Search")
-					), 
-					React.createElement("div", {className: "input-field col s12 m3"}, 
-						React.createElement("select", {className: "browser-default", defaultValue: ""}, 
-							React.createElement("option", {value: ""}, "Any type"), 
-							this.state.titles.map(function(i, p) {
-								return React.createElement("option", {key: p, value: p}, p)
-							})
-						)
+						React.createElement("h5", null, "Done")
 					), 
 					React.createElement("div", {className: "col s12"}, 
 						React.createElement(Project.Tasks.WorkersModal, {project: project, clickedTask: clickedTask}), 
 						React.createElement(Project.Tasks.Modal, {id: "create-task", project: project, clickedTask: clickedTask, type: "create"}), 
 						React.createElement(Project.Tasks.Modal, {id: "view-task", project: project, clickedTask: clickedTask, type: "view"}), 
-						React.createElement("ul", {className: "collection"}, 
+						React.createElement("ul", {ref: "done", className: "collection task-group"}, 
 							this.props.project.tasks ?
 							this.props.project.tasks.map(function(t) {
 								if (t.done) {

@@ -154,6 +154,10 @@ func DeleteTask(params DeleteTaskParams) error {
 		return debug.Error(err)
 	}
 
+	if err := DeleteWorkers(taskID); err != nil {
+		return debug.Error(err)
+	}
+
 	return nil
 }
 

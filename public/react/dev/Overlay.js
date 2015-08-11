@@ -11,7 +11,8 @@ var Overlay = React.createClass({
 		},
 	},
 	getInitialState: function() {
-		return {showFriendsPanel: true, windows: [], windowIndex: 0};
+		var showFriends = localStorage.getItem("showFriends") == "true" ? true : false;
+		return {showFriendsPanel: showFriends, windows: [], windowIndex: 0};
 	},
 	componentDidMount: function() {
 		this.dispatchID = dispatcher.register(function(payload) {
@@ -29,7 +30,9 @@ var Overlay = React.createClass({
 				this.closeProjectChat(payload.data);
 				break;
 			case "toggleFriendsPanel":
-				this.setState({showFriendsPanel: !this.state.showFriendsPanel});
+				var show = !this.state.showFriendsPanel;
+				this.setState({showFriendsPanel: show});
+				localStorage.setItem("showFriends", show);
 				break;
 			}
 		}.bind(this));

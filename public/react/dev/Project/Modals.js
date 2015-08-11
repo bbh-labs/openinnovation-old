@@ -179,7 +179,7 @@ Project.Tasks.WorkersModal.Item = React.createClass({
 		var isWorker = this.props.isWorker;
 		return (
 			<li className={classNames("collection-item avatar pointer", isWorker && "teal white-text")} onClick={this.handleClick}>
-				<img className="circle" src="images/profile-pics/1.jpg" />
+				<img className="circle" src={member.avatarURL} />
 				<span className="title"><strong>{member.fullname}</strong></span>
 				<p>{member.title}</p>
 				<Link to="user" params={{userID: member.id}} className="secondary-content">

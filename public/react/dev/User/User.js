@@ -244,8 +244,9 @@ User.Content.Title = React.createClass({
 
 		var title = React.findDOMNode(this);
 		$(title).editable({
+			pk: 1,
 			url: "/api/user",
-			send: "always",
+			send: "auto",
 			params: function(params) {
 				params.title = params.value;
 				return params;

@@ -179,7 +179,7 @@ Project.Tasks.WorkersModal.Item = React.createClass({displayName: "Item",
 		var isWorker = this.props.isWorker;
 		return (
 			React.createElement("li", {className: classNames("collection-item avatar pointer", isWorker && "teal white-text"), onClick: this.handleClick}, 
-				React.createElement("img", {className: "circle", src: "images/profile-pics/1.jpg"}), 
+				React.createElement("img", {className: "circle", src: member.avatarURL}), 
 				React.createElement("span", {className: "title"}, React.createElement("strong", null, member.fullname)), 
 				React.createElement("p", null, member.title), 
 				React.createElement(Link, {to: "user", params: {userID: member.id}, className: "secondary-content"}, 

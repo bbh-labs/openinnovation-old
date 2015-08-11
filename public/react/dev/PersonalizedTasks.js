@@ -1,4 +1,4 @@
-var TasksOfTheDay = React.createClass({displayName: "TasksOfTheDay",
+var PersonalizedTasks = React.createClass({
 	mixins: [ Navigation ],
 	getInitialState: function() {
 		return {tasks: []};
@@ -19,20 +19,20 @@ var TasksOfTheDay = React.createClass({displayName: "TasksOfTheDay",
 	},
 	render: function() {
 		return (
-			React.createElement("div", {className: "tasks-of-the-day card"}, 
-				React.createElement("div", {className: "card-content"}, 
-					React.createElement("h4", {className: ""}, "Tasks of the Day"), 
-					React.createElement("ul", {className: "collection"}, 
+			<div className="tasks-of-the-day card">
+				<div className="card-content">
+					<h4 className="">Personalized Tasks</h4>
+					<ul className="collection">{
 						this.state.tasks ?
 						this.state.tasks.map(function(t) {
-							return React.createElement(TaskItem, {key: t.id, task: t, onTaskClicked: this.handleTaskClicked})
+							return <TaskItem key={t.id} task={t} onTaskClicked={this.handleTaskClicked} />
 						}.bind(this)) : ""
-					)
-				), 
-				React.createElement("div", {className: "card-action"}, 
-					React.createElement("a", {href: "#", className: "mdl-button"}, "View More")
-				)
-			)
+					}</ul>
+				</div>
+				<div className="card-action">
+					<a href="#" className="mdl-button">View More</a>
+				</div>
+			</div>
 		)
 	},
 	handleTaskClicked: function(e, t) {
