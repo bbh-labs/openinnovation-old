@@ -90,7 +90,7 @@ func UpdateProject(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if ok, err := store.SaveProjectImage(w, r, projectID); err != nil {
+	if _, err := store.SaveProjectImage(w, r, projectID); err != nil {
 		response.ServerError(w, err)
 		return
 	}
