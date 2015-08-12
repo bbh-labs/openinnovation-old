@@ -13,21 +13,21 @@ var TaskItem = React.createClass({
 				{
 					this.props.task.workers ?
 					this.props.task.workers.map(function(w) {
-						return <Project.Tasks.Worker worker={w} />
+						return <Project.Tasks.Worker key={w.id} worker={w} />
 					}) : ""
 				}
 					<i style={{cursor: "pointer", visibility: this.state.hovering || task.done ? "visible" : "hidden"}}
-							  onClick={this.handleToggleStatus}
-							  className={classNames("material-icons", task.done && "green-text")}>done</i>
+					   onClick={this.handleToggleStatus}
+					   className={classNames("material-icons", task.done && "green-text")}>done</i>
 				</div>
 			</li>
 		)
 	},
 	handleClick: function(e) {
-		e.preventDefault();
 		if (this.props.onTaskClicked) {
 			this.props.onTaskClicked(e, this.props.task);
 		}
+		e.preventDefault();
 	},
 	handleToggleStatus: function(e) {
 		OI.toggleTaskStatus({

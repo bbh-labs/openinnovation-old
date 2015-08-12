@@ -21,7 +21,7 @@ var PersonalizedTasks = React.createClass({displayName: "PersonalizedTasks",
 		return (
 			React.createElement("div", {className: "tasks-of-the-day card"}, 
 				React.createElement("div", {className: "card-content"}, 
-					React.createElement("h4", {className: ""}, "Personalized Tasks"), 
+					React.createElement("h5", null, "Personalized Tasks"), 
 					React.createElement("ul", {className: "collection"}, 
 						this.state.tasks ?
 						this.state.tasks.map(function(t) {

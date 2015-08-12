@@ -14,22 +14,22 @@ NewProject.Cover = React.createClass({displayName: "Cover",
 	componentDidMount: function() {
 		var dropzone = React.findDOMNode(this);
 		$(dropzone).dropzone({
-            url: "/foo",
-            clickable: true,
-            maxFilesize: 1,
-            autoProcessQueue: false,
-            dictDefaultMessage: "Select your project cover (max: 1MB)",
-            addedfile: function(file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
+			url: "/foo",
+			clickable: true,
+			maxFilesize: 1,
+			autoProcessQueue: false,
+			dictDefaultMessage: "Select your project cover (max: 1MB)",
+			addedfile: function(file) {
+				var reader = new FileReader();
+				reader.onload = function(e) {
 					dispatcher.dispatch({
-						type: "new-project-image-file",
+						type: "newProjectImageFile",
 						file: file,
 					});
-                    dropzone.style.background = "url(" + e.target.result + ") center / cover";
-                }.bind(this);
-                reader.readAsDataURL(file);
-            }.bind(this),
+					dropzone.style.background = "url(" + e.target.result + ") center / cover";
+				}.bind(this);
+				reader.readAsDataURL(file);
+			}.bind(this),
 		});
 
 		this.dispatchID = dispatcher.register(function(payload) {
@@ -77,7 +77,7 @@ NewProject.Form = React.createClass({displayName: "Form",
 	},
 	componentDidMount: function() {
 		this.dispatchID = dispatcher.register(function(payload) {
-			if (payload.type === "new-project-image-file") {
+			if (payload.type === "newProjectImageFile") {
 				this.image = payload.file;
 			}
 		}.bind(this));

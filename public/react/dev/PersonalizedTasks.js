@@ -21,7 +21,7 @@ var PersonalizedTasks = React.createClass({
 		return (
 			<div className="tasks-of-the-day card">
 				<div className="card-content">
-					<h4 className="">Personalized Tasks</h4>
+					<h5>Personalized Tasks</h5>
 					<ul className="collection">{
 						this.state.tasks ?
 						this.state.tasks.map(function(t) {

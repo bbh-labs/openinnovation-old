@@ -47,6 +47,7 @@ Admin.Content.LatestProjects = React.createClass({
 		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
+		var projects = this.state.projects;
 		return (
 			<div className="row">
 				<h5>Latest Projects</h5>
@@ -56,18 +57,14 @@ Admin.Content.LatestProjects = React.createClass({
 						<label htmlFor="latest-project-title">Project Title</label>
 					</div>
 				</div>
-				<ul className="collection">
-					{this.projectElements()}
-				</ul>
+				<ul className="collection">{
+					projects ?
+					projects.map(function(p) {
+						return <li className="collection-item">{el.title}</li>
+					}) : ""
+				}</ul>
 			</div>
 		)
-	},
-	projectElements: function() {
-		return buildElements(this.state.projects, function(i, el) {
-			return (
-				<li className="collection-item">{el.title}</li>
-			)
-		});
 	},
 	handleChange: function(e) {
 		OI.latestProjects({

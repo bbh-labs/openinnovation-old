@@ -3,6 +3,8 @@ var InvolvedProjects = React.createClass({displayName: "InvolvedProjects",
 		return {projects: []};
 	},
 	componentDidMount: function() {
+		this.initCarousel();
+
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
 			case "getInvolvedProjectsDone":
@@ -17,6 +19,38 @@ var InvolvedProjects = React.createClass({displayName: "InvolvedProjects",
 		OI.getInvolvedProjects({userID: this.props.userID});
 	},
 	componentDidUpdate: function() {
+		this.initCarousel();
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
+	render: function() {
+		var projects = this.state.projects;
+		return (
+			React.createElement("div", {className: "involved-projects card"}, 
+				React.createElement("div", {className: "card-content"}, 
+					React.createElement("h5", null, "Involved Projects"), 
+					React.createElement("div", {ref: "slides"}, 
+						projects ?
+						projects.map(function(p) {
+							return React.createElement(ProjectItem, {key: p.id, project: p})
+						}) : ""
+					)
+				), 
+				React.createElement("div", {className: "card-action"}, 
+					React.createElement("a", {href: "#", className: "mdl-button"}, "View More")
+				)
+			)
+		)
+	},
+	initCarousel: function() {
+		var projects = this.state.projects;
+		if (projects) {
+			if (projects.length == 0) {
+				return;
+			}
+		}
+
 		var slides = React.findDOMNode(this.refs.slides);
 		$(slides).owlCarousel({
 			loop: true,
@@ -36,28 +70,6 @@ var InvolvedProjects = React.createClass({displayName: "InvolvedProjects",
 				},
 			},
 		});
-	},
-	componentWillUnmount: function() {
-		dispatcher.unregister(this.dispatchID);
-	},
-	render: function() {
-		var projects = this.state.projects;
-		return (
-			React.createElement("div", {className: "involved-projects card"}, 
-				React.createElement("div", {className: "card-content"}, 
-					React.createElement("h5", null, "Involved Projects"), 
-					React.createElement("div", {ref: "slides"}, 
-						projects ?
-						projects.map(function(p) {
-							return React.createElement(InvolvedProjects.Item, {key: p.id, project: p})
-						}) : ""
-					)
-				), 
-				React.createElement("div", {className: "card-action"}, 
-					React.createElement("a", {href: "#", className: "mdl-button"}, "View More")
-				)
-			)
-		)
 	},
 });
 

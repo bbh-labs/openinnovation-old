@@ -27,7 +27,7 @@ var EditProject = React.createClass({displayName: "EditProject",
 		}
 		return (
 			React.createElement("main", {className: "edit-project"}, 
-				React.createElement(EditProject.Cover, null), 
+				React.createElement(EditProject.Cover, {project: project}), 
 				React.createElement(EditProject.Content, {project: project})
 			)
 		)
@@ -38,23 +38,26 @@ EditProject.Cover = React.createClass({displayName: "Cover",
 	mixins: [ Navigation ],
 	componentDidMount: function() {
 		var dropzone = React.findDOMNode(this);
+		
+		dropzone.style.background = "url(" + this.props.project.imageURL + ") center / cover";
+
 		$(dropzone).dropzone({
-            url: "/foo",
-            clickable: true,
-            maxFilesize: 1,
-            autoProcessQueue: false,
-            dictDefaultMessage: "Select your project cover (max: 1MB)",
-            addedfile: function(file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
+			url: "/foo",
+			clickable: true,
+			maxFilesize: 1,
+			autoProcessQueue: false,
+			dictDefaultMessage: "Select your project cover (max: 1MB)",
+			addedfile: function(file) {
+				var reader = new FileReader();
+				reader.onload = function(e) {
 					dispatcher.dispatch({
-						type: "edit-project-image-file",
-						file: file,
+						type: "editProjectImageFile",
+						image: file,
 					});
-                    dropzone.style.background = "url(" + e.target.result + ") center / cover";
-                }.bind(this);
-                reader.readAsDataURL(file);
-            }.bind(this),
+					dropzone.style.background = "url(" + e.target.result + ") center / cover";
+				}.bind(this);
+				reader.readAsDataURL(file);
+			}.bind(this),
 		});
 
 		this.dispatchID = dispatcher.register(function(payload) {
@@ -67,7 +70,7 @@ EditProject.Cover = React.createClass({displayName: "Cover",
 				default:
 					Materialize.toast(payload.data.responseText, 3000, "red white-text");
 					break;
-				case 500:
+				case http.StatusInternalServerError:
 					Materialize.toast("Something went wrong when creating the new project..", 3000, "red white-text");
 					break;
 				}
@@ -96,15 +99,33 @@ EditProject.Cover = React.createClass({displayName: "Cover",
 });
 
 EditProject.Content = React.createClass({displayName: "Content",
-	image: null,
-	getInitialState: function() {
-		return {menuIndex: 0};
+	render: function() {
+		var project = this.props.project;
+		return (
+			React.createElement("div", {className: "row"}, 
+				React.createElement("div", {className: "container"}, 
+					React.createElement("div", {className: "col s12"}, 
+						React.createElement(EditProject.Content.Form, {project: project})
+					)
+				)
+			)
+		)
 	},
+});
+
+EditProject.Content.Form = React.createClass({displayName: "Form",
+	image: null,
 	componentDidMount: function() {
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
-			case "edit-project-image-file":
-				this.image = payload.file;
+			case "editProjectImageFile":
+				this.image = payload.image;
+				break;
+			case "updateProjectDone":
+				Materialize.toast("Successfully updated the project", 1000);
+				break;
+			case "updateProjectFail":
+				Materialize.toast("Failed to update the project", 1000);
 				break;
 			}
 		}.bind(this));
@@ -115,52 +136,8 @@ EditProject.Content = React.createClass({displayName: "Content",
 	},
 	render: function() {
 		var project = this.props.project;
-		var menuIndex = this.state.menuIndex;
 		return (
-			React.createElement("div", {className: "row"}, 
-				React.createElement("div", {className: "container"}, 
-					React.createElement("div", {className: "col s3"}, 
-						React.createElement("div", {className: "collection"}, 
-							[ "Options", "Collaborators", "Services" ].map(function(s, i) {
-								var cx = menuIndex == i ? "active" : "";
-								return React.createElement("a", {href: "#", onClick: this.handleClick, className: classNames("collection-item", cx)}, s)
-							}.bind(this))
-						)
-					), 
-					React.createElement("div", {className: "col s9"}, 
-						menuIndex == 0 ? React.createElement(EditProject.Content.Form, {project: project}) : ""
-					)
-				)
-			)
-		)
-	},
-	handleClick: function(e) {
-		//this.setState({menuIndex: i});
-
-		e.preventDefault();
-	},
-});
-
-EditProject.Content.Form = React.createClass({displayName: "Form",
-	componentDidMount: function() {
-		this.dispatchID = dispatcher.register(function(payload) {
-			switch (payload.type) {
-			case "updateProjectDone":
-				Materialize.toast("Successfully updated the project", 1000);
-				break;
-			case "updateProjectFail":
-				Materialize.toast("Failed to update the project", 1000);
-				break;
-			}
-		});
-	},
-	componentWillUnmount: function() {
-		dispatcher.unregister(this.dispatchID);
-	},
-	render: function() {
-		var project = this.props.project;
-		return (
-			React.createElement("form", {className: "col s9", onSubmit: this.handleSubmit}, 
+			React.createElement("form", {className: "col s12", onSubmit: this.handleSubmit}, 
 				React.createElement("div", {className: "row"}, 
 					React.createElement("div", {className: "input-field col s12"}, 
 						React.createElement("input", {type: "text", name: "title", id: "project-title", className: "validate", defaultValue: project.title}), 
@@ -175,7 +152,10 @@ EditProject.Content.Form = React.createClass({displayName: "Form",
 				), 
 				React.createElement("div", {className: "row"}, 
 					React.createElement("div", {className: "input-field col s12"}, 
-						React.createElement("textarea", {id: "project-description", name: "description", className: "materialize-textarea", defaultValue: project.description}), 
+						React.createElement("textarea", {id: "project-description", 
+							  className: "materialize-textarea", 
+							  name: "description", 
+							  defaultValue: project.description}), 
 						React.createElement("label", {htmlFor: "project-description", className: "active"}, "Description")
 					)
 				), 
@@ -186,7 +166,19 @@ EditProject.Content.Form = React.createClass({displayName: "Form",
 		)
 	},
 	handleSubmit: function(e) {
-		OI.updateProject($(e.target).serialize());
+		var form = e.target;
+
+		var fd = new FormData();
+		fd.append("projectID", form.elements["projectID"].value);
+		fd.append("title", form.elements["title"].value);
+		fd.append("tagline", form.elements["tagline"].value);
+		fd.append("description", form.elements["description"].value);
+		if (this.image) {
+			console.log("tset");
+			fd.append("image", this.image);
+		}
+
+		OI.updateProject(fd);
 
 		e.preventDefault();
 	},

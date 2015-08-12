@@ -12,11 +12,9 @@ var User = React.createClass({displayName: "User",
 			case "userFail":
 				Materialize.toast("Failed to get user", 1000, "red white-text");
 				break;
-			case "updateUserAvatarDone":
-				OI.user({userID: this.getParams().userID});
-				break;
 			case "addFriendDone":
 			case "removeFriendDone":
+			case "updateUserAvatarDone":
 				OI.user({userID: this.getParams().userID});
 				break;
 			}
@@ -215,6 +213,7 @@ User.Content.Fullname = React.createClass({displayName: "Fullname",
 		$(fullname).editable({
 			url: "/api/user",
 			send: "always",
+			emptytext: "Enter fullname",
 			params: function(params) {
 				params.fullname = params.value;
 				return params;
@@ -247,6 +246,7 @@ User.Content.Title = React.createClass({displayName: "Title",
 			pk: 1,
 			url: "/api/user",
 			send: "auto",
+			emptytext: "Enter title",
 			params: function(params) {
 				params.title = params.value;
 				return params;
@@ -298,18 +298,26 @@ User.Content.Description = React.createClass({displayName: "Description",
 			React.createElement("div", {className: "card"}, 
 				React.createElement("div", {className: classNames("card-content", editMode && "blue white-text")}, 
 					React.createElement("div", {onMouseEnter: this.handleMouseEnter, onMouseLeave: this.handleMouseLeave}, 
-						React.createElement("h5", {style: {display: "block"}}, 
+						React.createElement("h5", null, 
 							"Description", 
 						
 							this.state.hovering || this.state.editMode ?
 							React.createElement("i", {className: "material-icons edit-icon", onClick: this.handleClick}, this.state.editMode ? "done" : "edit mode") : ""
 						
 						), 
-						React.createElement("p", {ref: "description", contentEditable: this.state.editMode}, viewedUser.description)
+						React.createElement("p", {ref: "description", contentEditable: this.state.editMode, onKeyPress: this.handleKeyPress}, 
+							viewedUser.description
+						)
 					)
 				)
 			)
 		)
+	},
+	handleKeyPress: function(e) {
+		if (this.state.editMode && e.charCode == 13) {
+			this.setState({editMode: false});
+			this.onUpdate();
+		}
 	},
 	handleMouseEnter: function(e) {
 		this.setState({hovering: true});
@@ -320,7 +328,9 @@ User.Content.Description = React.createClass({displayName: "Description",
 	handleClick: function(e) {
 		var editMode = this.state.editMode;
 		this.setState({editMode: !editMode});
-
+		this.onUpdate();
+	},
+	onUpdate: function() {
 		var description = React.findDOMNode(this.refs.description);
 		if (editMode) {
 			var text = $(description).text();

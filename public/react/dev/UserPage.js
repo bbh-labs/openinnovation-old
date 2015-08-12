@@ -46,7 +46,7 @@ var UserPage = React.createClass({
 				<Header user={user} />
 				<RouteHandler user={user} />
 				<Footer />
-				<Overlay user={user} friends={friends} playChatSound={this.playChatSound} />
+				<Overlay user={user} friends={friends} />
 			</div>
 		)
 	},
@@ -64,11 +64,14 @@ var UserPage = React.createClass({
 		this.ws = null;
 	},
 	onWSMessage: function(e) {
-		dispatcher.dispatch(JSON.parse(e.data));
-	},
-	playChatSound: function() {
-		if (this.chatSound) {
-			this.chatSound.play();
+		var msg = JSON.parse(e.data);
+		dispatcher.dispatch(msg);
+
+		// play sound when a chat message is received
+		if (msg.type == "newChatMessage" && msg.data.userID != this.props.user.id) {
+			if (this.chatSound) {
+				this.chatSound.play();
+			}
 		}
 	},
 });

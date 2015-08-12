@@ -161,7 +161,6 @@ Friends.ProjectChat = React.createClass({
 				var messages = this.state.messages;
 				if (messages.length > 0 && data) {
 					messages = messages.concat(data);
-					this.props.playChatSound();
 					this.refs.list.scrollToBottom();
 				} else if (messages.length == 0) {
 					messages = data;

@@ -27,16 +27,15 @@ var FeaturedProjects = React.createClass({displayName: "FeaturedProjects",
 		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
+		var projects = this.state.projects;
 		return (
 			React.createElement("div", {className: "featured-projects", ref: "featuredProjects"}, 
-				this.projectElements()
+				projects ?
+				projects.map(function(p) {
+					return React.createElement(FeaturedProjects.Item, {key: p.id, project: p})
+				}) : ""
 			)
 		)
-	},
-	projectElements: function() {
-		return buildElements(this.state.projects, function(i, p) {
-			return React.createElement(FeaturedProjects.Item, {key: p.id, project: p})
-		});
 	},
 });
 

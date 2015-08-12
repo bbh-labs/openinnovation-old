@@ -43,6 +43,7 @@ ProjectItem.Overlay = React.createClass({displayName: "Overlay",
 		text: {
 			color: "rgba(255,255,255,0)",
 			transition: "color .2s",
+			textAlign: "center",
 		},
 		hovering: {
 			background: "rgba(0,0,0,0.5)",

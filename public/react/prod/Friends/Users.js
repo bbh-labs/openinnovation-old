@@ -185,7 +185,6 @@ Friends.UserChat = React.createClass({displayName: "UserChat",
 				var data = payload.data.data;
 				if (messages.length > 0 && data) {
 					messages = messages.concat(data);
-					this.props.playChatSound();
 					this.refs.list.scrollToBottom();
 				} else if (messages.length == 0) {
 					messages = data;

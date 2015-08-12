@@ -63,7 +63,9 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 							React.createElement(TagIt, {ref: "tags", onChange: this.handleTagsChange})
 						), 
 						React.createElement("div", {className: "col s12 margin-top"}, 
-							React.createElement("a", {className: "waves-effect waves-light btn modal-trigger", href: "#modal-workers", ref: "modalTrigger"}, "Assign Someone")
+							React.createElement("a", {className: "waves-effect waves-light btn modal-trigger", 
+							   href: "#modal-workers", 
+							   ref: "modalTrigger"}, "Assign Someone")
 						), 
 						React.createElement("input", {type: "hidden", ref: "tagsInput"}), 
 						React.createElement("input", {name: "taskID", type: "hidden"}), 

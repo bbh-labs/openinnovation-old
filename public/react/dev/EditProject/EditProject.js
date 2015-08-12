@@ -27,7 +27,7 @@ var EditProject = React.createClass({
 		}
 		return (
 			<main className="edit-project">
-				<EditProject.Cover />
+				<EditProject.Cover project={project} />
 				<EditProject.Content project={project} />
 			</main>
 		)
@@ -38,23 +38,26 @@ EditProject.Cover = React.createClass({
 	mixins: [ Navigation ],
 	componentDidMount: function() {
 		var dropzone = React.findDOMNode(this);
+		
+		dropzone.style.background = "url(" + this.props.project.imageURL + ") center / cover";
+
 		$(dropzone).dropzone({
-            url: "/foo",
-            clickable: true,
-            maxFilesize: 1,
-            autoProcessQueue: false,
-            dictDefaultMessage: "Select your project cover (max: 1MB)",
-            addedfile: function(file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
+			url: "/foo",
+			clickable: true,
+			maxFilesize: 1,
+			autoProcessQueue: false,
+			dictDefaultMessage: "Select your project cover (max: 1MB)",
+			addedfile: function(file) {
+				var reader = new FileReader();
+				reader.onload = function(e) {
 					dispatcher.dispatch({
-						type: "edit-project-image-file",
-						file: file,
+						type: "editProjectImageFile",
+						image: file,
 					});
-                    dropzone.style.background = "url(" + e.target.result + ") center / cover";
-                }.bind(this);
-                reader.readAsDataURL(file);
-            }.bind(this),
+					dropzone.style.background = "url(" + e.target.result + ") center / cover";
+				}.bind(this);
+				reader.readAsDataURL(file);
+			}.bind(this),
 		});
 
 		this.dispatchID = dispatcher.register(function(payload) {
@@ -67,7 +70,7 @@ EditProject.Cover = React.createClass({
 				default:
 					Materialize.toast(payload.data.responseText, 3000, "red white-text");
 					break;
-				case 500:
+				case http.StatusInternalServerError:
 					Materialize.toast("Something went wrong when creating the new project..", 3000, "red white-text");
 					break;
 				}
@@ -96,15 +99,33 @@ EditProject.Cover = React.createClass({
 });
 
 EditProject.Content = React.createClass({
-	image: null,
-	getInitialState: function() {
-		return {menuIndex: 0};
+	render: function() {
+		var project = this.props.project;
+		return (
+			<div className="row">
+				<div className="container">
+					<div className="col s12">
+						<EditProject.Content.Form project={project} />
+					</div>
+				</div>
+			</div>
+		)
 	},
+});
+
+EditProject.Content.Form = React.createClass({
+	image: null,
 	componentDidMount: function() {
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
-			case "edit-project-image-file":
-				this.image = payload.file;
+			case "editProjectImageFile":
+				this.image = payload.image;
+				break;
+			case "updateProjectDone":
+				Materialize.toast("Successfully updated the project", 1000);
+				break;
+			case "updateProjectFail":
+				Materialize.toast("Failed to update the project", 1000);
 				break;
 			}
 		}.bind(this));
@@ -115,52 +136,8 @@ EditProject.Content = React.createClass({
 	},
 	render: function() {
 		var project = this.props.project;
-		var menuIndex = this.state.menuIndex;
 		return (
-			<div className="row">
-				<div className="container">
-					<div className="col s3">
-						<div className="collection">{
-							[ "Options", "Collaborators", "Services" ].map(function(s, i) {
-								var cx = menuIndex == i ? "active" : "";
-								return <a href="#" onClick={this.handleClick} className={classNames("collection-item", cx)}>{s}</a>
-							}.bind(this))
-						}</div>
-					</div>
-					<div className="col s9">
-						{menuIndex == 0 ? <EditProject.Content.Form project={project} /> : ""}
-					</div>
-				</div>
-			</div>
-		)
-	},
-	handleClick: function(e) {
-		//this.setState({menuIndex: i});
-
-		e.preventDefault();
-	},
-});
-
-EditProject.Content.Form = React.createClass({
-	componentDidMount: function() {
-		this.dispatchID = dispatcher.register(function(payload) {
-			switch (payload.type) {
-			case "updateProjectDone":
-				Materialize.toast("Successfully updated the project", 1000);
-				break;
-			case "updateProjectFail":
-				Materialize.toast("Failed to update the project", 1000);
-				break;
-			}
-		});
-	},
-	componentWillUnmount: function() {
-		dispatcher.unregister(this.dispatchID);
-	},
-	render: function() {
-		var project = this.props.project;
-		return (
-			<form className="col s9" onSubmit={this.handleSubmit}>
+			<form className="col s12" onSubmit={this.handleSubmit}>
 				<div className="row">
 					<div className="input-field col s12">
 						<input type="text" name="title" id="project-title" className="validate" defaultValue={project.title} />
@@ -175,7 +152,10 @@ EditProject.Content.Form = React.createClass({
 				</div>
 				<div className="row">
 					<div className="input-field col s12">
-						<textarea id="project-description" name="description" className="materialize-textarea" defaultValue={project.description}></textarea>
+						<textarea id="project-description"
+							  className="materialize-textarea"
+							  name="description"
+							  defaultValue={project.description}></textarea>
 						<label htmlFor="project-description" className="active">Description</label>
 					</div>
 				</div>
@@ -186,7 +166,19 @@ EditProject.Content.Form = React.createClass({
 		)
 	},
 	handleSubmit: function(e) {
-		OI.updateProject($(e.target).serialize());
+		var form = e.target;
+
+		var fd = new FormData();
+		fd.append("projectID", form.elements["projectID"].value);
+		fd.append("title", form.elements["title"].value);
+		fd.append("tagline", form.elements["tagline"].value);
+		fd.append("description", form.elements["description"].value);
+		if (this.image) {
+			console.log("tset");
+			fd.append("image", this.image);
+		}
+
+		OI.updateProject(fd);
 
 		e.preventDefault();
 	},

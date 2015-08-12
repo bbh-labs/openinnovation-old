@@ -49,9 +49,9 @@ var Overlay = React.createClass({displayName: "Overlay",
 					this.state.windows.length > 0 ?
 					this.state.windows.map(function(win) {
 						if (win.user) {
-							return React.createElement(Friends.UserChat, {key: win.id, windowID: win.id, user: user, otherUser: win.user, playChatSound: this.props.playChatSound})
+							return React.createElement(Friends.UserChat, {key: win.id, windowID: win.id, user: user, otherUser: win.user})
 						} else if (win.project) {
-							return React.createElement(Friends.ProjectChat, {key: win.id, windowID: win.id, user: user, project: win.project, playChatSound: this.props.playChatSound})
+							return React.createElement(Friends.ProjectChat, {key: win.id, windowID: win.id, user: user, project: win.project})
 						}
 					}.bind(this)) : "", 
 				

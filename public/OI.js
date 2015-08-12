@@ -88,22 +88,12 @@ var OI = {
 			dataType: "json",
 		});
 	},
-	createProject: function(data) {
-		this.api("createProject", {
-			url: "/api/project",
-			method: "POST",
-			data: data,
-			dataType: "json",
-			processData: false,
-			contentType: false,
-		});
-	},
 	featuredProjects: function(data) {
 		this.api("featuredProjects", {
 			url: "/api/project",
 			method: "GET",
-			dataType: "json",
 			data: m(data, {type: "featured"}),
+			dataType: "json",
 		});
 	},
 	latestProjects: function(data) {
@@ -118,16 +108,28 @@ var OI = {
 		this.api("project", {
 			url: "/api/project",
 			method: "GET",
-			dataType: "json",
 			data: data,
+			dataType: "json",
+		});
+	},
+	createProject: function(data) {
+		this.api("createProject", {
+			url: "/api/project",
+			method: "POST",
+			data: data,
+			dataType: "json",
+			processData: false,
+			contentType: false,
 		});
 	},
 	updateProject: function(data) {
 		this.api("updateProject", {
 			url: "/api/project",
 			method: "PUT",
-			dataType: "json",
 			data: data,
+			dataType: "json",
+			processData: false,
+			contentType: false,
 		});
 	},
 	createTask: function(data) {
@@ -142,8 +144,8 @@ var OI = {
 		this.api("updateTask", {
 			url: "/api/task",
 			method: "PUT",
-			dataType: "json",
 			data: data,
+			dataType: "json",
 		});
 	},
 	deleteTask: function(data) {
@@ -157,8 +159,8 @@ var OI = {
 		this.api("getTask", {
 			url: "/api/task",
 			method: "GET",
-			dataType: "json",
 			data: data,
+			dataType: "json",
 		});
 	},
 	getPersonalizedTasks: function(data) {
@@ -173,32 +175,32 @@ var OI = {
 		this.api("toggleTaskStatus", {
 			url: "/api/task",
 			method: "PUT",
-			dataType: "json",
 			data: m(data, {type: "toggleStatus"}),
+			dataType: "json",
 		});
 	},
 	getProjectTasks: function(data) {
 		this.api("getProjectTasks", {
 			url: "/api/task",
 			method: "GET",
-			dataType: "json",
 			data: m(data, {type: "project"}),
+			dataType: "json",
 		});
 	},
 	getProjectMilestones: function(data) {
 		this.api("getProjectMilestones", {
 			url: "/api/milestone",
 			method: "GET",
-			dataType: "json",
 			data: m(data, {type: "project"}),
+			dataType: "json",
 		});
 	},
 	getProjectMembers: function(data) {
 		this.api("getProjectMembers", {
 			url: "/api/project/member",
 			method: "GET",
-			dataType: "json",
 			data: data,
+			dataType: "json",
 		});
 	},
 	joinProject: function(data) {
@@ -228,8 +230,8 @@ var OI = {
 		this.api("createMilestone", {
 			url: "/api/milestone",
 			method: "POST",
-			dataType: "json",
 			data: data,
+			dataType: "json",
 		});
 	},
 	updateMilestone: function(data) {

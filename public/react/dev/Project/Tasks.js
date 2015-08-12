@@ -1,18 +1,8 @@
 Project.Tasks = React.createClass({
 	getInitialState: function() {
-		return {titles: [], clickedTask: -1};
+		return {clickedTask: -1};
 	},
 	componentDidMount: function() {
-		$.ajax({
-			url: "/titles.json",
-			method: "GET",
-			dataType: "json",
-		}).done(function(resp) {
-			this.setState({titles: resp});
-		}.bind(this)).fail(function(resp) {
-			console.log(resp.responseText);
-		});
-
 		$(React.findDOMNode(this.refs.modalTrigger)).leanModal({
 			dismissable: true,
 		});
@@ -61,11 +51,6 @@ Project.Tasks = React.createClass({
 				</div>
 			</div>
 		)
-	},
-	titleElements: function() {
-		return buildElements(this.state.titles, function(i, p) {
-			return <option key={p} value={p}>{p}</option>
-		});
 	},
 	onTaskClicked: function(e, task) {
 		this.setState({clickedTask: task.id});

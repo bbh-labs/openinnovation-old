@@ -63,7 +63,9 @@ Project.Tasks.Modal = React.createClass({
 							<TagIt ref="tags" onChange={this.handleTagsChange} />
 						</div>
 						<div className="col s12 margin-top">
-							<a className="waves-effect waves-light btn modal-trigger" href="#modal-workers" ref="modalTrigger">Assign Someone</a>
+							<a className="waves-effect waves-light btn modal-trigger"
+							   href="#modal-workers"
+							   ref="modalTrigger">Assign Someone</a>
 						</div>
 						<input type="hidden" ref="tagsInput" />
 						<input name="taskID" type="hidden" />
