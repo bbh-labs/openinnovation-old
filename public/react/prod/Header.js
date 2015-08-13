@@ -16,19 +16,19 @@ var Header = React.createClass({displayName: "Header",
 						React.createElement("ul", {className: "right hide-on-med-and-down"}, 
 							React.createElement("li", null, React.createElement(Link, {to: "new-project"}, React.createElement("i", {className: "material-icons"}, "create"))), 
 							React.createElement("li", null, React.createElement(Link, {to: "user", params: {userID: user.id}}, React.createElement("i", {className: "material-icons"}, "person"))), 
-							React.createElement("li", null, React.createElement("a", {href: "#", onClick: this.logout}, React.createElement("i", {className: "material-icons"}, "input")))
+							React.createElement("li", null, React.createElement("a", {href: "#", onClick: this.handleLogout}, React.createElement("i", {className: "material-icons"}, "input")))
 						), 
 						React.createElement("ul", {id: "mobile-menu", className: "side-nav"}, 
 							React.createElement("li", null, React.createElement(Link, {to: "new-project"}, "New Project")), 
 							React.createElement("li", null, React.createElement(Link, {to: "user", params: {userID: user.id}}, "Profile")), 
-							React.createElement("li", null, React.createElement("a", {href: "#", onClick: this.logout}, "Logout"))
+							React.createElement("li", null, React.createElement("a", {href: "#", onClick: this.handleLogout}, "Logout"))
 						)
 					)
 				)
 			)
 		)
 	},
-	logout: function(e) {
+	handleLogout: function(e) {
 		OI.logout();
 
 		e.preventDefault();

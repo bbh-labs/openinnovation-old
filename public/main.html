@@ -21,17 +21,25 @@
 	<link rel="stylesheet" href="tag-it/css/jquery.tagit.css" />
 	<link rel="stylesheet" href="style.css" />
 
-	<!-- Google Sign-In -->
+	<!-- React -->
+	<script src="react/react.js"></script>
+	<script src="react/ReactRouter.js"></script>
+	<script src="react/Flux.js"></script>
+	<script src="react/classnames.js"></script>
 	<script>
-		function onGoogleReady() {
-			gapi.load("auth2", function() {
-				auth2 = gapi.auth2.init({
-					client_id: "320643691401-5m3ipff7ghamacndnvipda0uqi3eranu.apps.googleusercontent.com",
-				});
-			});
-		}
+		var Route		 = ReactRouter.Route;
+		var DefaultRoute = ReactRouter.DefaultRoute;
+		var RouteHandler = ReactRouter.RouteHandler;
+		var Link         = ReactRouter.Link;
+		var Navigation   = ReactRouter.Navigation;
+		var State        = ReactRouter.State;
+
+		var dispatcher = new Flux.Dispatcher();
 	</script>
-	<script src="https://apis.google.com/js/platform.js" async defer onload="onGoogleReady()"></script>
+
+	<script src="google.js"></script>
+	<script src="https://apis.google.com/js/client.js?onload=onGoogleClientReady"></script>
+	<script src="https://apis.google.com/js/platform.js" async defer onload="onGooglePlatformReady()"></script>
 
 	<script src="jquery/jquery.js"></script>
 	<script src="jquery-ui/jquery-ui.js"></script>
@@ -51,26 +59,12 @@
 	<script src="canvas-to-blob/canvas-to-blob.js"></script>
 
 	<script src="OI.js"></script>
+	<script src="email.js"></script>
 </head>
 <body spellcheck="false">
 	<div id="root"></div>
 
 	<script src="utility.js"></script>
-
-	<script src="react/react.js"></script>
-	<script src="react/ReactRouter.js"></script>
-	<script src="react/Flux.js"></script>
-	<script src="react/classnames.js"></script>
-	<script>
-		var Route		 = ReactRouter.Route;
-		var DefaultRoute = ReactRouter.DefaultRoute;
-		var RouteHandler = ReactRouter.RouteHandler;
-		var Link         = ReactRouter.Link;
-		var Navigation   = ReactRouter.Navigation;
-		var State        = ReactRouter.State;
-
-		var dispatcher = new Flux.Dispatcher();
-	</script>
 
 	<script src="react/prod/Window.js"></script>
 

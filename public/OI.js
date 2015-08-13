@@ -35,6 +35,15 @@ var OI = {
 			method: "POST",
 			dataType: "json",
 		});
+
+		if (auth2) {
+			auth2.signOut();
+		}
+		if (gapi && gapi.auth) {
+			gapi.auth.setToken(null);
+		}
+
+		sessionStorage.setItem("authUser", -1);
 	},
 	/* (unused)
 	register: function(data) {

@@ -16,19 +16,19 @@ var Header = React.createClass({
 						<ul className="right hide-on-med-and-down">
 							<li><Link to="new-project"><i className="material-icons">create</i></Link></li>
 							<li><Link to="user" params={{userID: user.id}}><i className="material-icons">person</i></Link></li>
-							<li><a href="#" onClick={this.logout}><i className="material-icons">input</i></a></li>
+							<li><a href="#" onClick={this.handleLogout}><i className="material-icons">input</i></a></li>
 						</ul>
 						<ul id="mobile-menu" className="side-nav">
 							<li><Link to="new-project">New Project</Link></li>
 							<li><Link to="user" params={{userID: user.id}}>Profile</Link></li>
-							<li><a href="#" onClick={this.logout}>Logout</a></li>
+							<li><a href="#" onClick={this.handleLogout}>Logout</a></li>
 						</ul>
 					</div>
 				</nav>
 			</header>
 		)
 	},
-	logout: function(e) {
+	handleLogout: function(e) {
 		OI.logout();
 
 		e.preventDefault();

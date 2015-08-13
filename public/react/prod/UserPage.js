@@ -21,12 +21,17 @@ var UserPage = React.createClass({displayName: "UserPage",
 					this.ws.send(JSON.stringify(payload.data));
 				}
 				break;
+			case "googleClientIsReady":
+				this.initGoogleAPIs();
+				break;
 			}
-		});
+		}.bind(this));
 	},
 	componentDidUpdate: function() {
-		if (!this.props.user) {
+		var user = this.props.user;
+		if (!user) {
 			this.transitionTo("intro");
+			return;
 		}
 	},
 	componentWillUnmount: function() {
@@ -73,5 +78,31 @@ var UserPage = React.createClass({displayName: "UserPage",
 				this.chatSound.play();
 			}
 		}
+	},
+	initGoogleAPIs: function() {
+		var authUser = parseInt(sessionStorage.getItem("authUser"));
+		authUser = authUser ? authUser : -1;
+
+		if (this.props.user) {
+			gapi.auth.authorize({
+				client_id: CLIENT_ID,
+				scope: CLIENT_SCOPES,
+				authuser: authUser,
+			}, this.handleGoogleClientAuth);
+		}
+	},
+	handleGoogleClientAuth: function(authResult) {
+		if (authResult && !authResult.error) {
+			this.loadGMailAPI();
+		} else {
+			console.log("Failed");
+		}
+	},
+	loadGMailAPI: function() {
+		gapi.client.load("gmail", "v1").then(this.onGMailAPIReady);
+	},
+	onGMailAPIReady: function() {
+		isGMailReady = true;
+		sendEmail(buildEmail(["jacky.boen@bartleboglehegarty.com"], "Test", "Hello, World!"));
 	},
 });

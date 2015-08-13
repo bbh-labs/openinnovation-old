@@ -28,7 +28,7 @@ var Intro = React.createClass({
 			return;
 		}
 
-		auth2.grantOfflineAccess({"scope": "profile email", "redirect_uri": "postmessage"}).then(this.handleSignIn);
+		auth2.grantOfflineAccess({"scope": "email profile", "redirect_uri": "postmessage"}).then(this.handleSignIn);
 	},
 	handleSignIn: function(resp) {
 		OI.login({code: resp.code});
