@@ -54,7 +54,7 @@ var Header = React.createClass({
 						</ul>
 						<Header.MailDropdown id="mail-dropdown" user={user} messages={messages} />
 						<ul id="more-dropdown" className="dropdown-content">
-							<li><a href="#">User</a></li>
+							<li><Link to="user" params={{userID: user.id}}>Profile</Link></li>
 							<li><Link to="settings">Settings</Link></li>
 							<li><a href="#" onClick={this.handleLogout}>Logout</a></li>
 						</ul>

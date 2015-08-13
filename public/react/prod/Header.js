@@ -54,7 +54,7 @@ var Header = React.createClass({displayName: "Header",
 						), 
 						React.createElement(Header.MailDropdown, {id: "mail-dropdown", user: user, messages: messages}), 
 						React.createElement("ul", {id: "more-dropdown", className: "dropdown-content"}, 
-							React.createElement("li", null, React.createElement("a", {href: "#"}, "User")), 
+							React.createElement("li", null, React.createElement(Link, {to: "user", params: {userID: user.id}}, "Profile")), 
 							React.createElement("li", null, React.createElement(Link, {to: "settings"}, "Settings")), 
 							React.createElement("li", null, React.createElement("a", {href: "#", onClick: this.handleLogout}, "Logout"))
 						)

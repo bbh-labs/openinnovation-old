@@ -130,9 +130,7 @@ Project.Tasks.Modal = React.createClass({
 		if (type == "create") {
 			OI.createTask($(form).serialize());
 		} else if (type == "view") {
-			var ff = $(form).serialize();
-			console.log(ff);
-			OI.updateTask(ff);
+			OI.updateTask($(form).serialize());
 		}
 	},
 	handleDelete: function(e) {
@@ -174,7 +172,6 @@ Project.Tasks.Modal = React.createClass({
 	},
 	fetchFiles: function(taskID) {
 		var q = "properties has { key='taskID' and value='" + taskID + "' and visibility='PRIVATE' } and trashed=false";
-		console.log(q);
 		listFiles({q: q}, function(resp) {
 			if (resp) {
 				this.setState({files: resp});
