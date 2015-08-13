@@ -1,4 +1,8 @@
 Project.Tasks.Modal = React.createClass({
+	taskID: null,
+	getInitialState: function() {
+		return {files: []};
+	},
 	componentDidMount: function() {
 		var modalTrigger = React.findDOMNode(this.refs.modalTrigger);
 		$(modalTrigger).leanModal();
@@ -12,33 +16,32 @@ Project.Tasks.Modal = React.createClass({
 				}
 
 				var task = payload.data;
-				form.elements["taskID"].value = task.id;
-				form.elements["title"].value = task.title;
-				form.elements["description"].value = task.description;
-
-				this.refs.tags.removeAll();
-				if (task.tags) {
-					task.tags.forEach(function(tag) {
-						this.refs.tags.createTag(tag);
-					}.bind(this));
-				}
-
-				this.refs.startDate.set("select", task.startDateStr, {format: "dd mmmm, yyyy"});
-				this.refs.endDate.set("select", task.endDateStr, {format: "dd mmmm, yyyy"});
-
-				$(form).openModal();
+				this.initTask(task);
+				break;
+			case "getTaskFilesDone":
+				this.setState({files: payload.data.data});
+				break;
+			case "createTaskFileDone":
+				this.fetchFiles(this.taskID);
+				break;
+			case "deleteTaskFile":
+				deleteFile(payload.fileID, function(resp) {
+					this.fetchFiles(this.taskID);
+				}.bind(this));
 				break;
 			}
 		}.bind(this));
 	},
 	componentWillUnmount: function() {
 		dispatcher.unregister(this.dispatchID);
+		this.taskID = null;
 	},
 	render: function() {
 		var project = this.props.project;
 		var type = this.props.type;
 		var active = type == "view" ? "active" : "";
 		var readOnly = !project.isMember;
+		var files = this.state.files;
 		return (
 			<form id={this.props.id} className="modal" onSubmit={this.handleSubmit}>
 				<div className="modal-content">
@@ -62,6 +65,17 @@ Project.Tasks.Modal = React.createClass({
 						<div className="input-field col s12">
 							<TagIt ref="tags" onChange={this.handleTagsChange} />
 						</div>
+						<div className="input-field col s12">
+							<p>Files</p>
+							<ul className="collection">
+							{
+								files ? files.map(function(f) {
+									return <Project.Tasks.FileItem key={f.id} file={f} />
+								}) : ""
+							}
+							</ul>
+							<input type="file" name="file" onChange={this.handleFileInput} />
+						</div>
 						<div className="col s12 margin-top">
 							<a className="waves-effect waves-light btn modal-trigger"
 							   href="#modal-workers"
@@ -81,6 +95,28 @@ Project.Tasks.Modal = React.createClass({
 				</div>
 			</form>
 		)
+	},
+	initTask: function(task) {
+		this.taskID = task.id;
+		this.fetchFiles(task.id);
+
+		var form = React.findDOMNode(this);
+		form.elements["taskID"].value = task.id;
+		form.elements["title"].value = task.title;
+		form.elements["description"].value = task.description;
+
+		this.refs.tags.removeAll();
+		if (task.tags) {
+			task.tags.forEach(function(tag) {
+				this.refs.tags.createTag(tag);
+			}.bind(this));
+		}
+
+		this.refs.startDate.set("select", task.startDateStr, {format: "dd mmmm, yyyy"});
+		this.refs.endDate.set("select", task.endDateStr, {format: "dd mmmm, yyyy"});
+		this.setState({task: task});
+
+		$(form).openModal();
 	},
 	handleSubmit: function(e) {
 		e.preventDefault();
@@ -115,6 +151,81 @@ Project.Tasks.Modal = React.createClass({
 	handleTagsChange: function(e, ui) {
 		var tags = $(e.target).tagit("assignedTags").join(",");
 		React.findDOMNode(this.refs.tagsInput).value = tags;
+	},
+	handleFileInput: function(e) {
+		var taskID = this.taskID;
+		if (!taskID) {
+			return;
+		}
+
+		var files = e.target.files;
+		if (files && files.length > 0) {
+			insertFile(files[0], function(resp) {
+				console.log(resp);
+				this.fetchFiles(taskID);
+			}.bind(this), {
+				properties: [{
+					key: "taskID",
+					value: taskID,
+					visibility: "PRIVATE",
+				}],
+			});
+		}
+	},
+	fetchFiles: function(taskID) {
+		var q = "properties has { key='taskID' and value='" + taskID + "' and visibility='PRIVATE' } and trashed=false";
+		console.log(q);
+		listFiles({q: q}, function(resp) {
+			if (resp) {
+				this.setState({files: resp});
+			}
+		}.bind(this), true);
+	},
+});
+
+Project.Tasks.FileItem = React.createClass({
+	styles: {
+		icon: {
+			cursor: "pointer",
+		},
+	},
+	getInitialState: function() {
+		return {hover: false};
+	},
+	render: function() {
+		var file = this.props.file;
+		return (
+			<li className="collection-item avatar" onMouseEnter={this.handleMouseOver} onMouseLeave={this.handleMouseOut}>
+				<img src={file.thumbnailLink} className="circle" />
+				<a href={file.webContentLink}>
+					{file.title}<br/>
+					{this.humanFileSize(file.fileSize)}
+				</a>
+				<span className="secondary-content">
+					{this.state.hover ? <i className="material-icons" style={this.styles.icon} onClick={this.handleDelete}>delete</i> : ""}
+				</span>
+			</li>
+		)
+	},
+	handleMouseOver: function(e) {
+		this.setState({hover: true});
+	},
+	handleMouseOut: function(e) {
+		this.setState({hover: false});
+	},
+	handleDelete: function(e) {
+		dispatcher.dispatch({type: "deleteTaskFile", fileID: this.props.file.id});
+	},
+	humanFileSize: function(size) {
+		if (size < 1024) {
+			return size + " bytes";
+		} else if (size < 1024 * 1024) {
+			return (size / 1024).toFixed(2) + "kb";
+		} else if (size < 1024 * 1024 * 1024) {
+			return (size / 1024 / 1024).toFixed(2) + "mb";
+		} else if (size < 1024 * 1024 * 1024 * 1024) {
+			return (size / 1024 / 1024 / 1024).toFixed(2) + "mb";
+		}
 	},
 });
 

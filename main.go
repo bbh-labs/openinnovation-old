@@ -34,6 +34,7 @@ func main() {
 	apiRouter.Handle("/api/project", p("/project", project))
 	apiRouter.Handle("/api/project/member", p("/task/member", member))
 	apiRouter.Handle("/api/task", p("/task", task))
+	apiRouter.Handle("/api/task/file", p("/task/file", file))
 	apiRouter.Handle("/api/task/worker", p("/task/worker", worker))
 	apiRouter.Handle("/api/milestone", p("/milestone", milestone))
 	apiRouter.Handle("/api/friend", p("/friend", friend))

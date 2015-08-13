@@ -218,6 +218,22 @@ func worker(w http.ResponseWriter, r *http.Request) {
 }
 
 //
+// /task/file
+//
+func file(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		GetTaskFiles(w, r)
+	case "POST":
+		CreateTaskFile(w, r)
+	case "DELETE":
+		DeleteTaskFile(w, r)
+	default:
+		response.ClientError(w, http.StatusMethodNotAllowed)
+	}
+}
+
+//
 // /milestone
 //
 func milestone(w http.ResponseWriter, r *http.Request) {

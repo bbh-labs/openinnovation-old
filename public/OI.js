@@ -43,7 +43,7 @@ var OI = {
 			gapi.auth.setToken(null);
 		}
 
-		sessionStorage.setItem("authUser", -1);
+		sessionStorage.setItem("authUser", null);
 	},
 	/* (unused)
 	register: function(data) {
@@ -196,6 +196,30 @@ var OI = {
 			dataType: "json",
 		});
 	},
+	getTaskFiles: function(data) {
+		this.api("getTaskFiles", {
+			url: "/api/task/file",
+			method: "GET",
+			data: data,
+			dataType: "json",
+		});
+	},
+	createTaskFile: function(data) {
+		this.api("createTaskFile", {
+			url: "/api/task/file",
+			method: "POST",
+			data: data,
+			dataType: "json",
+		});
+	},
+	deleteTaskFile: function(data) {
+		this.api("deleteTaskFile", {
+			url: "/api/task/file?" + $.param(data),
+			method: "DELETE",
+			dataType: "json",
+		});
+		deleteFile({fileId: data.fileID});
+	},
 	getProjectMilestones: function(data) {
 		this.api("getProjectMilestones", {
 			url: "/api/milestone",
@@ -296,5 +320,15 @@ var OI = {
 			data: data,
 			dataType: "json",
 		});
+	},
+	getMailPreference: function() {
+		var mailPreference = localStorage.getItem("mailPreference");
+		if (!mailPreference) {
+			mailPreference = "is:unread newer_than:2y to:me";
+		}
+		return mailPreference;
+	},
+	setMailPreference: function(preference) {
+		localStorage.setItem("mailPreference", preference);
 	},
 };

@@ -52,7 +52,7 @@ func DeleteWorker(taskID, userID int64) error {
 
 func DeleteWorkers(taskID int64) error {
 	const rawSQL = `
-	DELETE FROM worker WERE task_id = $1`
+	DELETE FROM worker WHERE task_id = $1`
 
 	if _, err := db.Exec(rawSQL, taskID); err != nil {
 		return debug.Error(err)
