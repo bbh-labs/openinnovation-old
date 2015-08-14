@@ -1,7 +1,6 @@
 var UserPage = React.createClass({
 	ws: null,
 	chatSound: new Audio("sounds/message.wav"),
-
 	styles: {
 		container: {
 			height: "100%",

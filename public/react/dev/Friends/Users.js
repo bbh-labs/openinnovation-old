@@ -182,14 +182,16 @@ Friends.UserChat = React.createClass({
 				break;
 			case "getChatMessagesDone":
 				var messages = this.state.messages;
-				var data = payload.data.data;
-				if (messages.length > 0 && data) {
-					messages = messages.concat(data);
-					this.refs.list.scrollToBottom();
-				} else if (messages.length == 0) {
-					messages = data;
+				if (messages) {
+					var data = payload.data.data;
+					if (messages.length > 0 && data) {
+						messages = messages.concat(data);
+						this.refs.list.scrollToBottom();
+					} else if (messages.length == 0) {
+						messages = data;
+					}
+					this.setState({messages: messages});
 				}
-				this.setState({messages: messages});
 				break;
 			}
 		}.bind(this));

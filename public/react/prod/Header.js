@@ -148,7 +148,10 @@ Header.MailDropdown = React.createClass({displayName: "MailDropdown",
 	},
 	parseFullname: function(from) {
 		var result = from.match(/(.+)<.+/i);
-		return result[1];
+		if (result && result.length >= 2) {
+			return result[1];
+		}
+		return from;
 	},
 });
 
