@@ -49,7 +49,6 @@ func init() {
 	create("featured_project", createFeaturedProjectSQL)
 	create("user_tag", createUserTagSQL)
 	create("task_tag", createTaskTagSQL)
-	create("task_file", createTaskFileSQL)
 	create("tag", createTagSQL)
 
 	// setup listener
