@@ -5,7 +5,9 @@ Project.Tasks.Modal = React.createClass({displayName: "Modal",
 	},
 	componentDidMount: function() {
 		var modalTrigger = React.findDOMNode(this.refs.modalTrigger);
-		$(modalTrigger).leanModal();
+		$(modalTrigger).leanModal({
+			complete: function() { console.log("Closed Task modal") },
+		});
 
 		var form = React.findDOMNode(this);
 		this.dispatchID = dispatcher.register(function(payload) {

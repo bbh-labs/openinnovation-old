@@ -21,7 +21,6 @@ function onGooglePlatformReady() {
 
 function initGoogleAPIs() {
 	var authUser = sessionStorage.getItem("authUser");
-	console.log(authUser);
 
 	gapi.auth.authorize({
 		client_id: CLIENT_ID,
