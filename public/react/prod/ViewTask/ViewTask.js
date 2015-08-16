@@ -81,7 +81,7 @@ var ViewTask = React.createClass({displayName: "ViewTask",
 						React.createElement("p", null, "Files"), 
 						React.createElement("ul", {className: "collection"}, 
 							files ? files.map(function(f) {
-								return React.createElement(Task.FileItem, {key: f.id, file: f})
+								return React.createElement(ViewTask.FileItem, {key: f.id, file: f})
 							}) : ""
 						), 
 						React.createElement("input", {type: "file", name: "file", onChange: this.handleFileInput})
@@ -134,7 +134,7 @@ var ViewTask = React.createClass({displayName: "ViewTask",
 		if (task) {
 			var files = e.target.files;
 			if (files && files.length > 0) {
-				insertFile(files[0], function(resp) {
+				google.drive.insertFile(files[0], function(resp) {
 					this.fetchFiles(task.id);
 				}.bind(this), {
 					properties: [{
@@ -161,7 +161,7 @@ var ViewTask = React.createClass({displayName: "ViewTask",
 	},
 });
 
-CreateTask.FileItem = React.createClass({displayName: "FileItem",
+ViewTask.FileItem = React.createClass({displayName: "FileItem",
 	styles: {
 		icon: {
 			cursor: "pointer",

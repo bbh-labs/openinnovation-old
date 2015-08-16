@@ -49,7 +49,7 @@ var google = {
 		load: function() {
 			gapi.client.load("plus", "v1").then(function() {
 				dispatcher.dispatch({type: "googlePlusReady"});
-				this.ready = true;
+				google.plus.ready = true;
 			}.bind(this));
 		},
 		getPeople: function(userID, callback) {
@@ -65,7 +65,7 @@ var google = {
 		load: function() {
 			gapi.client.load("gmail", "v1").then(function() {
 				dispatcher.dispatch({type: "googleMailReady"});
-				this.ready = true;
+				google.gmail.ready = true;
 			}.bind(this));
 		},
 		sendEmail: function(email, callback) {
@@ -151,7 +151,7 @@ var google = {
 		load: function() {
 			gapi.client.load("drive", "v2").then(function() {
 				dispatcher.dispatch({type: "googleDriveReady"});
-				this.ready = true;
+				google.drive.ready = true;
 			}.bind(this));
 		},
 		listFiles: function(params, callback, once) {

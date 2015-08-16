@@ -81,7 +81,7 @@ var ViewTask = React.createClass({
 						<p>Files</p>
 						<ul className="collection">{
 							files ? files.map(function(f) {
-								return <Task.FileItem key={f.id} file={f} />
+								return <ViewTask.FileItem key={f.id} file={f} />
 							}) : ""
 						}</ul>
 						<input type="file" name="file" onChange={this.handleFileInput} />
@@ -134,7 +134,7 @@ var ViewTask = React.createClass({
 		if (task) {
 			var files = e.target.files;
 			if (files && files.length > 0) {
-				insertFile(files[0], function(resp) {
+				google.drive.insertFile(files[0], function(resp) {
 					this.fetchFiles(task.id);
 				}.bind(this), {
 					properties: [{
@@ -161,7 +161,7 @@ var ViewTask = React.createClass({
 	},
 });
 
-CreateTask.FileItem = React.createClass({
+ViewTask.FileItem = React.createClass({
 	styles: {
 		icon: {
 			cursor: "pointer",
