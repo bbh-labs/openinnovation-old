@@ -22,6 +22,7 @@ var Header = React.createClass({
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
 			case "googleMailReady":
+			case "setMailPreferenceDone":
 				this.fetchMails();
 				break;
 			}
@@ -43,8 +44,16 @@ var Header = React.createClass({
 						</a>
 						<ul className="right hide-on-med-and-down">
 							<li><Link to="new-project"><i className="material-icons">create</i></Link></li>
-							<li><a href="#" className="dropdown-button" data-activates="mail-dropdown" ref="mailButton"><i className="material-icons">mail</i></a></li>
-							<li><a href="#" className="dropdown-button" data-activates="more-dropdown" ref="moreButton"><i className="material-icons">more_vert</i></a></li>
+							<li><a className="dropdown-button"
+								href=""
+								data-activates="mail-dropdown"
+								ref="mailButton"
+								onClick={this.handleClick}><i className="material-icons">mail</i></a></li>
+							<li><a className="dropdown-button"
+								href=""
+								data-activates="more-dropdown"
+								ref="moreButton"
+								onClick={this.handleClick}><i className="material-icons">more_vert</i></a></li>
 						</ul>
 						<ul id="mobile-menu" className="side-nav">
 							<li><Link to="new-project">New Project</Link></li>
@@ -69,6 +78,7 @@ var Header = React.createClass({
 			maxResults: 10,
 		}, function(threads) {
 			if (threads && !threads[0]) {
+				this.setState({messages: []});
 				return;
 			}
 
@@ -91,6 +101,9 @@ var Header = React.createClass({
 	},
 	handleMail: function(user, m) {
 		window.location.replace(); 	
+	},
+	handleClick: function(e) {
+		e.preventDefault();
 	},
 });
 

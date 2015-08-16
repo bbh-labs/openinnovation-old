@@ -22,6 +22,7 @@ var Header = React.createClass({displayName: "Header",
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
 			case "googleMailReady":
+			case "setMailPreferenceDone":
 				this.fetchMails();
 				break;
 			}
@@ -43,8 +44,16 @@ var Header = React.createClass({displayName: "Header",
 						), 
 						React.createElement("ul", {className: "right hide-on-med-and-down"}, 
 							React.createElement("li", null, React.createElement(Link, {to: "new-project"}, React.createElement("i", {className: "material-icons"}, "create"))), 
-							React.createElement("li", null, React.createElement("a", {href: "#", className: "dropdown-button", "data-activates": "mail-dropdown", ref: "mailButton"}, React.createElement("i", {className: "material-icons"}, "mail"))), 
-							React.createElement("li", null, React.createElement("a", {href: "#", className: "dropdown-button", "data-activates": "more-dropdown", ref: "moreButton"}, React.createElement("i", {className: "material-icons"}, "more_vert")))
+							React.createElement("li", null, React.createElement("a", {className: "dropdown-button", 
+								href: "", 
+								"data-activates": "mail-dropdown", 
+								ref: "mailButton", 
+								onClick: this.handleClick}, React.createElement("i", {className: "material-icons"}, "mail"))), 
+							React.createElement("li", null, React.createElement("a", {className: "dropdown-button", 
+								href: "", 
+								"data-activates": "more-dropdown", 
+								ref: "moreButton", 
+								onClick: this.handleClick}, React.createElement("i", {className: "material-icons"}, "more_vert")))
 						), 
 						React.createElement("ul", {id: "mobile-menu", className: "side-nav"}, 
 							React.createElement("li", null, React.createElement(Link, {to: "new-project"}, "New Project")), 
@@ -69,6 +78,7 @@ var Header = React.createClass({displayName: "Header",
 			maxResults: 10,
 		}, function(threads) {
 			if (threads && !threads[0]) {
+				this.setState({messages: []});
 				return;
 			}
 
@@ -91,6 +101,9 @@ var Header = React.createClass({displayName: "Header",
 	},
 	handleMail: function(user, m) {
 		window.location.replace(); 	
+	},
+	handleClick: function(e) {
+		e.preventDefault();
 	},
 });
 

@@ -41,13 +41,13 @@ var LatestProjects = React.createClass({displayName: "LatestProjects",
 		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
+		var projects = this.state.projects;
 		return (
 			React.createElement("div", {className: "latest-projects card"}, 
 				React.createElement("div", {className: "card-content"}, 
 					React.createElement("h5", null, "Latest Projects"), 
 					React.createElement("div", {ref: "slides"}, 
-						this.state.projects ?
-						this.state.projects.map(function(p) {
+						projects ? projects.map(function(p) {
 							return React.createElement(ProjectItem, {key: p.id, project: p})
 						}) : ""
 					)

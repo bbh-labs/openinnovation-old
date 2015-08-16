@@ -41,13 +41,13 @@ var LatestProjects = React.createClass({
 		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
+		var projects = this.state.projects;
 		return (
 			<div className="latest-projects card">
 				<div className="card-content">
 					<h5>Latest Projects</h5>
 					<div ref="slides">{
-						this.state.projects ?
-						this.state.projects.map(function(p) {
+						projects ? projects.map(function(p) {
 							return <ProjectItem key={p.id} project={p} />
 						}) : ""
 					}</div>

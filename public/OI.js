@@ -338,5 +338,6 @@ var OI = {
 	},
 	setMailPreference: function(preference) {
 		localStorage.setItem("mailPreference", preference);
+		dispatcher.dispatch({type: "setMailPreferenceDone"});
 	},
 };
