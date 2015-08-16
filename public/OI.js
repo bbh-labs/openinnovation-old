@@ -236,6 +236,14 @@ var OI = {
 			dataType: "json",
 		});
 	},
+	getTaskWorkers: function(data) {
+		this.api("getTaskWorkers", {
+			url: "/api/task/worker",
+			method: "GET",
+			data: data,
+			dataType: "json",
+		});
+	},
 	joinProject: function(data) {
 		this.api("joinProject", {
 			url: "/api/project/member",

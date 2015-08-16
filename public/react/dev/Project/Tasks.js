@@ -1,15 +1,14 @@
 Project.Tasks = React.createClass({
 	render: function() {
-		var tasks = this.props.project.tasks;
+		var project = this.props.project;
+		var tasks = project.tasks;
 		return (
 			<div id="project-tasks" className="col s12">
 				<div className="main col s12">
 					<div className="input-field col s12 m3 offset-m9">
-						<button className="btn waves-effect waves-light modal-trigger input-button col s12"
-							ref="modalTrigger"
-							data-target="create-task">
-							Add Task
-						</button>
+						<Link to="create-task"
+							params={{projectID: project.id}}
+							className="btn waves-effect waves-light col s12">Add Task</Link>
 					</div>
 					<div className="col s12">
 						<h5>To Do</h5>
@@ -37,20 +36,6 @@ Project.Tasks = React.createClass({
 					</div>
 				</div>
 			</div>
-		)
-	},
-});
-
-Project.Tasks.Worker = React.createClass({
-	componentDidMount: function() {
-		$(React.findDOMNode(this)).tooltip({delay: 50});
-	},
-	render: function() {
-		var worker = this.props.worker;
-		return (
-			<Link to="user" params={{userID: worker.id}} data-position="bottom" data-delay="50" data-tooltip={worker.fullname}>
-				<img className="tooltipped" src={worker.avatarURL}/>
-			</Link>
 		)
 	},
 });

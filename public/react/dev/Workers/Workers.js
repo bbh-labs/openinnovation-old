@@ -1,42 +1,59 @@
 var Workers = React.createClass({
 	mixins: [ State ],
 	getInitialState: function() {
-		return {workers: []};
+		return {workers: [], members: []};
 	},
 	componentDidMount: function() {
-		OI.getProjectMembers({projectID: this.getParams().projectID});
+		var projectID = this.getParams().projectID;
+		var taskID = this.getParams().taskID;
+
+		OI.getProjectMembers({projectID: projectID});
+		OI.getTaskWorkers({taskID: taskID});
 
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
-			case "getProjectMembersDone":
+			case "getTaskWorkersDone":
 				this.setState({workers: payload.data.data});
+				break;
+			case "getProjectMembersDone":
+				this.setState({members: payload.data.data});
+				break;
+			case "assignWorkerDone":
+				OI.getProjectMembers({projectID: projectID});
+				OI.getTaskWorkers({taskID: taskID});
 				break;
 			}
 		}.bind(this));
 	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
 	render: function() {
+		var projectID = this.getParams().projectID;
 		var taskID = this.getParams().taskID;
-		var workers = this.props.project.workers;
+		var workers = this.state.workers;
+		var members = this.state.members;
 		return (
-			<div id="modal-workers" className="modal bottom-sheet">
-				<div className="modal-content">
-					<div className="container">
-						<ul className="collection">{
-							workers ? workers.map(function(m) {
-								return <Project.Tasks.WorkersModal.Item
-										key={m.id}
-										member={m}
-										isWorker={this.isWorker(m)}
-										task={task} />
-							}.bind(this)) : ""
-						}</ul>
-					</div>
+			<div className="row">
+				<div className="container">
+					<ul className="collection">{
+						members ? members.map(function(m) {
+							return <Workers.Item
+									key={m.id}
+									member={m}
+									isWorker={this.isWorker(m)}
+									taskID={taskID} />
+						}.bind(this)) : ""
+					}</ul>
+					<Link params={{projectID: projectID, taskID: taskID}}
+						className="btn waves-effect waves-light"
+						to="view-task">Back to Task</Link>
 				</div>
 			</div>
 		)
 	},
 	isWorker: function(member) {
-		var workers = this.props.task.workers;
+		var workers = this.state.workers;
 		if (!workers) {
 			workers = [];
 		}
@@ -67,7 +84,7 @@ Workers.Item = React.createClass({
 		)
 	},
 	handleClick: function(e) {
-		var taskID = this.props.task.id;
+		var taskID = this.props.taskID;
 		var memberID = this.props.member.id;
 
 		OI.assignWorker({

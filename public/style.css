@@ -134,10 +134,6 @@ header > nav {
 	cursor: pointer;
 }
 
-.input-button {
-	height: 3rem;
-}
-
 .intro header {
 	width: 100%;
 	position: absolute;
@@ -293,13 +289,6 @@ header > nav {
 .project .sidebar .card-content > * {
 	margin: 0;
 	text-align: center;
-}
-
-.task-worker {
-	border-radius: 50%;
-	width: 32px;
-	height: 32px;
-	margin: 0 4px;
 }
 
 .new-project .parallax-container,

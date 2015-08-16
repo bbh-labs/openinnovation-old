@@ -30,7 +30,6 @@ var UserPage = React.createClass({
 		var user = this.props.user;
 		if (!user) {
 			this.transitionTo("intro");
-			return;
 		}
 	},
 	componentWillUnmount: function() {

@@ -24,9 +24,9 @@ var google = {
 			scope: CLIENT_SCOPES,
 			authuser: authUser,
 			immediate: true,
-		}, this.handleClientAuth);
+		}, google.handleClientAuth);
 	},
-	handleClientAuth function(authResult) {
+	handleClientAuth: function(authResult) {
 		gapi.client.request({
 			path: "/oauth2/v1/userinfo",
 			callback: function(resp) {
@@ -37,19 +37,20 @@ var google = {
 		});
 
 		if (authResult && !authResult.error) {
-			this.plus.load();
-			this.gmail.load();
-			this.drive.load();
+			google.plus.load();
+			google.gmail.load();
+			google.drive.load();
 		} else {
 			console.log("Failed to load APIs");
 		}
 	},
 	plus: {
+		ready: false,
 		load: function() {
 			gapi.client.load("plus", "v1").then(function() {
 				dispatcher.dispatch({type: "googlePlusReady"});
-				googlePlusReady = true;
-			});
+				this.ready = true;
+			}.bind(this));
 		},
 		getPeople: function(userID, callback) {
 			var request = gapi.client.plus.people.get({
@@ -60,11 +61,12 @@ var google = {
 		},
 	},
 	gmail: {
+		ready: false,
 		load: function() {
 			gapi.client.load("gmail", "v1").then(function() {
 				dispatcher.dispatch({type: "googleMailReady"});
-				googleMailReady = true;
-			});
+				this.ready = true;
+			}.bind(this));
 		},
 		sendEmail: function(email, callback) {
 			if (typeof(email) != "string" || email == "") {
@@ -128,7 +130,7 @@ var google = {
 
 			getPageOfMessages(initialRequest, []);
 		},
-		getFullMessagesOfThreads function(threads, callback) {
+		getFullMessagesOfThreads: function(threads, callback) {
 			var batch = gapi.client.newBatch();
 			var getMessage = function(thread) {
 				return gapi.client.gmail.users.messages.get({
@@ -145,11 +147,12 @@ var google = {
 		},
 	},
 	drive: {
+		ready: false,
 		load: function() {
 			gapi.client.load("drive", "v2").then(function() {
 				dispatcher.dispatch({type: "googleDriveReady"});
-				googleDriveReady = true;
-			});
+				this.ready = true;
+			}.bind(this));
 		},
 		listFiles: function(params, callback, once) {
 			var retrievePageOfFiles = function(request, result) {
@@ -245,4 +248,9 @@ var google = {
 			request.execute(callback);
 		},
 	},
+};
+
+function onGoogleClientReady() {
+	google.onClientReady();
 }
+

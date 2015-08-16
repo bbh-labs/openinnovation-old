@@ -1,13 +1,9 @@
 var ViewTask = React.createClass({
-	mixins: [ State ],
+	mixins: [ Navigation, State ],
 	getInitialState: function() {
 		return {task: null, files: []};
 	},
 	componentDidMount: function() {
-		// Initialize Task Dates
-		this.refs.startDate.set("select", task.startDateStr, {format: "dd mmmm, yyyy"});
-		this.refs.endDate.set("select", task.endDateStr, {format: "dd mmmm, yyyy"});
-
 		// Fetch Task
 		this.fetchTask();
 
@@ -18,6 +14,21 @@ var ViewTask = React.createClass({
 				var task = payload.data.data;
 				if (task) {
 					this.setState({task: task});
+					this.refs.startDate.set("select", task.startDateStr, {format: "dd mmmm, yyyy"});
+					this.refs.endDate.set("select", task.endDateStr, {format: "dd mmmm, yyyy"});
+					this.fetchFiles(task.id);
+				}
+				break;
+			case "updateTaskDone":
+				Materialize.toast("Successfully updated task!", 1000);
+				break;
+			case "deleteTaskDone":
+				var task = this.state.task;
+				this.transitionTo("project", {projectID: task.projectID});
+				break;
+			case "googleDriveReady":
+				var task = this.state.task;
+				if (task) {
 					this.fetchFiles(task.id);
 				}
 				break;
@@ -39,59 +50,69 @@ var ViewTask = React.createClass({
 		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
-		var files = this.state.files;
 		var task = this.state.task;
+		if (!task) {
+			return <div/>
+		}
+		var files = this.state.files;
 		return (
-			<form id={this.props.id} onSubmit={this.handleSubmit}>
-				<div className="modal-content">
-					<div className="row">
-						<div className="input-field col s12">
-							<input id="task-title" type="text" className="validate" name="title" />
-							<label htmlFor="task-title" className="active">Title</label>
-						</div>
-						<div className="input-field col s12">
-							<textarea id="task-description" className="materialize-textarea" name="description"></textarea>
-							<label htmlFor="task-description" className="active">Description</label>
-						</div>
-						<div className="input-field col s6">
-							<DatePicker id="task-start-date" name="startDate" ref="startDate" />
-							<label htmlFor="task-start-date" className="active">Start Date</label>
-						</div>
-						<div className="input-field col s6">
-							<DatePicker id="task-end-date" name="endDate" ref="endDate" />
-							<label htmlFor="task-end-date" className="active">End Date</label>
-						</div>
-						<div className="input-field col s12">
-							<TagIt ref="tags" onChange={this.handleTagsChange} />
-						</div>
-						<div className="input-field col s12">
-							<p>Files</p>
-							<ul className="collection">
-							{
-								files ? files.map(function(f) {
-									return <Task.FileItem key={f.id} file={f} />
-								}) : ""
-							}
-							</ul>
-							<input type="file" name="file" onChange={this.handleFileInput} />
-						</div>
-						<div className="col s12 margin-top">
-							<Link className="waves-effect waves-light btn" to="workers">Assign Someone</Link>
-						</div>
-						<input type="hidden" ref="tagsInput" />
-						<input name="taskID" type="hidden" />
-						<input name="projectID" type="hidden" value={task.projectID} />
+			<form className="row" id={this.props.id} onSubmit={this.handleSubmit}>
+				<div className="container">
+					<div className="input-field col s12">
+						<input id="task-title" type="text" className="validate" name="title" defaultValue={task.title} />
+						<label htmlFor="task-title" className="active">Title</label>
 					</div>
-				</div>
-				<div className="input-field col s12">
-					<button type="submit" className="btn modal-action modal-close waves-effect waves-green right blue white-text">Done</button>
+					<div className="input-field col s12">
+						<textarea id="task-description" className="materialize-textarea" name="description" defaultValue={task.description}></textarea>
+						<label htmlFor="task-description" className="active">Description</label>
+					</div>
+					<div className="input-field col s6">
+						<DatePicker id="task-start-date" name="startDate" ref="startDate" />
+						<label htmlFor="task-start-date" className="active">Start Date</label>
+					</div>
+					<div className="input-field col s6">
+						<DatePicker id="task-end-date" name="endDate" ref="endDate" />
+						<label htmlFor="task-end-date" className="active">End Date</label>
+					</div>
+					<div className="input-field col s12">
+						<TagIt ref="tags" onChange={this.handleTagsChange} />
+					</div>
+					<div className="input-field col s12">
+						<p>Files</p>
+						<ul className="collection">{
+							files ? files.map(function(f) {
+								return <Task.FileItem key={f.id} file={f} />
+							}) : ""
+						}</ul>
+						<input type="file" name="file" onChange={this.handleFileInput} />
+					</div>
+					<div className="col s12 margin-top">
+						<Link className="waves-effect waves-light btn"
+							to="task_workers"
+							params={{projectID: task.projectID, taskID: task.id}}>Assign Someone</Link>
+					</div>
+					<input type="hidden" ref="tagsInput" />
+					<input name="taskID" type="hidden" defaultValue={task.id} />
+					<input name="projectID" type="hidden" defaultValue={task.projectID} />
+					<div className="input-field col s12">
+						<div className="left">
+							<button className="btn waves-effect waves-light red white-text"
+								onClick={this.handleDelete}>Delete</button>
+						</div>
+						<div className="right">
+							<Link className="btn waves-effect waves-green"
+								params={{projectID: task.projectID}}
+								to="project">Back to Project</Link>
+							<button type="submit" className="btn waves-effect waves-green blue white-text">Done</button>
+						</div>
+					</div>
 				</div>
 			</form>
 		)
 	},
 	handleSubmit: function(e) {
 		e.preventDefault();
-		OI.updateTask($(form).serialize());
+		OI.updateTask($(e.target).serialize());
 	},
 	handleDelete: function(e) {
 		e.preventDefault();
@@ -130,11 +151,13 @@ var ViewTask = React.createClass({
 	},
 	fetchFiles: function(taskID) {
 		var q = "properties has { key='taskID' and value='" + taskID + "' and visibility='PRIVATE' } and trashed=false";
-		google.drive.listFiles({q: q}, function(resp) {
-			if (resp) {
-				this.setState({files: resp});
-			}
-		}.bind(this), true);
+		if (google.drive.ready) {
+			google.drive.listFiles({q: q}, function(resp) {
+				if (resp) {
+					this.setState({files: resp});
+				}
+			}.bind(this), true);
+		}
 	},
 });
 

@@ -18,14 +18,13 @@ var PersonalizedTasks = React.createClass({
 		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
-		var task = this.state.task;
+		var tasks = this.state.tasks;
 		return (
 			<div className="tasks-of-the-day card">
 				<div className="card-content">
 					<h5>Personalized Tasks</h5>
 					<ul className="collection">{
-						state.tasks ?
-						state.tasks.map(function(t) {
+						tasks ? tasks.map(function(t) {
 							return <TaskItem key={t.id} task={t} />
 						}.bind(this)) : ""
 					}</ul>
