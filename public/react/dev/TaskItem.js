@@ -4,35 +4,30 @@ var TaskItem = React.createClass({
 	},
 	render: function() {
 		var task = this.props.task;
+		var workers = task.workers;
 		return (
 			<li className="collection-item" onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
-				<a href="" onClick={this.handleClick}>
+				<Link to="task" params={{task: task.id, projectID: task.projectID}} onClick={this.handleClick}>
 					{task.title}
-				</a>
+				</Link>
 				<div className="secondary-content">
 				{
-					this.props.task.workers ?
-					this.props.task.workers.map(function(w) {
+					workers ? workers.map(function(w) {
 						return <Project.Tasks.Worker key={w.id} worker={w} />
 					}) : ""
 				}
 					<i style={{cursor: "pointer", visibility: this.state.hovering || task.done ? "visible" : "hidden"}}
-					   onClick={this.handleToggleStatus}
-					   className={classNames("material-icons", task.done && "green-text")}>done</i>
+						onClick={this.handleToggleStatus}
+						className={classNames("material-icons", task.done && "green-text")}>done</i>
 				</div>
 			</li>
 		)
 	},
-	handleClick: function(e) {
-		if (this.props.onTaskClicked) {
-			this.props.onTaskClicked(e, this.props.task);
-		}
-		e.preventDefault();
-	},
 	handleToggleStatus: function(e) {
+		var task = this.props.task;
 		OI.toggleTaskStatus({
-			projectID: this.props.task.projectID,
-			taskID: this.props.task.id
+			projectID: task.projectID,
+			taskID: task.id
 		});
 	},
 	handleMouseEnter: function(e) {
@@ -49,7 +44,7 @@ var TaskItem = React.createClass({
 	doneElement: function(e) {
 		var task = this.props.task;
 		return <i style={{cursor: "pointer", visibility: this.state.hovering || task.done ? "visible" : "hidden"}}
-				  onClick={this.handleToggleStatus}
-				  className={classNames("material-icons", task.done && "green-text")}>done</i>
+			  onClick={this.handleToggleStatus}
+			  className={classNames("material-icons", task.done && "green-text")}>done</i>
 	},
 });

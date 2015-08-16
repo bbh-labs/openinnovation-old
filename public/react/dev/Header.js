@@ -64,7 +64,7 @@ var Header = React.createClass({
 		)
 	},
 	fetchMails: function() {
-		listThreads({
+		google.gmail.listThreads({
 			q: OI.getMailPreference(),
 			maxResults: 10,
 		}, function(threads) {
@@ -72,7 +72,7 @@ var Header = React.createClass({
 				return;
 			}
 
-			getFullMessagesOfThreads(threads, function(messages) {
+			google.gmail.getFullMessagesOfThreads(threads, function(messages) {
 				var ms = [];
 				for (key in messages) {
 					ms.push(messages[key]);
@@ -164,7 +164,7 @@ Header.MailDropdown.Image = React.createClass({
 	},
 	handleLoadImage: function(email) {
 		var element = React.findDOMNode(this);
-		getPeople(email, function(resp) {
+		google.plus.getPeople(email, function(resp) {
 			if (!resp.image) {
 				return;
 			}

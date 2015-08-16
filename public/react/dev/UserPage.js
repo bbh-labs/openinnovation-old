@@ -20,8 +20,8 @@ var UserPage = React.createClass({
 					this.ws.send(JSON.stringify(payload.data));
 				}
 				break;
-			case "googleClientIsReady":
-				initGoogleAPIs();
+			case "googleClientReady":
+				google.initAPIs();
 				break;
 			}
 		}.bind(this));

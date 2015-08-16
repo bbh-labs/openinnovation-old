@@ -1,22 +1,13 @@
 Project.Tasks = React.createClass({
-	getInitialState: function() {
-		return {clickedTask: -1};
-	},
-	componentDidMount: function() {
-		$(React.findDOMNode(this.refs.modalTrigger)).leanModal({
-			dismissable: true,
-		});
-	},
 	render: function() {
-		var project = this.props.project;
-		var clickedTask = this.state.clickedTask;
+		var tasks = this.props.project.tasks;
 		return (
 			<div id="project-tasks" className="col s12">
 				<div className="main col s12">
 					<div className="input-field col s12 m3 offset-m9">
 						<button className="btn waves-effect waves-light modal-trigger input-button col s12"
-								ref="modalTrigger"
-								data-target="create-task">
+							ref="modalTrigger"
+							data-target="create-task">
 							Add Task
 						</button>
 					</div>
@@ -25,9 +16,9 @@ Project.Tasks = React.createClass({
 					</div>
 					<div className="col s12">
 						<ul ref="todo" className="collection task-group">{
-							this.props.project.tasks ? this.props.project.tasks.map(function(t) {
+							tasks ? tasks.map(function(t) {
 								if (!t.done) {
-									return <TaskItem key={t.id} task={t} onTaskClicked={this.onTaskClicked} />
+									return <TaskItem key={t.id} task={t} />
 								}
 							}.bind(this)) : ""
 						}</ul>
@@ -36,14 +27,10 @@ Project.Tasks = React.createClass({
 						<h5>Done</h5>
 					</div>
 					<div className="col s12">
-						<Project.Tasks.WorkersModal project={project} clickedTask={clickedTask} />
-						<Project.Tasks.Modal id="create-task" project={project} clickedTask={clickedTask} type="create" />
-						<Project.Tasks.Modal id="view-task" project={project} clickedTask={clickedTask} type="view" />
 						<ul ref="done" className="collection task-group">{
-							this.props.project.tasks ?
-							this.props.project.tasks.map(function(t) {
+							tasks ? tasks.map(function(t) {
 								if (t.done) {
-									return <TaskItem key={t.id} task={t} onTaskClicked={this.onTaskClicked} />
+									return <TaskItem key={t.id} task={t} />
 								}
 							}.bind(this)) : ""
 						}</ul>
@@ -51,14 +38,6 @@ Project.Tasks = React.createClass({
 				</div>
 			</div>
 		)
-	},
-	onTaskClicked: function(e, task) {
-		this.setState({clickedTask: task.id});
-
-		dispatcher.dispatch({
-			type: "viewTask",
-			data: task,
-		});
 	},
 });
 
@@ -69,12 +48,8 @@ Project.Tasks.Worker = React.createClass({
 	render: function() {
 		var worker = this.props.worker;
 		return (
-			<Link to="user" params={{userID: worker.id}}
-					data-position="bottom"
-					data-delay="50"
-					data-tooltip={worker.fullname}>
-				<img className="task-worker tooltipped"
-						src={worker.avatarURL}/>
+			<Link to="user" params={{userID: worker.id}} data-position="bottom" data-delay="50" data-tooltip={worker.fullname}>
+				<img className="tooltipped" src={worker.avatarURL}/>
 			</Link>
 		)
 	},

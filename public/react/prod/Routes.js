@@ -7,7 +7,10 @@ var routes = (
 			React.createElement(Route, {handler: Dashboard, name: "dashboard"}), 
 			React.createElement(Route, {handler: Project, name: "project", path: "/project/:projectID"}), 
 			React.createElement(Route, {handler: EditProject, name: "edit-project", path: "/project/:projectID/edit"}), 
-			React.createElement(Route, {handler: NewProject, name: "new-project"}), 
+			React.createElement(Route, {handler: NewProject, name: "new-project", path: "/project"}), 
+			React.createElement(Route, {handler: CreateTask, name: "create-task", path: "/task"}), 
+			React.createElement(Route, {handler: ViewTask, name: "view-task", path: "/task/:taskID"}), 
+			React.createElement(Route, {handler: Workers, name: "task", path: "/task/:taskID/workers"}), 
 			React.createElement(Route, {handler: User, name: "user", path: "/user/:userID"}), 
 			React.createElement(Route, {handler: Settings, name: "settings"})
 		)

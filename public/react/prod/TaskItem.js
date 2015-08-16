@@ -4,35 +4,30 @@ var TaskItem = React.createClass({displayName: "TaskItem",
 	},
 	render: function() {
 		var task = this.props.task;
+		var workers = task.workers;
 		return (
 			React.createElement("li", {className: "collection-item", onMouseEnter: this.handleMouseEnter, onMouseLeave: this.handleMouseLeave}, 
-				React.createElement("a", {href: "", onClick: this.handleClick}, 
+				React.createElement(Link, {to: "task", params: {task: task.id, projectID: task.projectID}, onClick: this.handleClick}, 
 					task.title
 				), 
 				React.createElement("div", {className: "secondary-content"}, 
 				
-					this.props.task.workers ?
-					this.props.task.workers.map(function(w) {
+					workers ? workers.map(function(w) {
 						return React.createElement(Project.Tasks.Worker, {key: w.id, worker: w})
 					}) : "", 
 				
 					React.createElement("i", {style: {cursor: "pointer", visibility: this.state.hovering || task.done ? "visible" : "hidden"}, 
-					   onClick: this.handleToggleStatus, 
-					   className: classNames("material-icons", task.done && "green-text")}, "done")
+						onClick: this.handleToggleStatus, 
+						className: classNames("material-icons", task.done && "green-text")}, "done")
 				)
 			)
 		)
 	},
-	handleClick: function(e) {
-		if (this.props.onTaskClicked) {
-			this.props.onTaskClicked(e, this.props.task);
-		}
-		e.preventDefault();
-	},
 	handleToggleStatus: function(e) {
+		var task = this.props.task;
 		OI.toggleTaskStatus({
-			projectID: this.props.task.projectID,
-			taskID: this.props.task.id
+			projectID: task.projectID,
+			taskID: task.id
 		});
 	},
 	handleMouseEnter: function(e) {
@@ -49,7 +44,7 @@ var TaskItem = React.createClass({displayName: "TaskItem",
 	doneElement: function(e) {
 		var task = this.props.task;
 		return React.createElement("i", {style: {cursor: "pointer", visibility: this.state.hovering || task.done ? "visible" : "hidden"}, 
-				  onClick: this.handleToggleStatus, 
-				  className: classNames("material-icons", task.done && "green-text")}, "done")
+			  onClick: this.handleToggleStatus, 
+			  className: classNames("material-icons", task.done && "green-text")}, "done")
 	},
 });
