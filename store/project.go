@@ -111,6 +111,9 @@ func SaveProjectImage(w http.ResponseWriter, r *http.Request, projectID int64) (
 	url := fmt.Sprintf(ProjectImageURL, projectID)
 	finalURL, header, err := httputil.SaveFileWithExtension(w, r, "image", url)
 	if err != nil || header == nil {
+		if err := os.Chdir(".."); err != nil {
+			return false, debug.Error(err)
+		}
 		return false, nil
 	}
 
