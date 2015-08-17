@@ -20,6 +20,8 @@ var ViewTask = React.createClass({
 				}
 				break;
 			case "updateTaskDone":
+				var task = this.state.task;
+				this.transitionTo("project", {projectID: task.projectID});
 				Materialize.toast("Successfully updated task!", 1000);
 				break;
 			case "deleteTaskDone":
@@ -36,11 +38,14 @@ var ViewTask = React.createClass({
 				this.setState({files: payload.data.data});
 				break;
 			case "createTaskFileDone":
-				this.fetchFiles(this.taskID);
+			case "updateTaskFileDone":
+				var task = this.state.task;
+				this.fetchFiles(task.id);
 				break;
 			case "deleteTaskFile":
+				var task = this.state.task;
 				google.drive.deleteFile(payload.fileID, function(resp) {
-					this.fetchFiles(this.taskID);
+					this.fetchFiles(task.id);
 				}.bind(this));
 				break;
 			}
@@ -81,31 +86,27 @@ var ViewTask = React.createClass({
 						<p>Files</p>
 						<ul className="collection">{
 							files ? files.map(function(f) {
-								return <ViewTask.FileItem key={f.id} file={f} />
+								return <ViewTask.FileItem key={f.id} task={task} file={f} />
 							}) : ""
 						}</ul>
 						<input type="file" name="file" onChange={this.handleFileInput} />
 					</div>
 					<div className="col s12 margin-top">
-						<Link className="waves-effect waves-light btn"
-							to="task_workers"
-							params={{projectID: task.projectID, taskID: task.id}}>Assign Someone</Link>
+						<Link className="waves-effect waves-light btn" to="task_workers" params={{projectID: task.projectID, taskID: task.id}}>Assign Someone</Link>
 					</div>
 					<input type="hidden" ref="tagsInput" />
 					<input name="taskID" type="hidden" defaultValue={task.id} />
 					<input name="projectID" type="hidden" defaultValue={task.projectID} />
 					<div className="input-field col s12">
 						<div className="left">
-							<button className="btn waves-effect waves-light red white-text"
-								onClick={this.handleDelete}>Delete</button>
+							<button className="btn waves-effect waves-light red white-text" onClick={this.handleDelete}>Delete</button>
 						</div>
 						<div className="right">
-							<Link className="btn waves-effect waves-green"
-								params={{projectID: task.projectID}}
-								to="project">Back to Project</Link>
+							<Link className="btn waves-effect waves-green" params={{projectID: task.projectID}} to="project">Back to Project</Link>
 							<button type="submit" className="btn waves-effect waves-green blue white-text">Done</button>
 						</div>
 					</div>
+					<ViewTask.RevisionsModal />
 				</div>
 			</form>
 		)
@@ -164,8 +165,18 @@ var ViewTask = React.createClass({
 ViewTask.FileItem = React.createClass({
 	styles: {
 		icon: {
+			visibility: "hidden",
 			cursor: "pointer",
 		},
+		label: {
+			visibility: "hidden",
+			cursor: "pointer",
+			position: "static",
+			color: "black",
+		},
+		visible: {
+			visibility: "visible",
+		}
 	},
 	getInitialState: function() {
 		return {hover: false};
@@ -177,10 +188,20 @@ ViewTask.FileItem = React.createClass({
 				<img src={file.thumbnailLink} className="circle" />
 				<a href={file.webContentLink}>
 					{file.title}<br/>
-					{this.humanFileSize(file.fileSize)}
+					{this.humanFileSize(file.fileSize)}<br/>
+					<small>Last modified <strong>{moment(file.modifiedDate).fromNow()}</strong> by <strong>{file.lastModifyingUserName}</strong></small>
+					
 				</a>
 				<span className="secondary-content">
-					{this.state.hover ? <i className="material-icons" style={this.styles.icon} onClick={this.handleDelete}>delete</i> : ""}
+					<i className="material-icons" style={m(this.styles.icon, this.state.hover && this.styles.visible)} onClick={this.handleListRevisions}>list</i>
+					<label style={m(this.styles.label, this.state.hover && this.styles.visible)}>
+						<i className="material-icons">
+							file_upload
+							<input type="file" style={{display: "none"}} onChange={this.handleFileUpdate} />
+						</i>
+					</label>
+					<i className="material-icons" style={m(this.styles.icon, this.state.hover && this.styles.visible)} onClick={this.handleDelete}>delete</i>
+					<i className="material-icons" style={m(this.styles.icon, this.state.hover && this.styles.visible)} onClick={this.handleShare}>share</i>
 				</span>
 			</li>
 		)
@@ -191,8 +212,26 @@ ViewTask.FileItem = React.createClass({
 	handleMouseOut: function(e) {
 		this.setState({hover: false});
 	},
+	handleListRevisions: function(e) {
+		dispatcher.dispatch({type: "showRevisionsModal", fileID: this.props.file.id});
+	},
+	handleFileUpdate: function(e) {
+		var task = this.props.task;
+		if (task) {
+			var fileID = this.props.file.id;
+			var files = e.target.files;
+			if (files && files.length > 0) {
+				google.drive.updateFile(fileID, files[0], function(resp) {
+					dispatcher.dispatch({type: "updateTaskFileDone"});
+				}.bind(this));
+			}
+		}
+	},
 	handleDelete: function(e) {
 		dispatcher.dispatch({type: "deleteTaskFile", fileID: this.props.file.id});
+	},
+	handleShare: function(e) {
+		google.drive.share.show([this.props.file.id]);
 	},
 	humanFileSize: function(size) {
 		var sizes = [ " bytes", "KB", "MB", "GB" ];
@@ -204,5 +243,75 @@ ViewTask.FileItem = React.createClass({
 		}
 
 		return (size.toFixed(2)) + sizes[i];
+	},
+});
+
+ViewTask.RevisionsModal = React.createClass({
+	getInitialState: function() {
+		return {revisions: []};
+	},
+	componentDidMount: function() {
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "showRevisionsModal":
+				this.show(payload.fileID);
+				break;
+			}
+		}.bind(this));
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
+	render: function() {
+		var revisions = this.state.revisions;
+		return (
+			<div className="modal">
+				<div className="modal-content">
+					<h5>Revisions</h5>
+					<ul className="collection">{
+						revisions ? revisions.map(function(r, i) {
+							return (
+								<ViewTask.RevisionItem key={r.id} revision={r} index={i} />
+							)
+						}) : ""
+					}</ul>
+				</div>
+			</div>
+		)
+	},
+	show: function(fileID) {
+		this.setState({revisions: []});
+		
+		google.drive.listRevisions(fileID, function(resp) {
+			if (resp.items) {
+				this.setState({revisions: resp.items});
+			}
+		}.bind(this));
+
+		$(React.findDOMNode(this)).openModal();
+	},
+});
+
+ViewTask.RevisionItem = React.createClass({
+	render: function() {
+		var r = this.props.revision;
+		var index = this.props.index;
+		return (
+			<li className="collection-item">
+				<a href="" style={{display: "block"}} onClick={this.handleClick}>
+					Revision #{index}
+					<span className="secondary-content">
+						Last modified <strong>{moment(r.modifiedDate).fromNow()}</strong> by <strong>{r.lastModifyingUserName}</strong>
+					</span>
+				</a>
+			</li>
+		)
+	},
+	handleClick: function(e) {
+		e.preventDefault();
+
+		var r = this.props.revision;
+		google.drive.downloadFile(r, function(resp) {
+		});
 	},
 });

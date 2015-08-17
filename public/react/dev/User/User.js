@@ -48,7 +48,6 @@ User.Content = React.createClass({
 						<div className="card">
 							<div className="card-content">
 								<User.Content.AvatarContainer viewedUser={viewedUser} />
-								<User.Content.ImageCropperModal viewedUser={viewedUser} />
 							</div>
 							<div className="card-action">
 								<User.Content.Fullname user={user} viewedUser={viewedUser} />
@@ -57,8 +56,8 @@ User.Content = React.createClass({
 							</div>
 							<div className="card-action">
 							{
-								viewedUser.isFriend ? <button className="btn waves-effect waves-light" onClick={this.handleRemoveFriend}>Remove Friend</button> :
-												<button className="btn waves-effect waves-light" onClick={this.handleAddFriend}>Add Friend</button>
+								viewedUser.isFriend ?
+								<button className="btn waves-effect waves-light" onClick={this.handleRemoveFriend}>Remove Friend</button> : <button className="btn waves-effect waves-light" onClick={this.handleAddFriend}>Add Friend</button>
 							}
 							</div>
 						</div>
@@ -92,23 +91,13 @@ User.Content.AvatarContainer = React.createClass({
 			margin: "0 auto",
 		},
 	},
-	getInitialState: function() {
-		return {hovering: false};
-	},
 	render: function() {
 		var viewedUser = this.props.viewedUser;
 		return (
-			<div style={this.styles.container} onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
+			<div style={this.styles.container}>
 				<User.Content.Avatar viewedUser={viewedUser} />
-				<User.Content.Overlay hovering={this.state.hovering} />
 			</div>
 		)
-	},
-	handleMouseEnter: function(e) {
-		this.setState({hovering: true});
-	},
-	handleMouseLeave: function(e) {
-		this.setState({hovering: false});
 	},
 });
 
@@ -123,106 +112,19 @@ User.Content.Avatar = React.createClass({
 			width: "100%",
 			height: "100%",
 		},
-		input: {
-			display: "none",
-		},
 	},
 	mixins: [ Navigation ],
-	componentDidMount: function() {
-		this.dispatchID = dispatcher.register(function(payload) {
-			switch (payload.type) {
-			case "createProjectDone":
-				this.transitionTo("project", {projectID: payload.data.data});
-				break;
-			case "createProjectFail":
-				switch (payload.data.status) {
-				default:
-					Materialize.toast(payload.data.responseText, 3000, "red white-text");
-					break;
-				case 500:
-					Materialize.toast("Something went wrong when creating the new project..", 3000, "red white-text");
-					break;
-				}
-				break;
-			}
-		}.bind(this));
-	},
 	render: function() {
 		var viewedUser = this.props.viewedUser;
-		var date = new Date();
 		return (
 			<div style={this.styles.container}>
-				<label htmlFor="avatar-input">
-					<img style={this.styles.image} className="circle" src={viewedUser.avatarURL + "?tmp=" + date.getTime()} />
-				</label>
-				<input id="avatar-input" type="file" style={this.styles.input} onChange={this.onChange} />
-			</div>
-		)
-	},
-	onChange: function(e) {
-		var reader = new FileReader();
-
-		reader.onload = function(e) {
-			dispatcher.dispatch({
-				type: "openUserImageCropper",
-				data: e.target.result,
-			});
-		}.bind(this);
-
-		reader.readAsDataURL(e.target.files[0]);
-	},
-});
-
-User.Content.Overlay = React.createClass({
-	styles: {
-		container: {
-			position: "absolute",
-			width: "100%",
-			height: "100%",
-			borderRadius: "50%",
-			background: "black",
-			transition: "opacity .2s",
-			pointerEvents: "none",
-			opacity: 0,
-		},
-		hovering: {
-			opacity: 0.5,
-		},
-		text: {
-			color: "white"
-		},
-	},
-	render: function() {
-		return (
-			<div className="valign-wrapper" style={m(this.styles.container, this.props.hovering && this.styles.hovering)}>
-				<div className="valign" style={{margin: "0 auto"}}>
-					<p style={this.styles.text}>Change profile picture</p>
-				</div>
+				<img style={this.styles.image} className="circle" src={viewedUser.avatarURL} />
 			</div>
 		)
 	},
 });
 
 User.Content.Fullname = React.createClass({
-	componentDidMount: function() {
-		if (this.props.user.id != this.props.viewedUser.id) {
-			return;
-		}
-
-		var fullname = React.findDOMNode(this);
-		$(fullname).editable({
-			url: "/api/user",
-			send: "always",
-			emptytext: "Enter fullname",
-			params: function(params) {
-				params.fullname = params.value;
-				return params;
-			},
-			success: function(resp) {
-				dispatcher.dispatch({type: "updateUserDone"});
-			},
-		});
-	},
 	render: function() {
 		return (
 			<h5>{this.props.viewedUser.fullname}</h5>
@@ -236,26 +138,6 @@ User.Content.Title = React.createClass({
 			display: "inline",
 		},
 	},
-	componentDidMount: function() {
-		if (this.props.user.id != this.props.viewedUser.id) {
-			return;
-		}
-
-		var title = React.findDOMNode(this);
-		$(title).editable({
-			pk: 1,
-			url: "/api/user",
-			send: "auto",
-			emptytext: "Enter title",
-			params: function(params) {
-				params.title = params.value;
-				return params;
-			},
-			success: function(resp) {
-				dispatcher.dispatch({type: "updateUserDone"});
-			},
-		});
-	},
 	render: function() {
 		return (
 			<p style={this.styles.container}>{this.props.viewedUser.title}</p>
@@ -268,8 +150,7 @@ User.Content.Interests = React.createClass({
 		var interests = this.props.viewedUser.interests;
 		return (
 			<TagIt onChange={this.handleOnChange}>{
-				interests ?
-				interests.map(function(interest) {
+				interests ? interests.map(function(interest) {
 					return <li>{interest}</li>
 				}) : ""
 			}</TagIt>
@@ -288,54 +169,17 @@ User.Content.Interests = React.createClass({
 });
 
 User.Content.Description = React.createClass({
-	getInitialState: function() {
-		return {hovering: false, editMode: false};
-	},
 	render: function() {
 		var viewedUser = this.props.viewedUser;
-		var editMode = this.state.editMode;
 		return (
 			<div className="card">
-				<div className={classNames("card-content", editMode && "blue white-text")}>
+				<div className={"card-content"}>
 					<div onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
-						<h5>
-							Description
-						{
-							this.state.hovering || this.state.editMode ?
-							<i className="material-icons edit-icon" onClick={this.handleClick}>{this.state.editMode ? "done" : "edit mode"}</i> : ""
-						}
-						</h5>
-						<p ref="description" contentEditable={this.state.editMode} onKeyPress={this.handleKeyPress}>
-							{viewedUser.description}
-						</p>
+						<h5>Description</h5>
+						<p>{viewedUser.description}</p>
 					</div>
 				</div>
 			</div>
 		)
-	},
-	handleKeyPress: function(e) {
-		if (this.state.editMode && e.charCode == 13) {
-			this.setState({editMode: false});
-			this.onUpdate();
-		}
-	},
-	handleMouseEnter: function(e) {
-		this.setState({hovering: true});
-	},
-	handleMouseLeave: function(e) {
-		this.setState({hovering: false});
-	},
-	handleClick: function(e) {
-		var editMode = this.state.editMode;
-		this.setState({editMode: !editMode});
-		this.onUpdate();
-	},
-	onUpdate: function() {
-		var description = React.findDOMNode(this.refs.description);
-		if (editMode) {
-			var text = $(description).text();
-			$(description).html(text);
-			OI.updateUser({description: text});
-		}
 	},
 });

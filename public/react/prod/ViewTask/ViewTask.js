@@ -20,6 +20,8 @@ var ViewTask = React.createClass({displayName: "ViewTask",
 				}
 				break;
 			case "updateTaskDone":
+				var task = this.state.task;
+				this.transitionTo("project", {projectID: task.projectID});
 				Materialize.toast("Successfully updated task!", 1000);
 				break;
 			case "deleteTaskDone":
@@ -36,11 +38,14 @@ var ViewTask = React.createClass({displayName: "ViewTask",
 				this.setState({files: payload.data.data});
 				break;
 			case "createTaskFileDone":
-				this.fetchFiles(this.taskID);
+			case "updateTaskFileDone":
+				var task = this.state.task;
+				this.fetchFiles(task.id);
 				break;
 			case "deleteTaskFile":
+				var task = this.state.task;
 				google.drive.deleteFile(payload.fileID, function(resp) {
-					this.fetchFiles(this.taskID);
+					this.fetchFiles(task.id);
 				}.bind(this));
 				break;
 			}
@@ -81,31 +86,27 @@ var ViewTask = React.createClass({displayName: "ViewTask",
 						React.createElement("p", null, "Files"), 
 						React.createElement("ul", {className: "collection"}, 
 							files ? files.map(function(f) {
-								return React.createElement(ViewTask.FileItem, {key: f.id, file: f})
+								return React.createElement(ViewTask.FileItem, {key: f.id, task: task, file: f})
 							}) : ""
 						), 
 						React.createElement("input", {type: "file", name: "file", onChange: this.handleFileInput})
 					), 
 					React.createElement("div", {className: "col s12 margin-top"}, 
-						React.createElement(Link, {className: "waves-effect waves-light btn", 
-							to: "task_workers", 
-							params: {projectID: task.projectID, taskID: task.id}}, "Assign Someone")
+						React.createElement(Link, {className: "waves-effect waves-light btn", to: "task_workers", params: {projectID: task.projectID, taskID: task.id}}, "Assign Someone")
 					), 
 					React.createElement("input", {type: "hidden", ref: "tagsInput"}), 
 					React.createElement("input", {name: "taskID", type: "hidden", defaultValue: task.id}), 
 					React.createElement("input", {name: "projectID", type: "hidden", defaultValue: task.projectID}), 
 					React.createElement("div", {className: "input-field col s12"}, 
 						React.createElement("div", {className: "left"}, 
-							React.createElement("button", {className: "btn waves-effect waves-light red white-text", 
-								onClick: this.handleDelete}, "Delete")
+							React.createElement("button", {className: "btn waves-effect waves-light red white-text", onClick: this.handleDelete}, "Delete")
 						), 
 						React.createElement("div", {className: "right"}, 
-							React.createElement(Link, {className: "btn waves-effect waves-green", 
-								params: {projectID: task.projectID}, 
-								to: "project"}, "Back to Project"), 
+							React.createElement(Link, {className: "btn waves-effect waves-green", params: {projectID: task.projectID}, to: "project"}, "Back to Project"), 
 							React.createElement("button", {type: "submit", className: "btn waves-effect waves-green blue white-text"}, "Done")
 						)
-					)
+					), 
+					React.createElement(ViewTask.RevisionsModal, null)
 				)
 			)
 		)
@@ -164,8 +165,18 @@ var ViewTask = React.createClass({displayName: "ViewTask",
 ViewTask.FileItem = React.createClass({displayName: "FileItem",
 	styles: {
 		icon: {
+			visibility: "hidden",
 			cursor: "pointer",
 		},
+		label: {
+			visibility: "hidden",
+			cursor: "pointer",
+			position: "static",
+			color: "black",
+		},
+		visible: {
+			visibility: "visible",
+		}
 	},
 	getInitialState: function() {
 		return {hover: false};
@@ -177,10 +188,20 @@ ViewTask.FileItem = React.createClass({displayName: "FileItem",
 				React.createElement("img", {src: file.thumbnailLink, className: "circle"}), 
 				React.createElement("a", {href: file.webContentLink}, 
 					file.title, React.createElement("br", null), 
-					this.humanFileSize(file.fileSize)
+					this.humanFileSize(file.fileSize), React.createElement("br", null), 
+					React.createElement("small", null, "Last modified ", React.createElement("strong", null, moment(file.modifiedDate).fromNow()), " by ", React.createElement("strong", null, file.lastModifyingUserName))
+					
 				), 
 				React.createElement("span", {className: "secondary-content"}, 
-					this.state.hover ? React.createElement("i", {className: "material-icons", style: this.styles.icon, onClick: this.handleDelete}, "delete") : ""
+					React.createElement("i", {className: "material-icons", style: m(this.styles.icon, this.state.hover && this.styles.visible), onClick: this.handleListRevisions}, "list"), 
+					React.createElement("label", {style: m(this.styles.label, this.state.hover && this.styles.visible)}, 
+						React.createElement("i", {className: "material-icons"}, 
+							"file_upload", 
+							React.createElement("input", {type: "file", style: {display: "none"}, onChange: this.handleFileUpdate})
+						)
+					), 
+					React.createElement("i", {className: "material-icons", style: m(this.styles.icon, this.state.hover && this.styles.visible), onClick: this.handleDelete}, "delete"), 
+					React.createElement("i", {className: "material-icons", style: m(this.styles.icon, this.state.hover && this.styles.visible), onClick: this.handleShare}, "share")
 				)
 			)
 		)
@@ -191,8 +212,26 @@ ViewTask.FileItem = React.createClass({displayName: "FileItem",
 	handleMouseOut: function(e) {
 		this.setState({hover: false});
 	},
+	handleListRevisions: function(e) {
+		dispatcher.dispatch({type: "showRevisionsModal", fileID: this.props.file.id});
+	},
+	handleFileUpdate: function(e) {
+		var task = this.props.task;
+		if (task) {
+			var fileID = this.props.file.id;
+			var files = e.target.files;
+			if (files && files.length > 0) {
+				google.drive.updateFile(fileID, files[0], function(resp) {
+					dispatcher.dispatch({type: "updateTaskFileDone"});
+				}.bind(this));
+			}
+		}
+	},
 	handleDelete: function(e) {
 		dispatcher.dispatch({type: "deleteTaskFile", fileID: this.props.file.id});
+	},
+	handleShare: function(e) {
+		google.drive.share.show([this.props.file.id]);
 	},
 	humanFileSize: function(size) {
 		var sizes = [ " bytes", "KB", "MB", "GB" ];
@@ -204,5 +243,75 @@ ViewTask.FileItem = React.createClass({displayName: "FileItem",
 		}
 
 		return (size.toFixed(2)) + sizes[i];
+	},
+});
+
+ViewTask.RevisionsModal = React.createClass({displayName: "RevisionsModal",
+	getInitialState: function() {
+		return {revisions: []};
+	},
+	componentDidMount: function() {
+		this.dispatchID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case "showRevisionsModal":
+				this.show(payload.fileID);
+				break;
+			}
+		}.bind(this));
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.dispatchID);
+	},
+	render: function() {
+		var revisions = this.state.revisions;
+		return (
+			React.createElement("div", {className: "modal"}, 
+				React.createElement("div", {className: "modal-content"}, 
+					React.createElement("h5", null, "Revisions"), 
+					React.createElement("ul", {className: "collection"}, 
+						revisions ? revisions.map(function(r, i) {
+							return (
+								React.createElement(ViewTask.RevisionItem, {key: r.id, revision: r, index: i})
+							)
+						}) : ""
+					)
+				)
+			)
+		)
+	},
+	show: function(fileID) {
+		this.setState({revisions: []});
+		
+		google.drive.listRevisions(fileID, function(resp) {
+			if (resp.items) {
+				this.setState({revisions: resp.items});
+			}
+		}.bind(this));
+
+		$(React.findDOMNode(this)).openModal();
+	},
+});
+
+ViewTask.RevisionItem = React.createClass({displayName: "RevisionItem",
+	render: function() {
+		var r = this.props.revision;
+		var index = this.props.index;
+		return (
+			React.createElement("li", {className: "collection-item"}, 
+				React.createElement("a", {href: "", style: {display: "block"}, onClick: this.handleClick}, 
+					"Revision #", index, 
+					React.createElement("span", {className: "secondary-content"}, 
+						"Last modified ", React.createElement("strong", null, moment(r.modifiedDate).fromNow()), " by ", React.createElement("strong", null, r.lastModifyingUserName)
+					)
+				)
+			)
+		)
+	},
+	handleClick: function(e) {
+		e.preventDefault();
+
+		var r = this.props.revision;
+		google.drive.downloadFile(r, function(resp) {
+		});
 	},
 });
