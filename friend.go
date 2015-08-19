@@ -23,6 +23,14 @@ func GetFriends(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for i := range users {
+		if _, ok := h.connections[users[i].ID()]; ok {
+			users[i].SetStatus("Online")
+		} else {
+			users[i].SetStatus("Offline")
+		}
+	}
+
 	response.OK(w, users)
 }
 

@@ -1,7 +1,20 @@
 var ViewTask = React.createClass({
+	styles: {
+		uploadBox: {
+			position: "static",
+			verticalAlign: "middle",
+			cursor: "pointer",
+			padding: "8px",
+			border: "1px solid #bbbbbb",
+		},
+		icon: {
+			display: "inline",
+			verticalAlign: "middle",
+		},
+	},
 	mixins: [ Navigation, State ],
 	getInitialState: function() {
-		return {task: null, files: []};
+		return {task: null, files: [], fetchingFiles: false};
 	},
 	componentDidMount: function() {
 		// Fetch Task
@@ -60,9 +73,11 @@ var ViewTask = React.createClass({
 			return <div/>
 		}
 		var files = this.state.files;
+		var fetchingFiles = this.state.fetchingFiles;
 		return (
 			<form className="row" id={this.props.id} onSubmit={this.handleSubmit}>
 				<div className="container">
+					<h4 style={{margin: 0, padding: "8px 8px 32px 8px"}}>Task {task.id}</h4>
 					<div className="input-field col s12">
 						<input id="task-title" type="text" className="validate" name="title" defaultValue={task.title} />
 						<label htmlFor="task-title" className="active">Title</label>
@@ -84,15 +99,22 @@ var ViewTask = React.createClass({
 					</div>
 					<div className="input-field col s12">
 						<p>Files</p>
+					{
+						fetchingFiles ?
+						<div style={{margin: "16px 0"}}><Spinner /></div> :
 						<ul className="collection">{
 							files ? files.map(function(f) {
 								return <ViewTask.FileItem key={f.id} task={task} file={f} />
-							}) : ""
+							}) : "" 
 						}</ul>
-						<input type="file" name="file" onChange={this.handleFileInput} />
+					}
+						<label className="grey lighten-2 black-text" style={this.styles.uploadBox}>
+							<i className="material-icons" style={this.styles.icon}>attach_file</i>Attach file to task
+							<input type="file" name="file" onChange={this.handleFileInput} style={{display: "none"}} />
+						</label>
 					</div>
 					<div className="col s12 margin-top">
-						<Link className="waves-effect waves-light btn" to="task_workers" params={{projectID: task.projectID, taskID: task.id}}>Assign Someone</Link>
+						<Link className="waves-effect waves-light btn" to="task_workers" params={{projectID: task.projectID, taskID: task.id}}>Assign Task</Link>
 					</div>
 					<input type="hidden" ref="tagsInput" />
 					<input name="taskID" type="hidden" defaultValue={task.id} />
@@ -152,11 +174,14 @@ var ViewTask = React.createClass({
 	},
 	fetchFiles: function(taskID) {
 		var q = "properties has { key='taskID' and value='" + taskID + "' and visibility='PRIVATE' } and trashed=false";
+
+		this.setState({fetchingFiles: true});
 		if (google.drive.ready) {
 			google.drive.listFiles({q: q}, function(resp) {
 				if (resp) {
 					this.setState({files: resp});
 				}
+				this.setState({fetchingFiles: false});
 			}.bind(this), true);
 		}
 	},

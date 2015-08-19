@@ -40,6 +40,8 @@ type User interface {
 	UpdateInterests(interests []string) error
 	UpdateAvatarURL(url string) error
 
+	SetStatus(status string)
+
 	IsMember(projectID int64) bool
 	IsAuthor(projectID int64) bool
 	IsAdmin() bool
@@ -61,6 +63,7 @@ type user struct {
 
 	IsFriend         bool      `json:"isFriend,omitempty"`
 	Interests_       []string  `json:"interests"`
+	Status           string    `json:"status,omitempty"`
 }
 
 func (u user) ID() int64 {
@@ -77,6 +80,10 @@ func (u user) IsAdmin() bool {
 
 func (u user) Exists() bool {
 	return u.Email != ""
+}
+
+func (u user) SetStatus(status string) {
+	u.Status = status
 }
 
 func GetUser(userID int64) (User, error) {

@@ -60,6 +60,16 @@ var Friends = React.createClass({
 			case "leaveProjectDone":
 				OI.getInvolvedProjects({userID: this.props.user.id});
 				break;
+			case "userConnected":
+			case "userDisconnected":
+				var status = payload.type == "userConnected" ? "Online" : "Offline";
+				var users = this.state.users;
+				for (var i in users) {
+					if (users[i].id == payload.data) {
+						users[i].status = status;
+					}
+				}
+				break;
 			}
 		}.bind(this));
 
