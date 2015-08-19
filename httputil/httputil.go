@@ -10,7 +10,6 @@ import (
 	"os"
 
 	"github.com/bbhasiapacific/bbhoi.com/debug"
-	"github.com/bbhasiapacific/bbhoi.com/response"
 )
 
 const (
@@ -24,7 +23,6 @@ func SaveFile(w http.ResponseWriter, r *http.Request, key, destination string) (
 
 	files := r.MultipartForm.File[key]
 	if len(files) == 0 {
-		response.ClientError(w, http.StatusBadRequest)
 		return nil, nil
 	}
 
@@ -43,7 +41,6 @@ func SaveFileWithExtension(w http.ResponseWriter, r *http.Request, key, destinat
 
 	files := r.MultipartForm.File[key]
 	if len(files) == 0 {
-		response.ClientError(w, http.StatusBadRequest)
 		return "", nil, nil
 	}
 
