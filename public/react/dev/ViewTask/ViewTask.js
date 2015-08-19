@@ -190,7 +190,7 @@ var ViewTask = React.createClass({
 ViewTask.FileItem = React.createClass({
 	styles: {
 		icon: {
-			visibility: "hidden",
+			display: "none",
 			cursor: "pointer",
 			paddingLeft: "8px",
 		},
@@ -199,7 +199,7 @@ ViewTask.FileItem = React.createClass({
 			color: "black",
 		},
 		visible: {
-			visibility: "visible",
+			display: "inline",
 		}
 	},
 	getInitialState: function() {
@@ -212,10 +212,8 @@ ViewTask.FileItem = React.createClass({
 			<li className="collection-item avatar" onMouseEnter={this.handleMouseOver} onMouseLeave={this.handleMouseOut}>
 				<img src={file.thumbnailLink} className="circle" />
 				<a href={file.webContentLink}>
-					{file.title}<br/>
-					{this.humanFileSize(file.fileSize)}<br/>
+					{file.title} <small><em>{this.humanFileSize(file.fileSize)}</em></small><br/>
 					<small>Last modified <strong>{moment(file.modifiedDate).fromNow()}</strong> by <strong>{file.lastModifyingUserName}</strong></small>
-					
 				</a>
 				<span className="secondary-content">
 					<i className="material-icons" style={actionStyle} title="List Revisions" onClick={this.handleListRevisions}>list</i>

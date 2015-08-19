@@ -190,7 +190,7 @@ var ViewTask = React.createClass({displayName: "ViewTask",
 ViewTask.FileItem = React.createClass({displayName: "FileItem",
 	styles: {
 		icon: {
-			visibility: "hidden",
+			display: "none",
 			cursor: "pointer",
 			paddingLeft: "8px",
 		},
@@ -199,7 +199,7 @@ ViewTask.FileItem = React.createClass({displayName: "FileItem",
 			color: "black",
 		},
 		visible: {
-			visibility: "visible",
+			display: "inline",
 		}
 	},
 	getInitialState: function() {
@@ -212,10 +212,8 @@ ViewTask.FileItem = React.createClass({displayName: "FileItem",
 			React.createElement("li", {className: "collection-item avatar", onMouseEnter: this.handleMouseOver, onMouseLeave: this.handleMouseOut}, 
 				React.createElement("img", {src: file.thumbnailLink, className: "circle"}), 
 				React.createElement("a", {href: file.webContentLink}, 
-					file.title, React.createElement("br", null), 
-					this.humanFileSize(file.fileSize), React.createElement("br", null), 
+					file.title, " ", React.createElement("small", null, React.createElement("em", null, this.humanFileSize(file.fileSize))), React.createElement("br", null), 
 					React.createElement("small", null, "Last modified ", React.createElement("strong", null, moment(file.modifiedDate).fromNow()), " by ", React.createElement("strong", null, file.lastModifyingUserName))
-					
 				), 
 				React.createElement("span", {className: "secondary-content"}, 
 					React.createElement("i", {className: "material-icons", style: actionStyle, title: "List Revisions", onClick: this.handleListRevisions}, "list"), 
