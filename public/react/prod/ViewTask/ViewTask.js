@@ -167,10 +167,9 @@ ViewTask.FileItem = React.createClass({displayName: "FileItem",
 		icon: {
 			visibility: "hidden",
 			cursor: "pointer",
+			paddingLeft: "8px",
 		},
 		label: {
-			visibility: "hidden",
-			cursor: "pointer",
 			position: "static",
 			color: "black",
 		},
@@ -183,6 +182,7 @@ ViewTask.FileItem = React.createClass({displayName: "FileItem",
 	},
 	render: function() {
 		var file = this.props.file;
+		var actionStyle = m(this.styles.icon, this.state.hover && this.styles.visible);
 		return (
 			React.createElement("li", {className: "collection-item avatar", onMouseEnter: this.handleMouseOver, onMouseLeave: this.handleMouseOut}, 
 				React.createElement("img", {src: file.thumbnailLink, className: "circle"}), 
@@ -193,15 +193,15 @@ ViewTask.FileItem = React.createClass({displayName: "FileItem",
 					
 				), 
 				React.createElement("span", {className: "secondary-content"}, 
-					React.createElement("i", {className: "material-icons", style: m(this.styles.icon, this.state.hover && this.styles.visible), onClick: this.handleListRevisions}, "list"), 
-					React.createElement("label", {style: m(this.styles.label, this.state.hover && this.styles.visible)}, 
+					React.createElement("i", {className: "material-icons", style: actionStyle, title: "List Revisions", onClick: this.handleListRevisions}, "list"), 
+					React.createElement("label", {style: m(actionStyle, this.styles.label), title: "Update File"}, 
 						React.createElement("i", {className: "material-icons"}, 
 							"file_upload", 
 							React.createElement("input", {type: "file", style: {display: "none"}, onChange: this.handleFileUpdate})
 						)
 					), 
-					React.createElement("i", {className: "material-icons", style: m(this.styles.icon, this.state.hover && this.styles.visible), onClick: this.handleDelete}, "delete"), 
-					React.createElement("i", {className: "material-icons", style: m(this.styles.icon, this.state.hover && this.styles.visible), onClick: this.handleShare}, "share")
+					React.createElement("i", {className: "material-icons", style: actionStyle, onClick: this.handleDelete, title: "Delete File"}, "delete"), 
+					React.createElement("i", {className: "material-icons", style: actionStyle, onClick: this.handleShare, title: "Share File"}, "share")
 				)
 			)
 		)
@@ -247,6 +247,7 @@ ViewTask.FileItem = React.createClass({displayName: "FileItem",
 });
 
 ViewTask.RevisionsModal = React.createClass({displayName: "RevisionsModal",
+	fileID: 0,
 	getInitialState: function() {
 		return {revisions: []};
 	},
@@ -254,7 +255,8 @@ ViewTask.RevisionsModal = React.createClass({displayName: "RevisionsModal",
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
 			case "showRevisionsModal":
-				this.show(payload.fileID);
+				this.fileID = payload.fileID;
+				this.show(this.fileID);
 				break;
 			}
 		}.bind(this));
@@ -263,6 +265,7 @@ ViewTask.RevisionsModal = React.createClass({displayName: "RevisionsModal",
 		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
+		var file = this.props.file;
 		var revisions = this.state.revisions;
 		return (
 			React.createElement("div", {className: "modal"}, 
@@ -270,9 +273,7 @@ ViewTask.RevisionsModal = React.createClass({displayName: "RevisionsModal",
 					React.createElement("h5", null, "Revisions"), 
 					React.createElement("ul", {className: "collection"}, 
 						revisions ? revisions.map(function(r, i) {
-							return (
-								React.createElement(ViewTask.RevisionItem, {key: r.id, revision: r, index: i})
-							)
+							return React.createElement(ViewTask.RevisionItem, {key: r.id, file: file, revision: r, index: i})
 						}) : ""
 					)
 				)
@@ -294,24 +295,41 @@ ViewTask.RevisionsModal = React.createClass({displayName: "RevisionsModal",
 
 ViewTask.RevisionItem = React.createClass({displayName: "RevisionItem",
 	render: function() {
-		var r = this.props.revision;
+		var revision = this.props.revision;
 		var index = this.props.index;
 		return (
 			React.createElement("li", {className: "collection-item"}, 
-				React.createElement("a", {href: "", style: {display: "block"}, onClick: this.handleClick}, 
-					"Revision #", index, 
-					React.createElement("span", {className: "secondary-content"}, 
-						"Last modified ", React.createElement("strong", null, moment(r.modifiedDate).fromNow()), " by ", React.createElement("strong", null, r.lastModifyingUserName)
-					)
+				React.createElement("a", {href: "", onClick: this.handleDownload}, 
+					"Revision ", index
+				), 
+				React.createElement("span", {className: "secondary-content"}, 
+					"Last modified ", React.createElement("strong", null, moment(revision.modifiedDate).fromNow()), " by ", React.createElement("strong", null, revision.lastModifyingUserName), 
+					React.createElement("i", {className: "material-icons", onClick: this.handleDelete}, "delete")
 				)
 			)
 		)
 	},
-	handleClick: function(e) {
+	handleDownload: function(e) {
 		e.preventDefault();
 
-		var r = this.props.revision;
-		google.drive.downloadFile(r, function(resp) {
+		var revision = this.props.revision;
+		google.drive.downloadFile(revision, function(resp, file) {
+			var buffer = new ArrayBuffer(resp.length);
+			var array = new Uint8Array(buffer);
+			for (var i = 0; i < resp.length; i++) {
+				array[i] = resp.charCodeAt[i];
+			}
+
+			var filename = file.title || file.originalFilename;
+			var blob = new Blob([array], {type: file.mimeType});
+			saveAs(blob, filename);
 		});
+	},
+	handleDelete: function(e) {
+		e.preventDefault();
+
+		var file = this.props.file;
+		var revision = this.props.revision;
+		OI.deleteRevision(file.id, revision.id);
 	},
 });

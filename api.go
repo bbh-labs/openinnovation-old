@@ -287,6 +287,8 @@ func ws(w http.ResponseWriter, r *http.Request) {
 	c := &connection{send: make(chan []byte, 256), ws: ws, userID: user.ID()}
 	h.register <- c
 
-	c.writePump()
-	//c.readPump()
+	go func() {
+		c.writePump()
+	}()
+	c.readPump()
 }

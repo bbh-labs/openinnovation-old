@@ -405,3 +405,31 @@ func CurrentUser(r *http.Request) User {
 
 	return user
 }
+
+func GetRelatedUserIDs(userID int64) ([]int64, error) {
+	const rawSQL = `
+	SELECT user_.id FROM user_
+	INNER JOIN friend ON user_.id = friend.user1_id
+	INNER JOIN member ON user_.id = member.user_id
+	INNER JOIN project ON project.id = member.project_id
+	WHERE user_.id != $1 AND project.id = (SELECT project_id FROM member WHERE user_id = $1)
+	GROUP BY user_.id`
+
+	rows, err := db.Query(rawSQL, userID)
+	if err != nil {
+		return nil, debug.Error(err)
+	}
+	defer rows.Close()
+
+	var ids []int64
+	for rows.Next() {
+		var id int64
+		if err = rows.Scan(&id); err != nil && err != sql.ErrNoRows {
+			return ids, debug.Error(err)
+		}
+
+		ids = append(ids, id)
+	}
+
+	return ids, nil
+}

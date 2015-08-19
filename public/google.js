@@ -255,7 +255,6 @@ var google = {
 					title: fileData.name,
 					mimeType: contentType,
 				}, extra);
-				//console.log(metadata);
 
 				var base64Data = btoa(reader.result);
 				var multipartRequestBody =
@@ -300,6 +299,12 @@ var google = {
 
 			request.execute(callback);
 		},
+		deleteRevision: function(fileID, revisionID, callback) {
+			var request = gapi.client.drive.revisions.delete({
+				fileId: fileID,
+				revisionId: revisionID,
+			});
+		},
 		downloadFile: function(file, callback) {
 			if (file.downloadUrl) {
 				var accessToken = gapi.auth.getToken().access_token;
@@ -310,7 +315,7 @@ var google = {
 					},
 				}).done(function(resp) {
 					if (callback) {
-						callback(resp);
+						callback(resp, file);
 					}
 				}).fail(function(resp) {
 					console.log(resp);

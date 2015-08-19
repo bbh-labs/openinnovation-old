@@ -167,10 +167,9 @@ ViewTask.FileItem = React.createClass({
 		icon: {
 			visibility: "hidden",
 			cursor: "pointer",
+			paddingLeft: "8px",
 		},
 		label: {
-			visibility: "hidden",
-			cursor: "pointer",
 			position: "static",
 			color: "black",
 		},
@@ -183,6 +182,7 @@ ViewTask.FileItem = React.createClass({
 	},
 	render: function() {
 		var file = this.props.file;
+		var actionStyle = m(this.styles.icon, this.state.hover && this.styles.visible);
 		return (
 			<li className="collection-item avatar" onMouseEnter={this.handleMouseOver} onMouseLeave={this.handleMouseOut}>
 				<img src={file.thumbnailLink} className="circle" />
@@ -193,15 +193,15 @@ ViewTask.FileItem = React.createClass({
 					
 				</a>
 				<span className="secondary-content">
-					<i className="material-icons" style={m(this.styles.icon, this.state.hover && this.styles.visible)} onClick={this.handleListRevisions}>list</i>
-					<label style={m(this.styles.label, this.state.hover && this.styles.visible)}>
+					<i className="material-icons" style={actionStyle} title="List Revisions" onClick={this.handleListRevisions}>list</i>
+					<label style={m(actionStyle, this.styles.label)} title="Update File">
 						<i className="material-icons">
 							file_upload
 							<input type="file" style={{display: "none"}} onChange={this.handleFileUpdate} />
 						</i>
 					</label>
-					<i className="material-icons" style={m(this.styles.icon, this.state.hover && this.styles.visible)} onClick={this.handleDelete}>delete</i>
-					<i className="material-icons" style={m(this.styles.icon, this.state.hover && this.styles.visible)} onClick={this.handleShare}>share</i>
+					<i className="material-icons" style={actionStyle} onClick={this.handleDelete} title="Delete File">delete</i>
+					<i className="material-icons" style={actionStyle} onClick={this.handleShare} title="Share File">share</i>
 				</span>
 			</li>
 		)
@@ -247,6 +247,7 @@ ViewTask.FileItem = React.createClass({
 });
 
 ViewTask.RevisionsModal = React.createClass({
+	fileID: 0,
 	getInitialState: function() {
 		return {revisions: []};
 	},
@@ -254,7 +255,8 @@ ViewTask.RevisionsModal = React.createClass({
 		this.dispatchID = dispatcher.register(function(payload) {
 			switch (payload.type) {
 			case "showRevisionsModal":
-				this.show(payload.fileID);
+				this.fileID = payload.fileID;
+				this.show(this.fileID);
 				break;
 			}
 		}.bind(this));
@@ -263,6 +265,7 @@ ViewTask.RevisionsModal = React.createClass({
 		dispatcher.unregister(this.dispatchID);
 	},
 	render: function() {
+		var file = this.props.file;
 		var revisions = this.state.revisions;
 		return (
 			<div className="modal">
@@ -270,9 +273,7 @@ ViewTask.RevisionsModal = React.createClass({
 					<h5>Revisions</h5>
 					<ul className="collection">{
 						revisions ? revisions.map(function(r, i) {
-							return (
-								<ViewTask.RevisionItem key={r.id} revision={r} index={i} />
-							)
+							return <ViewTask.RevisionItem key={r.id} file={file} revision={r} index={i} />
 						}) : ""
 					}</ul>
 				</div>
@@ -294,24 +295,41 @@ ViewTask.RevisionsModal = React.createClass({
 
 ViewTask.RevisionItem = React.createClass({
 	render: function() {
-		var r = this.props.revision;
+		var revision = this.props.revision;
 		var index = this.props.index;
 		return (
 			<li className="collection-item">
-				<a href="" style={{display: "block"}} onClick={this.handleClick}>
-					Revision #{index}
-					<span className="secondary-content">
-						Last modified <strong>{moment(r.modifiedDate).fromNow()}</strong> by <strong>{r.lastModifyingUserName}</strong>
-					</span>
+				<a href="" onClick={this.handleDownload}>
+					Revision {index}
 				</a>
+				<span className="secondary-content">
+					Last modified <strong>{moment(revision.modifiedDate).fromNow()}</strong> by <strong>{revision.lastModifyingUserName}</strong>
+					<i className="material-icons" onClick={this.handleDelete}>delete</i>
+				</span>
 			</li>
 		)
 	},
-	handleClick: function(e) {
+	handleDownload: function(e) {
 		e.preventDefault();
 
-		var r = this.props.revision;
-		google.drive.downloadFile(r, function(resp) {
+		var revision = this.props.revision;
+		google.drive.downloadFile(revision, function(resp, file) {
+			var buffer = new ArrayBuffer(resp.length);
+			var array = new Uint8Array(buffer);
+			for (var i = 0; i < resp.length; i++) {
+				array[i] = resp.charCodeAt[i];
+			}
+
+			var filename = file.title || file.originalFilename;
+			var blob = new Blob([array], {type: file.mimeType});
+			saveAs(blob, filename);
 		});
+	},
+	handleDelete: function(e) {
+		e.preventDefault();
+
+		var file = this.props.file;
+		var revision = this.props.revision;
+		OI.deleteRevision(file.id, revision.id);
 	},
 });

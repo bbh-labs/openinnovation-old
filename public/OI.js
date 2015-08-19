@@ -340,4 +340,9 @@ var OI = {
 		localStorage.setItem("mailPreference", preference);
 		dispatcher.dispatch({type: "setMailPreferenceDone"});
 	},
+	deleteRevision: function(fileID, revisionID) {
+		google.drive.deleteRevision(file.id, revision.id, function(resp) {
+			dispatcher.dispatch({type: "deleteRevisionDone", data: resp});
+		});
+	},
 };

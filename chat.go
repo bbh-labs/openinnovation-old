@@ -36,9 +36,9 @@ func onNotify(channel, extra string) {
 		ChannelID   int64  `json:"channelID"`
 		ChannelType string `json:"channelType"`
 	}{
-		ID: id,
-		UserID: userID,
-		ChannelID: channelID,
+		ID:          id,
+		UserID:      userID,
+		ChannelID:   channelID,
 		ChannelType: channelType,
 	}
 
@@ -96,10 +96,10 @@ func PostChat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	chatParams := store.PostChatParams{
-		UserID: userID,
-		ChannelID: channelID,
+		UserID:      userID,
+		ChannelID:   channelID,
 		ChannelType: r.FormValue("channelType"),
-		Text: r.FormValue("text"),
+		Text:        r.FormValue("text"),
 	}
 
 	id, err := store.PostChat(chatParams)

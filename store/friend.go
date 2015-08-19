@@ -1,6 +1,8 @@
 package store
 
 import (
+	"database/sql"
+
 	"github.com/bbhasiapacific/bbhoi.com/debug"
 )
 
@@ -50,4 +52,29 @@ func IsFriend(userID, otherUserID int64) (bool, error) {
 	WHERE user1_id = $1 AND user2_id = $2`
 
 	return Exists(rawSQL, userID, otherUserID)
+}
+
+func GetFriendIDs(userID int64) ([]int64, error) {
+	const rawSQL = `
+	SELECT user_.id FROM user_
+	INNER JOIN friend ON user_.id = friend.user1_id
+	WHERE user_.id != $1`
+
+	rows, err := db.Query(rawSQL, userID)
+	if err != nil {
+		return nil, debug.Error(err)
+	}
+	defer rows.Close()
+
+	var ids []int64
+	for rows.Next() {
+		var id int64
+		if err = rows.Scan(&id); err != nil && err != sql.ErrNoRows {
+			return ids, debug.Error(err)
+		}
+
+		ids = append(ids, id)
+	}
+
+	return ids, nil
 }

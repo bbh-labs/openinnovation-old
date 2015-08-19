@@ -126,9 +126,7 @@ User.Content.Avatar = React.createClass({displayName: "Avatar",
 
 User.Content.Fullname = React.createClass({displayName: "Fullname",
 	render: function() {
-		return (
-			React.createElement("h5", null, this.props.viewedUser.fullname)
-		)
+		return React.createElement("h5", null, this.props.viewedUser.fullname)
 	},
 });
 
@@ -139,9 +137,7 @@ User.Content.Title = React.createClass({displayName: "Title",
 		},
 	},
 	render: function() {
-		return (
-			React.createElement("p", {style: this.styles.container}, this.props.viewedUser.title)
-		)
+		return React.createElement("p", {style: this.styles.container}, this.props.viewedUser.title)
 	},
 });
 

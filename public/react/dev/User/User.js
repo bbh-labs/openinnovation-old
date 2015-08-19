@@ -126,9 +126,7 @@ User.Content.Avatar = React.createClass({
 
 User.Content.Fullname = React.createClass({
 	render: function() {
-		return (
-			<h5>{this.props.viewedUser.fullname}</h5>
-		)
+		return <h5>{this.props.viewedUser.fullname}</h5>
 	},
 });
 
@@ -139,9 +137,7 @@ User.Content.Title = React.createClass({
 		},
 	},
 	render: function() {
-		return (
-			<p style={this.styles.container}>{this.props.viewedUser.title}</p>
-		)
+		return <p style={this.styles.container}>{this.props.viewedUser.title}</p>
 	},
 });
 

@@ -14,7 +14,7 @@ const (
 	writeWait = 10 * time.Second
 
 	// Time allowed to read the next pong message from the peer.
-	pongWait = 60 * time.Second
+	pongWait = 10 * time.Second
 
 	// Send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
@@ -24,7 +24,7 @@ const (
 )
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize: 1024,
+	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
 
@@ -52,14 +52,11 @@ func (c *connection) readPump() {
 	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 
 	for {
-		/*
-		_, message, err := c.ws.ReadMessage()
+		_, _, err := c.ws.ReadMessage()
 		if err != nil {
 			break
 		}
-
-		h.process(c, message)
-		*/
+		// h.process(c, message)
 	}
 }
 
@@ -118,17 +115,19 @@ func (h *hub) run() {
 		select {
 		case c := <-h.register:
 			h.connections[c.userID] = c
+			h.notifyRelatedUsers(c.userID, "userConnected", c.userID)
 		case c := <-h.unregister:
 			if _, ok := h.connections[c.userID]; ok {
 				delete(h.connections, c.userID)
 				close(c.send)
 			}
+			h.notifyRelatedUsers(c.userID, "userDisconnected", c.userID)
 		}
 	}
 }
 
-func (h *hub) process(c *connection, m []byte) {
-}
+// func (h *hub) process(c *connection, m []byte) {
+// }
 
 type message struct {
 	Type string      `json:"type"`
@@ -168,6 +167,56 @@ func (h *hub) notifyProject(projectID int64, typ string, v interface{}) {
 	m := message{typ, v}
 
 	ids, err := store.GetMemberIDs(projectID)
+	if err != nil {
+		debug.Warn(err)
+		return
+	}
+
+	b, err := json.Marshal(m)
+	if err != nil {
+		debug.Warn(err)
+		return
+	}
+
+	for _, id := range ids {
+		c, ok := h.connections[id]
+		if !ok {
+			continue
+		}
+
+		c.send <- b
+	}
+}
+
+func (h *hub) notifyFriends(userID int64, typ string, v interface{}) {
+	m := message{typ, v}
+
+	ids, err := store.GetFriendIDs(userID)
+	if err != nil {
+		debug.Warn(err)
+		return
+	}
+
+	b, err := json.Marshal(m)
+	if err != nil {
+		debug.Warn(err)
+		return
+	}
+
+	for _, id := range ids {
+		c, ok := h.connections[id]
+		if !ok {
+			continue
+		}
+
+		c.send <- b
+	}
+}
+
+func (h *hub) notifyRelatedUsers(userID int64, typ string, v interface{}) {
+	m := message{typ, v}
+
+	ids, err := store.GetRelatedUserIDs(userID)
 	if err != nil {
 		debug.Warn(err)
 		return
