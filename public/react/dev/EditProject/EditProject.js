@@ -27,6 +27,7 @@ var EditProject = React.createClass({
 		}
 		return (
 			<main className="edit-project">
+				<h5 style={Styles.PageTitle}>Edit Project</h5>
 				<EditProject.Cover project={project} />
 				<EditProject.Content project={project} />
 			</main>

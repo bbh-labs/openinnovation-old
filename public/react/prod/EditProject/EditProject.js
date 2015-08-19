@@ -27,6 +27,7 @@ var EditProject = React.createClass({displayName: "EditProject",
 		}
 		return (
 			React.createElement("main", {className: "edit-project"}, 
+				React.createElement("h5", {style: Styles.PageTitle}, "Edit Project"), 
 				React.createElement(EditProject.Cover, {project: project}), 
 				React.createElement(EditProject.Content, {project: project})
 			)
