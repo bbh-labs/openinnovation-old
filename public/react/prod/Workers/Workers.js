@@ -35,6 +35,7 @@ var Workers = React.createClass({displayName: "Workers",
 		var members = this.state.members;
 		return (
 			React.createElement("div", {className: "row"}, 
+				React.createElement("h5", {style: Styles.PageTitle}, "Workers"), 
 				React.createElement("div", {className: "container"}, 
 					React.createElement("ul", {className: "collection"}, 
 						members ? members.map(function(m) {

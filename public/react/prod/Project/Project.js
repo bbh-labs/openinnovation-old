@@ -104,6 +104,7 @@ var Project = React.createClass({displayName: "Project",
 		var currentTask = this.state.currentTask;
 		return (
 			React.createElement("main", {className: "project"}, 
+				React.createElement("h5", {style: Styles.PageTitle}, "Project"), 
 				React.createElement(Project.Cover, {user: user, project: project}), 
 				React.createElement(Project.Content, {ref: "content", user: user, project: project, currentTask: currentTask})
 			)

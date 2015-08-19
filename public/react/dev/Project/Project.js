@@ -104,6 +104,7 @@ var Project = React.createClass({
 		var currentTask = this.state.currentTask;
 		return (
 			<main className="project">
+				<h5 style={Styles.PageTitle}>Project</h5>
 				<Project.Cover user={user} project={project} />
 				<Project.Content ref="content" user={user} project={project} currentTask={currentTask} />
 			</main>

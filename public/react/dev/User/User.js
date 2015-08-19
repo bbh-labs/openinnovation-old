@@ -31,44 +31,46 @@ var User = React.createClass({
 		}
 		return (
 			<main className="user">
+				<h5 style={Styles.PageTitle}>User</h5>
+				<User.Header user={this.props.user} viewedUser={this.state.viewedUser} />
 				<User.Content user={this.props.user} viewedUser={this.state.viewedUser} />
 			</main>
 		)
 	},
 });
 
-User.Content = React.createClass({
+User.Header = React.createClass({
+	styles: {
+		container: {
+			background: "#202020",
+			minHeight: "250px",
+			textAlign: "center",
+			padding: "50px",
+		},
+		avatar: {
+			width: "100px",
+			height: "100px",
+		},
+		text: {
+			width: "50%",
+			margin: "16px auto",
+		},
+	},
 	render: function() {
 		var user = this.props.user;
 		var viewedUser = this.props.viewedUser;
 		return (
-			<div className="row">
-				<div className="container">
-					<div className="col s12 m4 l3">
-						<div className="card">
-							<div className="card-content">
-								<User.Content.AvatarContainer viewedUser={viewedUser} />
-							</div>
-							<div className="card-action">
-								<User.Content.Fullname user={user} viewedUser={viewedUser} />
-								<User.Content.Title user={user} viewedUser={viewedUser} />
-								<User.Content.Interests user={user} viewedUser={viewedUser} />
-							</div>
-							<div className="card-action">
-							{
-								viewedUser.isFriend ?
-								<button className="btn waves-effect waves-light" onClick={this.handleRemoveFriend}>Remove Friend</button> : <button className="btn waves-effect waves-light" onClick={this.handleAddFriend}>Add Friend</button>
-							}
-							</div>
-						</div>
-					</div>
-					<div className="col s12 m9 l8">
-						<User.Content.Description viewedUser={viewedUser} />
-					</div>
-					<div className="col s12 m9 l8">
-						<InvolvedProjects userID={viewedUser.id} />
-					</div>
-				</div>
+			<div style={this.styles.container}>
+				<img className="circle" src={viewedUser.avatarURL} style={this.styles.avatar} />
+				<h5 className="white-text">{viewedUser.fullname}</h5>
+				<p className="flow-text white-text">{viewedUser.title}</p>
+				<p className="white-text" style={this.styles.text}>{viewedUser.description}</p>
+				<User.Header.Interests user={user} viewedUser={viewedUser} />
+				{
+					viewedUser.isFriend ?
+					<button className="btn waves-effect waves-light red white-text margin-top" onClick={this.handleRemoveFriend}>Remove Friend</button> :
+					<button className="btn waves-effect waves-light blue white-text margin-top" onClick={this.handleAddFriend}>Add Friend</button>
+				}
 			</div>
 		)
 	},
@@ -82,70 +84,17 @@ User.Content = React.createClass({
 	},
 });
 
-User.Content.AvatarContainer = React.createClass({
+User.Header.Interests = React.createClass({
 	styles: {
 		container: {
-			position: "relative",
-			width: "200px",
-			height: "200px",
+			width: "50%",
 			margin: "0 auto",
 		},
 	},
 	render: function() {
-		var viewedUser = this.props.viewedUser;
-		return (
-			<div style={this.styles.container}>
-				<User.Content.Avatar viewedUser={viewedUser} />
-			</div>
-		)
-	},
-});
-
-User.Content.Avatar = React.createClass({
-	styles: {
-		container: {
-			position: "absolute",
-			width: "100%",
-			height: "100%",
-		},
-		image: {
-			width: "100%",
-			height: "100%",
-		},
-	},
-	mixins: [ Navigation ],
-	render: function() {
-		var viewedUser = this.props.viewedUser;
-		return (
-			<div style={this.styles.container}>
-				<img style={this.styles.image} className="circle" src={viewedUser.avatarURL} />
-			</div>
-		)
-	},
-});
-
-User.Content.Fullname = React.createClass({
-	render: function() {
-		return <h5>{this.props.viewedUser.fullname}</h5>
-	},
-});
-
-User.Content.Title = React.createClass({
-	styles: {
-		container: {
-			display: "inline",
-		},
-	},
-	render: function() {
-		return <p style={this.styles.container}>{this.props.viewedUser.title}</p>
-	},
-});
-
-User.Content.Interests = React.createClass({
-	render: function() {
 		var interests = this.props.viewedUser.interests;
 		return (
-			<TagIt onChange={this.handleOnChange}>{
+			<TagIt style={this.styles.container} onChange={this.handleOnChange}>{
 				interests ? interests.map(function(interest) {
 					return <li>{interest}</li>
 				}) : ""
@@ -164,15 +113,49 @@ User.Content.Interests = React.createClass({
 	},
 });
 
-User.Content.Description = React.createClass({
+User.Content = React.createClass({
 	render: function() {
+		var user = this.props.user;
 		var viewedUser = this.props.viewedUser;
 		return (
-			<div className="card">
-				<div className={"card-content"}>
-					<div onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
-						<h5>Description</h5>
-						<p>{viewedUser.description}</p>
+			<div className="container">
+				<div className="col s12">
+					<InvolvedProjects userID={viewedUser.id} />
+				</div>
+			</div>
+		)
+	},
+});
+
+User.Content2 = React.createClass({
+	render: function() {
+		var user = this.props.user;
+		var viewedUser = this.props.viewedUser;
+		return (
+			<div className="row">
+				<div className="container">
+					<div className="col s12 m4 l3">
+						<div className="card">
+							<div className="card-content">
+								<User.Content.AvatarContainer viewedUser={viewedUser} />
+							</div>
+							<div className="card-action">
+								<User.Content.Fullname user={user} viewedUser={viewedUser} />
+								<User.Content.Title user={user} viewedUser={viewedUser} />
+							</div>
+							<div className="card-action">
+							{
+								viewedUser.isFriend ?
+								<button className="btn waves-effect waves-light" onClick={this.handleRemoveFriend}>Remove Friend</button> : <button className="btn waves-effect waves-light" onClick={this.handleAddFriend}>Add Friend</button>
+							}
+							</div>
+						</div>
+					</div>
+					<div className="col s12 m9 l8">
+						<User.Content.Description viewedUser={viewedUser} />
+					</div>
+					<div className="col s12 m9 l8">
+						<InvolvedProjects userID={viewedUser.id} />
 					</div>
 				</div>
 			</div>

@@ -2,6 +2,7 @@ var NewProject = React.createClass({
 	render: function() {
 		return (
 			<main className="new-project">
+				<h5 style={Styles.PageTitle}>Create Project</h5>
 				<NewProject.Cover />
 				<NewProject.Form />
 			</main>

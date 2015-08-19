@@ -14,7 +14,7 @@ var TagIt = React.createClass({
 		});
 	},
 	render: function() {
-		return <ul>{this.props.children}</ul>
+		return <ul style={m(this.props.style)}>{this.props.children}</ul>
 	},
 	createTag: function(tag) {
 		$(React.findDOMNode(this)).tagit("createTag", tag);

@@ -56,6 +56,7 @@ TaskItem.Worker = React.createClass({
 			width: "32px",
 			height: "32px",
 			margin: "0 4px",
+			border: "1px solid #cccccc"
 		},
 	},
 	componentDidMount: function() {

@@ -293,7 +293,7 @@ header > nav {
 
 .new-project .parallax-container,
 .edit-project .parallax-container {
-	background: #404040;
+	background: #333333;
 	cursor: pointer;
 }
 

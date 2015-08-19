@@ -36,13 +36,16 @@ var google = {
 			},
 		});
 
-		if (authResult && !authResult.error) {
-			google.plus.load();
-			google.gmail.load();
-			google.drive.load();
-			google.drive.share.load();
-		} else {
-			console.log("Failed to load APIs");
+		if (authResult) {
+			if (!authResult.error) {
+				google.plus.load();
+				google.gmail.load();
+				google.drive.load();
+				google.drive.share.load();
+			} else {
+				console.log(authResult);
+				//console.log("Failed to load APIs");
+			}
 		}
 	},
 	plus: {

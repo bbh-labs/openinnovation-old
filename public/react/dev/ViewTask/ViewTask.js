@@ -1,5 +1,19 @@
 var ViewTask = React.createClass({
+	render: function() {
+		return (
+			<main>
+				<h5 style={Styles.PageTitle}>Task</h5>
+				<ViewTask.Form />
+			</main>
+		)
+	},
+});
+
+ViewTask.Form = React.createClass({
 	styles: {
+		container: {
+			padding: "16px 0",
+		},
 		uploadBox: {
 			position: "static",
 			verticalAlign: "middle",
@@ -11,10 +25,13 @@ var ViewTask = React.createClass({
 			display: "inline",
 			verticalAlign: "middle",
 		},
+		actions: {
+			marginTop: "100px",
+		},
 	},
 	mixins: [ Navigation, State ],
 	getInitialState: function() {
-		return {task: null, files: [], fetchingFiles: false};
+		return {task: null, files: [], fetchingFiles: false, uploadingFile: false};
 	},
 	componentDidMount: function() {
 		// Fetch Task
@@ -74,10 +91,10 @@ var ViewTask = React.createClass({
 		}
 		var files = this.state.files;
 		var fetchingFiles = this.state.fetchingFiles;
+		var uploadingFile = this.state.uploadingFile;
 		return (
-			<form className="row" id={this.props.id} onSubmit={this.handleSubmit}>
+			<form className="row" style={this.styles.container} onSubmit={this.handleSubmit}>
 				<div className="container">
-					<h4 style={{margin: 0, padding: "8px 8px 32px 8px"}}>Task {task.id}</h4>
 					<div className="input-field col s12">
 						<input id="task-title" type="text" className="validate" name="title" defaultValue={task.title} />
 						<label htmlFor="task-title" className="active">Title</label>
@@ -99,18 +116,15 @@ var ViewTask = React.createClass({
 					</div>
 					<div className="input-field col s12">
 						<p>Files</p>
-					{
-						fetchingFiles ?
-						<div style={{margin: "16px 0"}}><Spinner /></div> :
+						{uploadingFile || fetchingFiles ? <Indeterminate /> :""}
 						<ul className="collection">{
 							files ? files.map(function(f) {
 								return <ViewTask.FileItem key={f.id} task={task} file={f} />
-							}) : "" 
+							}) : ""
 						}</ul>
-					}
 						<label className="grey lighten-2 black-text" style={this.styles.uploadBox}>
 							<i className="material-icons" style={this.styles.icon}>attach_file</i>Attach file to task
-							<input type="file" name="file" onChange={this.handleFileInput} style={{display: "none"}} />
+							<input type="file" name="file" onChange={this.handleUpload} style={{display: "none"}} />
 						</label>
 					</div>
 					<div className="col s12 margin-top">
@@ -119,7 +133,7 @@ var ViewTask = React.createClass({
 					<input type="hidden" ref="tagsInput" />
 					<input name="taskID" type="hidden" defaultValue={task.id} />
 					<input name="projectID" type="hidden" defaultValue={task.projectID} />
-					<div className="input-field col s12">
+					<div className="input-field col s12" style={this.styles.actions}>
 						<div className="left">
 							<button className="btn waves-effect waves-light red white-text" onClick={this.handleDelete}>Delete</button>
 						</div>
@@ -152,12 +166,13 @@ var ViewTask = React.createClass({
 		var tags = $(e.target).tagit("assignedTags").join(",");
 		React.findDOMNode(this.refs.tagsInput).value = tags;
 	},
-	handleFileInput: function(e) {
+	handleUpload: function(e) {
 		var task = this.state.task;
 		if (task) {
 			var files = e.target.files;
 			if (files && files.length > 0) {
 				google.drive.insertFile(files[0], function(resp) {
+					this.setState({uploadingFile: false});
 					this.fetchFiles(task.id);
 				}.bind(this), {
 					properties: [{
@@ -167,6 +182,8 @@ var ViewTask = React.createClass({
 					}],
 				});
 			}
+
+			this.setState({uploadingFile: true});
 		}
 	},
 	fetchTask: function() {
@@ -175,8 +192,8 @@ var ViewTask = React.createClass({
 	fetchFiles: function(taskID) {
 		var q = "properties has { key='taskID' and value='" + taskID + "' and visibility='PRIVATE' } and trashed=false";
 
-		this.setState({fetchingFiles: true});
 		if (google.drive.ready) {
+			this.setState({fetchingFiles: true});
 			google.drive.listFiles({q: q}, function(resp) {
 				if (resp) {
 					this.setState({files: resp});

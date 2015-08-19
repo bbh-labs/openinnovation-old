@@ -1,5 +1,19 @@
 var ViewTask = React.createClass({displayName: "ViewTask",
+	render: function() {
+		return (
+			React.createElement("main", null, 
+				React.createElement("h5", {style: Styles.PageTitle}, "Task"), 
+				React.createElement(ViewTask.Form, null)
+			)
+		)
+	},
+});
+
+ViewTask.Form = React.createClass({displayName: "Form",
 	styles: {
+		container: {
+			padding: "16px 0",
+		},
 		uploadBox: {
 			position: "static",
 			verticalAlign: "middle",
@@ -11,10 +25,13 @@ var ViewTask = React.createClass({displayName: "ViewTask",
 			display: "inline",
 			verticalAlign: "middle",
 		},
+		actions: {
+			marginTop: "100px",
+		},
 	},
 	mixins: [ Navigation, State ],
 	getInitialState: function() {
-		return {task: null, files: [], fetchingFiles: false};
+		return {task: null, files: [], fetchingFiles: false, uploadingFile: false};
 	},
 	componentDidMount: function() {
 		// Fetch Task
@@ -74,10 +91,10 @@ var ViewTask = React.createClass({displayName: "ViewTask",
 		}
 		var files = this.state.files;
 		var fetchingFiles = this.state.fetchingFiles;
+		var uploadingFile = this.state.uploadingFile;
 		return (
-			React.createElement("form", {className: "row", id: this.props.id, onSubmit: this.handleSubmit}, 
+			React.createElement("form", {className: "row", style: this.styles.container, onSubmit: this.handleSubmit}, 
 				React.createElement("div", {className: "container"}, 
-					React.createElement("h4", {style: {margin: 0, padding: "8px 8px 32px 8px"}}, "Task ", task.id), 
 					React.createElement("div", {className: "input-field col s12"}, 
 						React.createElement("input", {id: "task-title", type: "text", className: "validate", name: "title", defaultValue: task.title}), 
 						React.createElement("label", {htmlFor: "task-title", className: "active"}, "Title")
@@ -99,18 +116,15 @@ var ViewTask = React.createClass({displayName: "ViewTask",
 					), 
 					React.createElement("div", {className: "input-field col s12"}, 
 						React.createElement("p", null, "Files"), 
-					
-						fetchingFiles ?
-						React.createElement("div", {style: {margin: "16px 0"}}, React.createElement(Spinner, null)) :
+						uploadingFile || fetchingFiles ? React.createElement(Indeterminate, null) :"", 
 						React.createElement("ul", {className: "collection"}, 
 							files ? files.map(function(f) {
 								return React.createElement(ViewTask.FileItem, {key: f.id, task: task, file: f})
 							}) : ""
 						), 
-					
 						React.createElement("label", {className: "grey lighten-2 black-text", style: this.styles.uploadBox}, 
 							React.createElement("i", {className: "material-icons", style: this.styles.icon}, "attach_file"), "Attach file to task", 
-							React.createElement("input", {type: "file", name: "file", onChange: this.handleFileInput, style: {display: "none"}})
+							React.createElement("input", {type: "file", name: "file", onChange: this.handleUpload, style: {display: "none"}})
 						)
 					), 
 					React.createElement("div", {className: "col s12 margin-top"}, 
@@ -119,7 +133,7 @@ var ViewTask = React.createClass({displayName: "ViewTask",
 					React.createElement("input", {type: "hidden", ref: "tagsInput"}), 
 					React.createElement("input", {name: "taskID", type: "hidden", defaultValue: task.id}), 
 					React.createElement("input", {name: "projectID", type: "hidden", defaultValue: task.projectID}), 
-					React.createElement("div", {className: "input-field col s12"}, 
+					React.createElement("div", {className: "input-field col s12", style: this.styles.actions}, 
 						React.createElement("div", {className: "left"}, 
 							React.createElement("button", {className: "btn waves-effect waves-light red white-text", onClick: this.handleDelete}, "Delete")
 						), 
@@ -152,12 +166,13 @@ var ViewTask = React.createClass({displayName: "ViewTask",
 		var tags = $(e.target).tagit("assignedTags").join(",");
 		React.findDOMNode(this.refs.tagsInput).value = tags;
 	},
-	handleFileInput: function(e) {
+	handleUpload: function(e) {
 		var task = this.state.task;
 		if (task) {
 			var files = e.target.files;
 			if (files && files.length > 0) {
 				google.drive.insertFile(files[0], function(resp) {
+					this.setState({uploadingFile: false});
 					this.fetchFiles(task.id);
 				}.bind(this), {
 					properties: [{
@@ -167,6 +182,8 @@ var ViewTask = React.createClass({displayName: "ViewTask",
 					}],
 				});
 			}
+
+			this.setState({uploadingFile: true});
 		}
 	},
 	fetchTask: function() {
@@ -175,8 +192,8 @@ var ViewTask = React.createClass({displayName: "ViewTask",
 	fetchFiles: function(taskID) {
 		var q = "properties has { key='taskID' and value='" + taskID + "' and visibility='PRIVATE' } and trashed=false";
 
-		this.setState({fetchingFiles: true});
 		if (google.drive.ready) {
+			this.setState({fetchingFiles: true});
 			google.drive.listFiles({q: q}, function(resp) {
 				if (resp) {
 					this.setState({files: resp});

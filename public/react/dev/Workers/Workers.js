@@ -35,6 +35,7 @@ var Workers = React.createClass({
 		var members = this.state.members;
 		return (
 			<div className="row">
+				<h5 style={Styles.PageTitle}>Workers</h5>
 				<div className="container">
 					<ul className="collection">{
 						members ? members.map(function(m) {
