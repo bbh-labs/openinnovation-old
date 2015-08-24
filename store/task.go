@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/bbhasiapacific/bbhoi.com/debug"
+	"github.com/bbhasiapacific/openinnovation/debug"
 )
 
 const createTaskSQL = `

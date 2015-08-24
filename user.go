@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/bbhasiapacific/bbhoi.com/httputil"
-	"github.com/bbhasiapacific/bbhoi.com/response"
-	"github.com/bbhasiapacific/bbhoi.com/store"
+	"github.com/bbhasiapacific/openinnovation/httputil"
+	"github.com/bbhasiapacific/openinnovation/response"
+	"github.com/bbhasiapacific/openinnovation/store"
 	"github.com/gorilla/context"
 )
 

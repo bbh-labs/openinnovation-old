@@ -73,8 +73,9 @@ var Header = React.createClass({displayName: "Header",
 		)
 	},
 	fetchMails: function() {
+		var mailFilters = OI.getMailPreferenceStr();
 		google.gmail.listThreads({
-			q: OI.getMailPreference(),
+			q: mailFilters,
 			maxResults: 10,
 		}, function(threads) {
 			if (threads && !threads[0]) {

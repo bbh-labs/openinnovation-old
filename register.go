@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/bbhasiapacific/bbhoi.com/config"
-	"github.com/bbhasiapacific/bbhoi.com/response"
-	"github.com/bbhasiapacific/bbhoi.com/store"
+	"github.com/bbhasiapacific/openinnovation/config"
+	"github.com/bbhasiapacific/openinnovation/response"
+	"github.com/bbhasiapacific/openinnovation/store"
 )
 
 func Register(w http.ResponseWriter, r *http.Request) {

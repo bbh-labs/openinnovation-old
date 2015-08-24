@@ -37,10 +37,11 @@ Project.Milestones.Item = React.createClass({
 		var milestone = this.props.milestone;
 		var isAuthor = this.props.isAuthor;
 		var showButton = isAuthor && this.state.hovering;
+		var isAfter = moment().isAfter(milestone.dateStr);
 		return (
 			<div className="cd-timeline-block" onMouseOver={this.handleMouseOver} onMouseOut={this.handleMouseOut}>
-				<div className="cd-timeline-img cd-movie">
-					<img src="vertical-timeline/img/cd-icon-movie.svg" alt="Movie" />
+				<div className="cd-timeline-img cd-movie" style={{background: isAfter ? "#00ff00" : "#ff0000"}}>
+					<i className="material-icons">{isAfter ? "done" : "clear"}</i>
 				</div>
 				<div className="cd-timeline-content">
 					<h2>{milestone.title}</h2>

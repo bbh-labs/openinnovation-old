@@ -84,7 +84,8 @@ Main components
   border-radius: 50%;
   box-shadow: 0 0 0 4px white, inset 0 2px 0 rgba(0, 0, 0, 0.08), 0 3px 0 4px rgba(0, 0, 0, 0.05);
 }
-.cd-timeline-img img {
+.cd-timeline-img img,
+.cd-timeline-img i {
   display: block;
   width: 24px;
   height: 24px;
@@ -93,6 +94,7 @@ Main components
   top: 50%;
   margin-left: -12px;
   margin-top: -12px;
+  color: white;
 }
 .cd-timeline-img.cd-picture {
   background: #75ce66;

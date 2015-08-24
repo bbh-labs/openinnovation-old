@@ -1,7 +1,7 @@
 package store
 
 import (
-	"github.com/bbhasiapacific/bbhoi.com/debug"
+	"github.com/bbhasiapacific/openinnovation/debug"
 )
 
 const (

@@ -330,14 +330,42 @@ var OI = {
 		});
 	},
 	getMailPreference: function() {
-		var mailPreference = localStorage.getItem("mailPreference");
-		if (!mailPreference) {
-			mailPreference = "is:unread newer_than:2y to:me";
-		}
-		return mailPreference;
+		return localStorage.getItem("mailPreference");
+	},
+	getMailPreferenceStr: function() {
+		return localStorage.getItem("mailPreferenceStr");
 	},
 	setMailPreference: function(preference) {
-		localStorage.setItem("mailPreference", preference);
+		var preferenceStr = "";
+		
+		if (typeof(preference.subject) == "string" && preference.subject.length > 0) {
+			preferenceStr += " subject:" + preference.subject;
+		}
+
+		if (typeof(preference.from) == "string" && preference.from.length > 0) {
+			preferenceStr += " from:" + preference.from;
+		}
+
+		if (typeof(preference.to) == "string" && preference.to.length > 0) {
+			preferenceStr += " to:" + preference.to;
+		}
+
+		if (typeof(preference.age) == "number" && preference.age > 0) {
+			preferenceStr += " " + preference.ageType + ":" + preference.age + preference.ageUnit;
+		}
+
+		if (typeof(preference.isUnread) == "boolean" && preference.isUnread) {
+			preferenceStr += " is:unread";
+		}
+
+		if (typeof(preference.isRead) == "boolean" && preference.isRead) {
+			preferenceStr += " is:read";
+		}
+
+		preferenceStr.trim();
+
+		localStorage.setItem("mailPreference", JSON.stringify(preference));
+		localStorage.setItem("mailPreferenceStr", preferenceStr);
 		dispatcher.dispatch({type: "setMailPreferenceDone"});
 	},
 	deleteRevision: function(fileID, revisionID) {

@@ -37,10 +37,11 @@ Project.Milestones.Item = React.createClass({displayName: "Item",
 		var milestone = this.props.milestone;
 		var isAuthor = this.props.isAuthor;
 		var showButton = isAuthor && this.state.hovering;
+		var isAfter = moment().isAfter(milestone.dateStr);
 		return (
 			React.createElement("div", {className: "cd-timeline-block", onMouseOver: this.handleMouseOver, onMouseOut: this.handleMouseOut}, 
-				React.createElement("div", {className: "cd-timeline-img cd-movie"}, 
-					React.createElement("img", {src: "vertical-timeline/img/cd-icon-movie.svg", alt: "Movie"})
+				React.createElement("div", {className: "cd-timeline-img cd-movie", style: {background: isAfter ? "#00ff00" : "#ff0000"}}, 
+					React.createElement("i", {className: "material-icons"}, isAfter ? "done" : "clear")
 				), 
 				React.createElement("div", {className: "cd-timeline-content"}, 
 					React.createElement("h2", null, milestone.title), 

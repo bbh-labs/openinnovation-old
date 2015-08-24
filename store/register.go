@@ -7,8 +7,8 @@ import (
 	"net/mail"
 	"net/smtp"
 
-	"github.com/bbhasiapacific/bbhoi.com/config"
-	"github.com/bbhasiapacific/bbhoi.com/debug"
+	"github.com/bbhasiapacific/openinnovation/config"
+	"github.com/bbhasiapacific/openinnovation/debug"
 	"golang.org/x/crypto/bcrypt"
 )
 
