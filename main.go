@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"net/http"
 
 	"github.com/codegangsta/negroni"
@@ -16,6 +17,8 @@ func home(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	flag.Parse()
+
 	p := func(name string, handler http.HandlerFunc) http.Handler {
 		return prometheus.InstrumentHandler(name, handler)
 	}
@@ -24,7 +27,6 @@ func main() {
 	router.Handle("/metrics", prometheus.Handler())
 	router.Handle("/", p("/", home))
 	router.Handle("/login", p("/login", login))
-	router.Handle("/register", p("/register", register))
 	router.Handle("/verify", p("/verify", verify))
 
 	apiRouter := mux.NewRouter()

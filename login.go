@@ -1,10 +1,10 @@
 package main
 
 import (
+	"flag"
 	"net/http"
 	"strings"
 
-	"github.com/bbhasiapacific/openinnovation/config"
 	"github.com/bbhasiapacific/openinnovation/response"
 	"github.com/bbhasiapacific/openinnovation/session"
 	"github.com/bbhasiapacific/openinnovation/store"
@@ -13,60 +13,15 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-var conf = &oauth2.Config{
-	ClientID:     "320643691401-5m3ipff7ghamacndnvipda0uqi3eranu.apps.googleusercontent.com",
-	ClientSecret: "Eb6_-XWDGeO5NqD1snPkoGX6",
-	RedirectURL:  config.URL(),
-	Endpoint:     google.Endpoint,
-}
-
-// (unused)
-// func Login(w http.ResponseWriter, r *http.Request) {
-// 	t := r.FormValue("loginFrom")
-// 	switch t {
-// 	default:
-// 		email := r.FormValue("email")
-// 		pass := r.FormValue("password")
-//
-// 		// check email and password length
-// 		if len(email) < config.EmailLength() || len(pass) < config.PasswordLength() {
-// 			response.ClientError(w, http.StatusBadRequest)
-// 			return
-// 		}
-//
-// 		// check if email is from BBH
-// 		if email != "aqiank@gmail.com" && email != "veeableful@gmail.com" {
-// 			if !strings.HasSuffix(email, "@bartleboglehegarty.com") {
-// 				response.ClientError(w, http.StatusUnauthorized)
-// 				return
-// 			}
-// 		}
-//
-// 		// check if email and password are valid
-// 		if valid, err := store.ValidLogin(email, pass); err != nil {
-// 			response.ServerError(w, err)
-// 			return
-// 		} else if !valid {
-// 			response.ClientError(w, http.StatusUnauthorized)
-// 			return
-// 		}
-//
-// 		// start login session
-// 		session.Set(w, r, email)
-// 	}
-//
-// 	user := store.CurrentUser(r)
-// 	if !user.Exists() {
-// 		response.ClientError(w, http.StatusForbidden)
-// 		return
-// 	}
-//
-// 	response.OK(w, user)
-// }
+var redirectURL = flag.String("url", "http://localhost:8080", "Google OAuth2 redirect URL")
 
 func Login(w http.ResponseWriter, r *http.Request) {
-	// Your credentials should be obtained from the Google
-	// Developer Console (https://console.developers.google.com).
+	var conf = &oauth2.Config{
+		ClientID:     "320643691401-5m3ipff7ghamacndnvipda0uqi3eranu.apps.googleusercontent.com",
+		ClientSecret: "Eb6_-XWDGeO5NqD1snPkoGX6",
+		RedirectURL:  *redirectURL,
+		Endpoint:     google.Endpoint,
+	}
 
 	authCode := r.FormValue("code")
 	tok, err := conf.Exchange(oauth2.NoContext, authCode)

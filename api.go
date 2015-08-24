@@ -66,18 +66,6 @@ func logout(w http.ResponseWriter, r *http.Request) {
 }
 
 //
-// /register (unused)
-//
-func register(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "POST":
-		Register(w, r)
-	default:
-		response.ClientError(w, http.StatusMethodNotAllowed)
-	}
-}
-
-//
 // /verify
 //
 func verify(w http.ResponseWriter, r *http.Request) {
