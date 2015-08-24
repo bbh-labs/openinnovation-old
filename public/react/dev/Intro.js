@@ -24,7 +24,8 @@ var Intro = React.createClass({
 		)
 	},
 	handleClick: function(e) {
-		if (!auth2) {
+		if (typeof(auth2) == "undefined") {
+			console.log("google: auth2 is not ready");
 			return;
 		}
 

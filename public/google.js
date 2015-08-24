@@ -349,3 +349,7 @@ var google = {
 function onGoogleClientReady() {
 	google.onClientReady();
 }
+
+function onGooglePlatformReady() {
+	google.onPlatformReady();
+}
