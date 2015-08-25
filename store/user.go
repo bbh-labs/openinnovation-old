@@ -27,7 +27,7 @@ const (
 )
 
 const (
-	UserAvatarURL = `oi-content/user/%d/image`
+	UserAvatarURL = `content/user/%d/image`
 )
 
 type User interface {

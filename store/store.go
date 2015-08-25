@@ -12,7 +12,6 @@ import (
 
 const (
 	ConnInfo = "user=bbh dbname=oi sslmode=disable password=Lion@123"
-	ContentFolder = "public"
 )
 
 var db *sql.DB

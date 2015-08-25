@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"path"
 	"os"
 	"time"
 
@@ -26,7 +27,7 @@ const (
 )
 
 const (
-	ProjectImageURL = `oi-content/project/%d/image`
+	ProjectImageURL = `content/project/%d/image`
 )
 
 type Project struct {
@@ -181,7 +182,7 @@ func DeleteProject(projectID int64) error {
 	}
 
 	// delete project image
-	if err := os.RemoveAll(fmt.Sprintf("oi-content/project/%d", projectID)); err != nil {
+	if err := os.RemoveAll(fmt.Sprintf(path.Base(ProjectImageURL), projectID)); err != nil {
 		return debug.Error(err)
 	}
 

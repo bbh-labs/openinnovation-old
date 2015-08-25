@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/bbhasiapacific/openinnovation/httputil"
@@ -83,23 +82,12 @@ func Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateAvatar(w http.ResponseWriter, r *http.Request) {
-	// FIXME: there must be some other way changing directory
-	if err := os.Chdir(store.ContentFolder); err != nil {
-		response.ServerError(w, err)
-		return
-	}
-
 	user := context.Get(r, "user").(store.User)
-
 	url := fmt.Sprintf(store.UserAvatarURL, user.ID())
+
 	finalURL, header, err := httputil.SaveFileWithExtension(w, r, "image", url)
 	if err != nil || header == nil {
 		response.ClientError(w, http.StatusBadRequest)
-		return
-	}
-
-	if err := os.Chdir(".."); err != nil {
-		response.ServerError(w, err)
 		return
 	}
 
