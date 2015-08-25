@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	//"time"
+	"time"
 
 	"github.com/bbhasiapacific/openinnovation/debug"
 	"github.com/lib/pq"
@@ -22,7 +22,6 @@ func Init() {
 
 	db, err = sql.Open("postgres", *dataSource)
 	if err != nil {
-		debug.Warn(err)
 		log.Fatal(err)
 	}
 
@@ -51,15 +50,13 @@ func Init() {
 	create("tag", createTagSQL)
 
 	// setup listener
-	/*
 	listener = pq.NewListener(*dataSource, 1 * time.Second, time.Minute, func(ev pq.ListenerEventType, err error) {
 		if err != nil {
-			debug.Warn(err)
+			log.Fatal(err)
 		}
 	})
 
 	if err := listener.Listen("chat"); err != nil {
-		debug.Warn(err)
 		log.Fatal(err)
 	}
 
@@ -73,7 +70,6 @@ func Init() {
 			}
 		}
 	}()
-	*/
 }
 
 func createTable(name, content string) error {
