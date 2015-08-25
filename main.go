@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 
-	_ "github.com/bbhasiapacific/openinnovation/store"
+	"github.com/bbhasiapacific/openinnovation/store"
 )
 
 func home(w http.ResponseWriter, r *http.Request) {
@@ -18,6 +18,8 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	flag.Parse()
+
+	store.Init()
 
 	p := func(name string, handler http.HandlerFunc) http.Handler {
 		return prometheus.InstrumentHandler(name, handler)

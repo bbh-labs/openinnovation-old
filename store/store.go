@@ -2,6 +2,7 @@ package store
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
 	"log"
 	"time"
@@ -18,10 +19,12 @@ var db *sql.DB
 var listener *pq.Listener
 var Notify func(channel, extra string)
 
-func init() {
+var dataSource = flag.String("datasource", "user=bbh dbname=oi sslmode=disable password=Lion@123", "SQL data source")
+
+func Init() {
 	var err error
 
-	db, err = sql.Open("postgres", ConnInfo)
+	db, err = sql.Open("postgres", *dataSource)
 	if err != nil {
 		log.Fatal(err)
 	}
