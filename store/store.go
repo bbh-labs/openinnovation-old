@@ -11,10 +11,6 @@ import (
 	"github.com/lib/pq"
 )
 
-const (
-	ConnInfo = "user=bbh dbname=oi sslmode=disable password=Lion@123"
-)
-
 var db *sql.DB
 var listener *pq.Listener
 var Notify func(channel, extra string)
@@ -55,7 +51,7 @@ func Init() {
 	create("tag", createTagSQL)
 
 	// setup listener
-	listener = pq.NewListener(ConnInfo, 1 * time.Second, time.Minute, func(ev pq.ListenerEventType, err error) {
+	listener = pq.NewListener(*dataSource, 1 * time.Second, time.Minute, func(ev pq.ListenerEventType, err error) {
 		if err != nil {
 			debug.Warn(err)
 		}
