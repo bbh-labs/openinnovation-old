@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"time"
+	//"time"
 
 	"github.com/bbhasiapacific/openinnovation/debug"
 	"github.com/lib/pq"
@@ -51,6 +51,7 @@ func Init() {
 	create("tag", createTagSQL)
 
 	// setup listener
+	/*
 	listener = pq.NewListener(*dataSource, 1 * time.Second, time.Minute, func(ev pq.ListenerEventType, err error) {
 		if err != nil {
 			debug.Warn(err)
@@ -72,6 +73,7 @@ func Init() {
 			}
 		}
 	}()
+	*/
 }
 
 func createTable(name, content string) error {
