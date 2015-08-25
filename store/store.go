@@ -16,6 +16,7 @@ var listener *pq.Listener
 var Notify func(channel, extra string)
 
 var dataSource = flag.String("datasource", "user=bbh dbname=oi sslmode=disable password=Lion@123", "SQL data source")
+var listenerEnabled = flag.Bool("listener", true, "Enable/Disable PostgreSQL listen/notify")
 
 func Init() {
 	var err error
@@ -50,26 +51,28 @@ func Init() {
 	create("tag", createTagSQL)
 
 	// setup listener
-	listener = pq.NewListener(*dataSource, 1 * time.Second, time.Minute, func(ev pq.ListenerEventType, err error) {
-		if err != nil {
+	if *listenerEnabled {
+		listener = pq.NewListener(*dataSource, 1 * time.Second, time.Minute, func(ev pq.ListenerEventType, err error) {
+			if err != nil {
+				log.Fatal(err)
+			}
+		})
+
+		if err := listener.Listen("chat"); err != nil {
 			log.Fatal(err)
 		}
-	})
 
-	if err := listener.Listen("chat"); err != nil {
-		log.Fatal(err)
-	}
-
-	go func() {
-		for {
-			select {
-			case notification := <-listener.Notify:
-				if Notify != nil {
-					Notify(notification.Channel, notification.Extra)
+		go func() {
+			for {
+				select {
+				case notification := <-listener.Notify:
+					if Notify != nil {
+						Notify(notification.Channel, notification.Extra)
+					}
 				}
 			}
-		}
-	}()
+		}()
+	}
 }
 
 func createTable(name, content string) error {
