@@ -27,7 +27,7 @@ const (
 )
 
 const (
-	ProjectImageURL = `content/project/%d/image`
+	ProjectImageURL = `Content/project/%d/image`
 )
 
 type Project struct {

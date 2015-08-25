@@ -27,7 +27,7 @@ const (
 )
 
 const (
-	UserAvatarURL = `content/user/%d/image`
+	UserAvatarURL = `Content/user/%d/image`
 )
 
 type User interface {
