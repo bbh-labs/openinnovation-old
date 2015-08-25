@@ -26,6 +26,7 @@ func Init() {
 
 	db, err = sql.Open("postgres", *dataSource)
 	if err != nil {
+		debug.Warn(err)
 		log.Fatal(err)
 	}
 
@@ -56,12 +57,13 @@ func Init() {
 	// setup listener
 	listener = pq.NewListener(ConnInfo, 1 * time.Second, time.Minute, func(ev pq.ListenerEventType, err error) {
 		if err != nil {
-			fmt.Println(err)
+			debug.Warn(err)
 		}
 	})
 
 	if err := listener.Listen("chat"); err != nil {
-		panic(err)
+		debug.Warn(err)
+		log.Fatal(err)
 	}
 
 	go func() {
