@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"net/http"
+	"os"
 
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
@@ -60,5 +61,10 @@ func main() {
 
 	n := negroni.Classic()
 	n.UseHandler(router)
-	n.Run(":8080")
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	n.Run(":"+port)
 }
