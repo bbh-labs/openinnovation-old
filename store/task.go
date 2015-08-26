@@ -69,11 +69,13 @@ func CreateTask(params CreateTaskParams) (int64, error) {
 		params.StartDate,
 		params.EndDate,
 	).Scan(&id); err != nil {
-		return 0, debug.Error(err)
+		debug.Error(err)
+		return 0, err
 	}
 
 	if err := UpdateTaskTags(id, params.Tags); err != nil {
-		return 0, debug.Error(err)
+		debug.Error(err)
+		return 0, err
 	}
 
 	return id, nil
@@ -101,7 +103,8 @@ func UpdateTask(params UpdateTaskParams) error {
 	startDate := parser.Time(params.StartDate)
 	endDate := parser.Time(params.EndDate)
 	if parser.Err != nil {
-		return debug.Error(parser.Err)
+		debug.Error(parser.Err)
+		return parser.Err
 	}
 
 	title := params.Title
@@ -115,11 +118,13 @@ func UpdateTask(params UpdateTaskParams) error {
 		endDate,
 		taskID,
 	); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	if err := UpdateTaskTags(taskID, params.Tags); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -129,7 +134,8 @@ func ToggleTaskStatus(taskID int64) error {
 	const rawSQL = `UPDATE task SET done = not done WHERE id = $1`
 
 	if _, err := db.Exec(rawSQL, taskID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -147,15 +153,18 @@ func DeleteTask(params DeleteTaskParams) error {
 
 	taskID := parser.Int(params.TaskID)
 	if parser.Err != nil {
-		return debug.Error(parser.Err)
+		debug.Error(parser.Err)
+		return parser.Err
 	}
 
 	if _, err := db.Exec(rawSQL, taskID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	if err := DeleteWorkers(taskID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -180,21 +189,25 @@ func GetTask(taskID int64) (Task, error) {
 		&t.UpdatedAt,
 		&t.CreatedAt,
 	); err != nil && err != sql.ErrNoRows {
+		debug.Error(err)
 		return nil, err
 	}
 
 	if t.Author, err = GetUser(t.AuthorID); err != nil {
-		return nil, debug.Error(err)
+		debug.Error(err)
+		return nil, err
 	}
 
 	t.StartDateStr = t.StartDate.Format("02 Jan, 2006")
 	t.EndDateStr = t.EndDate.Format("02 Jan, 2006")
 	if t.Workers, err = GetWorkers(t.ID); err != nil {
-		return nil, debug.Error(err)
+		debug.Error(err)
+		return nil, err
 	}
 
 	if t.Tags, err = TaskTags(t.ID); err != nil {
-		return nil, debug.Error(err)
+		debug.Error(err)
+		return nil, err
 	}
 
 	return t, nil
@@ -242,7 +255,8 @@ func PersonalizedTasks(userID int64, count int64) ([]Task, error) {
 func queryTasks(rawSQL string, data ...interface{}) ([]Task, error) {
 	rows, err := db.Query(rawSQL, data...)
 	if err != nil {
-		return nil, debug.Error(err)
+		debug.Error(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -262,21 +276,25 @@ func queryTasks(rawSQL string, data ...interface{}) ([]Task, error) {
 			&t.UpdatedAt,
 			&t.CreatedAt,
 		); err != nil && err != sql.ErrNoRows {
-			return nil, debug.Error(err)
+			debug.Error(err)
+			return nil, err
 		}
 
 		if t.Author, err = GetUser(t.AuthorID); err != nil {
-			return nil, debug.Error(err)
+			debug.Error(err)
+			return nil, err
 		}
 
 		t.StartDateStr = t.StartDate.Format("02 January, 2006")
 		t.EndDateStr = t.EndDate.Format("02 January, 2006")
 		if t.Workers, err = GetWorkers(t.ID); err != nil {
-			return nil, debug.Error(err)
+			debug.Error(err)
+			return nil, err
 		}
 
 		if t.Tags, err = TaskTags(t.ID); err != nil {
-			return nil, debug.Error(err)
+			debug.Error(err)
+			return nil, err
 		}
 
 		ts = append(ts, t)
@@ -292,9 +310,10 @@ func projectIDFromTask(taskID int64) (int64, error) {
 	var projectID int64
 	if err := db.QueryRow(rawSQL, taskID).Scan(&projectID); err != nil {
 		if err == sql.ErrNoRows {
+			debug.Error(err)
 			return 0, nil
 		}
-		return 0, debug.Error(err)
+		return 0, err
 	}
 
 	return projectID, nil

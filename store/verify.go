@@ -36,7 +36,7 @@ func VerifyUser(email string) error {
 	const q = `UPDATE user_ SET verification_code = 'verified' WHERE email = $1`
 
 	if _, err := db.Exec(q, email); err != nil {
-		return debug.Error(err)
+		return err
 	}
 	return nil
 }

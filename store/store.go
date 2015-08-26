@@ -23,15 +23,14 @@ func Init() {
 
 	db, err = sql.Open("postgres", *dataSource)
 	if err != nil {
-		log.Fatal(err)
+		debug.Fatal(err)
 	}
 
-	create := func(name, content string) error {
+	create := func(name, content string) {
 		if err != nil {
-			return err
+			debug.Fatal(err)
 		}
 		err = createTable(name, content)
-		return err
 	}
 
 	// primary tables
@@ -73,20 +72,20 @@ func Init() {
 			}
 		}()
 	} else {
-		log.Println("PostgreSQL listener is disabled")
+		debug.Warn("PostgreSQL listener is disabled")
 	}
 }
 
 func createTable(name, content string) error {
 	if exists, err := tableExists(name); err != nil {
-		return debug.Error(err)
+		return err
 	} else if exists {
 		return nil
 	}
 
 	if _, err := db.Exec("CREATE TABLE " + name + "(" + content + ")"); err != nil {
 		debug.Warn(err)
-		return debug.Error(err)
+		return err
 	}
 
 	fmt.Println("created table:", name)
@@ -98,7 +97,7 @@ func tableExists(name string) (bool, error) {
 
 	rows, err := db.Query(q)
 	if err != nil && err != sql.ErrNoRows {
-		return false, debug.Error(err)
+		return false, err
 	}
 	defer rows.Close()
 

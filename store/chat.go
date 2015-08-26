@@ -41,7 +41,8 @@ func GetChat(id int64) (Chat, error) {
 		&c.Text_,
 		&c.CreatedAt_,
 	); err != nil {
-		return c, debug.Error(err)
+		debug.Error(err)
+		return c, err
 	}
 
 	return c, nil
@@ -110,7 +111,8 @@ func PostChat(params PostChatParams) (int64, error) {
 			params.ChannelType,
 			params.Text,
 	).Scan(&id); err != nil {
-		return 0, debug.Error(err)
+		debug.Error(err)
+		return 0, err
 	}
 
 	return id, nil
@@ -125,7 +127,8 @@ func NotifyChat(params NotifyChatParams) error {
 	extra := fmt.Sprintf("c/%d/%d/%d/%s", params.ID, params.UserID, params.ChannelID, params.ChannelType)
 
 	if _, err := db.Exec(`NOTIFY chat, '` + extra + `'`); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -134,7 +137,8 @@ func NotifyChat(params NotifyChatParams) error {
 func queryChats(rawSQL string, data ...interface{}) ([]Chat, error) {
 	rows, err := db.Query(rawSQL, data...)
 	if err != nil {
-		return nil, debug.Error(err)
+		debug.Error(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -151,7 +155,8 @@ func queryChats(rawSQL string, data ...interface{}) ([]Chat, error) {
 			&c.CreatedAt_,
 			&c.Username_,
 		); err != nil && err != sql.ErrNoRows {
-			return nil, debug.Error(err)
+			debug.Error(err)
+			return nil, err
 		}
 
 		cs = append(cs, c)

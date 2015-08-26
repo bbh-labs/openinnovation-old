@@ -27,7 +27,8 @@ func AddFriend(userID, otherUserID int64) error {
 	VALUES ($1, $2), ($3, $4)`
 
 	if _, err := db.Exec(rawSQL, userID, otherUserID, otherUserID, userID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -40,7 +41,8 @@ func RemoveFriend(userID, otherUserID int64) error {
 	OR (user2_id = $1 AND user1_id = $2)`
 
 	if _, err := db.Exec(rawSQL, userID, otherUserID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -62,7 +64,8 @@ func GetFriendIDs(userID int64) ([]int64, error) {
 
 	rows, err := db.Query(rawSQL, userID)
 	if err != nil {
-		return nil, debug.Error(err)
+		debug.Error(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -70,7 +73,8 @@ func GetFriendIDs(userID int64) ([]int64, error) {
 	for rows.Next() {
 		var id int64
 		if err = rows.Scan(&id); err != nil && err != sql.ErrNoRows {
-			return ids, debug.Error(err)
+			debug.Error(err)
+			return ids, err
 		}
 
 		ids = append(ids, id)

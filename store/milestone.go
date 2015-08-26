@@ -45,6 +45,7 @@ func GetMilestone(milestoneID int64) (Milestone, error) {
 		&m.UpdatedAt_,
 		&m.CreatedAt_,
 	); err != nil && err != sql.ErrNoRows {
+		debug.Error(err)
 		return nil, err
 	}
 
@@ -83,7 +84,8 @@ func CreateMilestone(params CreateMilestoneParams) (int64, error) {
 		params.Description,
 		params.Date,
 	).Scan(&id); err != nil {
-		return 0, debug.Error(err)
+		debug.Error(err)
+		return 0, err
 	}
 
 	return id, nil
@@ -108,7 +110,8 @@ func UpdateMilestone(params UpdateMilestoneParams) error {
 		params.Date,
 		params.MilestoneID,
 	); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -119,7 +122,8 @@ func DeleteMilestone(milestoneID int64) error {
 	DELETE FROM milestone WHERE id = $1`
 
 	if _, err := db.Exec(rawSQL, milestoneID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -128,7 +132,7 @@ func DeleteMilestone(milestoneID int64) error {
 func queryMilestones(rawSQL string, data ...interface{}) ([]Milestone, error) {
 	rows, err := db.Query(rawSQL, data...)
 	if err != nil {
-		return nil, debug.Error(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -145,7 +149,8 @@ func queryMilestones(rawSQL string, data ...interface{}) ([]Milestone, error) {
 			&m.UpdatedAt_,
 			&m.CreatedAt_,
 		); err != nil && err != sql.ErrNoRows {
-			return nil, debug.Error(err)
+			debug.Error(err)
+			return nil, err
 		}
 	
 		m.DateStr = m.Date_.Format("02 January, 2006")

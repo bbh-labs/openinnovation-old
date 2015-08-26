@@ -179,7 +179,7 @@ func SetFeaturedProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if exists, err := store.Exists(existSQL, projectID); err != nil {
-		response.ServerError(w, debug.Error(err))
+		response.ServerError(w, err)
 		return
 	} else if exists {
 		response.OK(w, nil)
@@ -187,7 +187,7 @@ func SetFeaturedProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := store.SetFeaturedProject(projectID); err != nil {
-		response.ServerError(w, debug.Error(err))
+		response.ServerError(w, err)
 	}
 
 	response.OK(w, nil)

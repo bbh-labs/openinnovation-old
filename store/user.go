@@ -105,7 +105,7 @@ func GetUserWithParams(userID int64, params GetUserParams) (User, error) {
 	var err error
 
 	if u, err = queryUser(rawSQL, userID); err != nil {
-		return nil, debug.Error(err)
+		return nil, err
 	}
 
 	if params.CurrentUserID > 0 {
@@ -142,12 +142,12 @@ func queryUser(q string, data ...interface{}) (user, error) {
 		&u.UpdatedAt,
 		&u.CreatedAt,
 	); err != nil && err != sql.ErrNoRows {
-		return u, debug.Error(err)
+		return u, err
 	}
 
 	u.IDStr_ = strconv.FormatInt(u.ID_, 10)
 	if u.Interests_, err = UserTags(u.ID_); err != nil {
-		return u, debug.Error(err)
+		return u, err
 	}
 
 	if len(u.AvatarURL) == 0 {
@@ -160,7 +160,7 @@ func queryUser(q string, data ...interface{}) (user, error) {
 func queryUsers(q string, data ...interface{}) ([]User, error) {
 	rows, err := db.Query(q, data...)
 	if err != nil {
-		return nil, debug.Error(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -181,12 +181,12 @@ func queryUsers(q string, data ...interface{}) ([]User, error) {
 			&u.UpdatedAt,
 			&u.CreatedAt,
 		); err != nil {
-			return nil, debug.Error(err)
+			return nil, err
 		}
 
 		u.IDStr_ = strconv.FormatInt(u.ID_, 10)
 		if u.Interests_, err = UserTags(u.ID_); err != nil {
-			return nil, debug.Error(err)
+			return nil, err
 		}
 
 		if len(u.AvatarURL) == 0 {
@@ -204,7 +204,7 @@ func (u user) UpdateFullname(fullname string) error {
 	UPDATE user_ SET fullname = $1, updated_at = now() WHERE id = $2`
 
 	if _, err := db.Exec(rawSQL, fullname, u.ID_); err != nil {
-		return debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -215,7 +215,7 @@ func (u user) UpdateTitle(title string) error {
 	UPDATE user_ SET title = $1, updated_at = now() WHERE id = $2`
 
 	if _, err := db.Exec(rawSQL, title, u.ID_); err != nil {
-		return debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -226,7 +226,7 @@ func (u user) UpdateDescription(description string) error {
 	UPDATE user_ SET description = $1, updated_at = now() WHERE id = $2`
 
 	if _, err := db.Exec(rawSQL, description, u.ID_); err != nil {
-		return debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -234,7 +234,7 @@ func (u user) UpdateDescription(description string) error {
 
 func (u user) UpdateInterests(interests []string) error {
 	if err := UpdateUserTags(u.ID_, interests); err != nil {
-		return debug.Error(err)
+		return err
 	}
 	return nil
 }
@@ -243,7 +243,7 @@ func (u user) UpdateAvatarURL(url string) error {
 	const q = `UPDATE user_ SET avatar_url = $1, updated_at = now() WHERE id = $2`
 
 	if _, err := db.Exec(q, url, u.ID_); err != nil {
-		return debug.Error(err)
+		return err
 	}
 	return nil
 }
@@ -424,7 +424,7 @@ func GetRelatedUserIDs(userID int64) ([]int64, error) {
 
 	rows, err := db.Query(rawSQL, userID)
 	if err != nil {
-		return nil, debug.Error(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -432,7 +432,7 @@ func GetRelatedUserIDs(userID int64) ([]int64, error) {
 	for rows.Next() {
 		var id int64
 		if err = rows.Scan(&id); err != nil && err != sql.ErrNoRows {
-			return ids, debug.Error(err)
+			return ids, err
 		}
 
 		ids = append(ids, id)

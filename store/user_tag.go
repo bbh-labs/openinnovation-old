@@ -13,19 +13,23 @@ func UpdateUserTags(userID int64, tags []string) error {
 	INSERT INTO user_tag VALUES ($1, (SELECT id FROM tag WHERE name = $2))`
 
 	if err := ClearUserTags(userID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	for _, tag := range tags {
 		if yes, err := TagExists(tag); err != nil {
-			return debug.Error(err)
+			debug.Error(err)
+			return err
 		} else if !yes {
 			if err := CreateTag(tag); err != nil {
-				return debug.Error(err)
+				debug.Error(err)
+				return err
 			}
 		}
 		if _, err := db.Exec(rawSQL, userID, tag); err != nil {
-			return debug.Error(err)
+			debug.Error(err)
+			return err
 		}
 	}
 
@@ -37,7 +41,8 @@ func ClearUserTags(userID int64) error {
 	DELETE FROM user_tag WHERE user_id = $1`
 
 	if _, err := db.Exec(rawSQL, userID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil

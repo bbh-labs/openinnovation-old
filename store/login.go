@@ -25,7 +25,8 @@ func ValidLogin(email, password string) (bool, error) {
 		&u.CreatedAt,
 	); err != nil {
 		if err != sql.ErrNoRows {
-			return false, debug.Error(err)
+			debug.Error(err)
+			return false, err
 		} else {
 			err = nil
 		}

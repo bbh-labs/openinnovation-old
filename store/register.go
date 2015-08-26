@@ -21,7 +21,7 @@ func Register(email, password, fullname, title, description, avatarURL string) e
 
 	// generate salted and hashed password
 	if hpassword, err = bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost); err != nil {
-		return debug.Error(err)
+		return err
 	}
 
 	// insert user to database
@@ -34,7 +34,7 @@ func Register(email, password, fullname, title, description, avatarURL string) e
 		"avatarURL":        avatarURL,
 		"verificationCode": "verified",
 	}); err != nil {
-		return debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -67,7 +67,7 @@ func insertUser(m map[string]string) error {
 		m["avatarURL"],
 		"verified",
 	); err != nil {
-		return debug.Error(err)
+		return err
 	}
 
 	return nil

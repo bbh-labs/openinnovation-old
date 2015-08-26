@@ -18,7 +18,8 @@ func GetWorkers(taskID int64) ([]User, error) {
 
 	workers, err := queryUsers(rawSQL, taskID)
 	if err != nil {
-		return nil, debug.Error(err)
+		debug.Error(err)
+		return nil, err
 	}
 
 	return workers, nil
@@ -33,7 +34,8 @@ func InsertWorker(taskID, userID, assignerID int64) error {
 	SELECT COUNT(*) FROM worker WHERE task_id = $1 AND user_id = $2`
 
 	if _, err := db.Exec(rawSQL, taskID, userID, assignerID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -44,7 +46,8 @@ func DeleteWorker(taskID, userID int64) error {
 	DELETE FROM worker WHERE task_id = $1 AND user_id = $2`
 
 	if _, err := db.Exec(rawSQL, taskID, userID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -55,7 +58,8 @@ func DeleteWorkers(taskID int64) error {
 	DELETE FROM worker WHERE task_id = $1`
 
 	if _, err := db.Exec(rawSQL, taskID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -66,16 +70,19 @@ func ToggleWorker(taskID, userID, assignerID int64) error {
 	var err error
 
 	if is, err = isWorker(taskID, userID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	if is {
 		if err = DeleteWorker(taskID, userID); err != nil {
-			return debug.Error(err)
+			debug.Error(err)
+			return err
 		}
 	} else {
 		if err = InsertWorker(taskID, userID, assignerID); err != nil {
-			return debug.Error(err)
+			debug.Error(err)
+			return err
 		}
 	}
 

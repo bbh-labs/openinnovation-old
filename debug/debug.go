@@ -1,37 +1,31 @@
 package debug
 
 import (
-	"fmt"
 	"log"
 	"runtime"
 )
 
 // Log messages
-func Log(data ...interface{}) {
-	log.Println(data)
+func Log(msg ...interface{}) {
+	file, line, fn := trace()
+	log.Printf("log: %s(%d): %s: %v\n", file, line, fn, msg)
 }
 
 // Prints out warning message along with trace information
 func Warn(msg interface{}) {
-	if msg == nil {
-		return
-	}
 	file, line, fn := trace()
-	fmt.Printf("warning: %s(%d): %s: %v\n", file, line, fn, msg)
+	log.Printf("warning: %s(%d): %s: %v\n", file, line, fn, msg)
 }
 
 // Returns error message along with trace information.
-func Error(err error) error {
-	if err == nil {
-		return nil
-	}
+func Error(err error) {
 	file, line, fn := trace()
-	return fmt.Errorf("%s(%d): %s: %v\n", file, line, fn, err)
+	log.Printf("error: %s(%d): %s: %v\n", file, line, fn, err)
 }
 
-// Prints error and exits the application
 func Fatal(err error) {
-	log.Fatal(Error(err))
+	file, line, fn := trace()
+	log.Fatalf("error: %s(%d): %s: %v\n", file, line, fn, err)
 }
 
 // Trace current function name along with its file and line number

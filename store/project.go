@@ -58,7 +58,8 @@ func CreateProject(params map[string]string) (int64, error) {
 	var parser Parser
 	authorID := parser.Int(params["authorID"])
 	if parser.Err != nil {
-		return 0, debug.Error(parser.Err)
+		debug.Error(parser.Err)
+		return 0, parser.Err
 	}
 
 	title := params["title"]
@@ -67,7 +68,8 @@ func CreateProject(params map[string]string) (int64, error) {
 
 	var id int64
 	if err := db.QueryRow(rawSQL, authorID, title, tagline, description).Scan(&id); err != nil {
-		return 0, debug.Error(err)
+		debug.Error(err)
+		return 0, err
 	}
 
 	return id, nil
@@ -77,7 +79,8 @@ func UpdateProjectTitle(projectID int64, title string) error {
 	const rawSQL = `UPDATE project SET title = $1, updated_at = now() WHERE id = $2`
 
 	if _, err := db.Exec(rawSQL, title, projectID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -87,7 +90,8 @@ func UpdateProjectTagline(projectID int64, tagline string) error {
 	const rawSQL = `UPDATE project SET tagline = $1, updated_at = now() WHERE id = $2`
 
 	if _, err := db.Exec(rawSQL, tagline, projectID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -97,7 +101,8 @@ func UpdateProjectDescription(projectID int64, description string) error {
 	const rawSQL = `UPDATE project SET description = $1, updated_at = now() WHERE id = $2`
 
 	if _, err := db.Exec(rawSQL, description, projectID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -109,13 +114,15 @@ func SaveProjectImage(w http.ResponseWriter, r *http.Request, projectID int64) (
 	finalURL, header, err := httputil.SaveFileWithExtension(w, r, "image", url)
 	if err != nil || header == nil {
 		if err := os.Chdir(".."); err != nil {
-			return false, debug.Error(err)
+			debug.Error(err)
+			return false, err
 		}
 		return false, nil
 	}
 
 	if err := updateProjectImage(projectID, finalURL); err != nil {
-		return false, debug.Error(err)
+		debug.Error(err)
+		return false, err
 	}
 
 	return true, nil
@@ -125,7 +132,8 @@ func updateProjectImage(projectID int64, imageURL string) error {
 	const rawSQL = `UPDATE project SET image_url = $1 WHERE id = $2`
 
 	if _, err := db.Exec(rawSQL, imageURL, projectID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 	return nil
 }
@@ -148,19 +156,23 @@ func GetProject(projectID int64) (Project, error) {
 		&p.UpdatedAt,
 		&p.CreatedAt,
 	); err != nil && err != sql.ErrNoRows {
-		return p, debug.Error(err)
+		debug.Error(err)
+		return p, err
 	}
 
 	if p.Tasks, err = GetTasks(projectID); err != nil {
-		return p, debug.Error(err)
+		debug.Error(err)
+		return p, err
 	}
 
 	if p.Milestones, err = GetMilestones(projectID); err != nil {
-		return p, debug.Error(err)
+		debug.Error(err)
+		return p, err
 	}
 
 	if p.Members, err = GetMembers(projectID); err != nil {
-		return p, debug.Error(err)
+		debug.Error(err)
+		return p, err
 	}
 
 	return p, nil
@@ -171,19 +183,22 @@ func DeleteProject(projectID int64) error {
 
 	// delete project
 	if _, err := db.Exec(rawSQL, projectID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	const rawSQL2 = `DELETE FROM member WHERE project_id = $1`
 
 	// delete project users
 	if _, err := db.Exec(rawSQL2, projectID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	// delete project image
 	if err := os.RemoveAll(fmt.Sprintf(path.Base(ProjectImageURL), projectID)); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -224,7 +239,8 @@ func LatestProjects(title string, count int64) ([]Project, error) {
 func queryProjects(rawSQL string, data ...interface{}) ([]Project, error) {
 	rows, err := db.Query(rawSQL, data...)
 	if err != nil {
-		return nil, debug.Error(err)
+		debug.Error(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -244,19 +260,23 @@ func queryProjects(rawSQL string, data ...interface{}) ([]Project, error) {
 			&p.UpdatedAt,
 			&p.CreatedAt,
 		); err != nil {
-			return nil, debug.Error(err)
+			debug.Error(err)
+			return nil, err
 		}
 
 		if p.Tasks, err = GetTasks(p.ID); err != nil {
-			return ps, debug.Error(err)
+			debug.Error(err)
+			return ps, err
 		}
 
 		if p.Milestones, err = GetMilestones(p.ID); err != nil {
-			return ps, debug.Error(err)
+			debug.Error(err)
+			return ps, err
 		}
 
 		if p.Members, err = GetMembers(p.ID); err != nil {
-			return ps, debug.Error(err)
+			debug.Error(err)
+			return ps, err
 		}
 
 		ps = append(ps, p)
@@ -272,7 +292,7 @@ func isAuthor(projectID, userID int64) bool {
 
 	var authorID int64
 	if err := db.QueryRow(rawSQL, projectID).Scan(&authorID); err != nil {
-		debug.Warn(err)
+		debug.Error(err)
 		return false
 	}
 
@@ -287,7 +307,7 @@ func IsMember(projectID, userID int64) bool {
 	var count int64
 	if err := db.QueryRow(rawSQL, projectID, userID).Scan(&count); err != nil {
 		if err != sql.ErrNoRows {
-			debug.Warn(err)
+			debug.Error(err)
 		}
 		return false
 	}
@@ -300,7 +320,8 @@ func SetFeaturedProject(projectID int64) error {
 	INSERT INTO featured_project (project_id, created_at) VALUES ($1, now())`
 
 	if _, err := db.Exec(rawSQL, projectID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil
@@ -311,7 +332,8 @@ func UnsetFeaturedProject(projectID int64) error {
 	DELETE FROM featured_project WHERE project_id = $1`
 
 	if _, err := db.Exec(rawSQL, projectID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil

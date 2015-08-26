@@ -13,19 +13,23 @@ func UpdateTaskTags(taskID int64, tags []string) error {
 	INSERT INTO task_tag VALUES ($1, (SELECT id FROM tag WHERE name = $2))`
 
 	if err := ClearTaskTags(taskID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	for _, tag := range tags {
 		if yes, err := TagExists(tag); err != nil {
-			return debug.Error(err)
+			debug.Error(err)
+			return err
 		} else if !yes {
 			if err := CreateTag(tag); err != nil {
-				return debug.Error(err)
+				debug.Error(err)
+				return err
 			}
 		}
 		if _, err := db.Exec(rawSQL, taskID, tag); err != nil {
-			return debug.Error(err)
+			debug.Error(err)
+			return err
 		}
 	}
 
@@ -37,7 +41,8 @@ func ClearTaskTags(taskID int64) error {
 	DELETE FROM task_tag WHERE task_id = $1`
 
 	if _, err := db.Exec(rawSQL, taskID); err != nil {
-		return debug.Error(err)
+		debug.Error(err)
+		return err
 	}
 
 	return nil

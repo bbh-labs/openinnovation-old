@@ -54,7 +54,8 @@ var UserPage = React.createClass({
 		)
 	},
 	initWS: function() {
-		this.ws = new WebSocket("ws://localhost:8080/api/ws");
+		var baseURL = location.href.match(/.*\:\/\/(.*)\/.*/)[1];
+		this.ws = new WebSocket("ws://" + baseURL + "/api/ws");
 		this.ws.onclose = this.onWSClose;
 		this.ws.onopen = this.onWSOpen; 
 		this.ws.onmessage = this.onWSMessage;

@@ -18,7 +18,8 @@ const (
 
 func SaveFile(w http.ResponseWriter, r *http.Request, key, destination string) (*multipart.FileHeader, error) {
 	if err := r.ParseMultipartForm(MultipartMaxMemory); err != nil {
-		return nil, debug.Error(err)
+		debug.Error(err)
+		return nil, err
 	}
 
 	files := r.MultipartForm.File[key]
@@ -36,7 +37,8 @@ func SaveFile(w http.ResponseWriter, r *http.Request, key, destination string) (
 
 func SaveFileWithExtension(w http.ResponseWriter, r *http.Request, key, destination string) (string, *multipart.FileHeader, error) {
 	if err := r.ParseMultipartForm(MultipartMaxMemory); err != nil {
-		return "", nil, debug.Error(err)
+		debug.Error(err)
+		return "", nil, err
 	}
 
 	files := r.MultipartForm.File[key]
