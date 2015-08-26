@@ -72,6 +72,8 @@ func Init() {
 				}
 			}
 		}()
+	} else {
+		log.Println("PostgreSQL listener is disabled")
 	}
 }
 
