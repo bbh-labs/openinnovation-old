@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"log"
 	"net/http"
 	"strings"
 
@@ -22,6 +23,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		RedirectURL:  *redirectURL,
 		Endpoint:     google.Endpoint,
 	}
+
+	log.Println("Using", *redirectURL, "as redirect URL for Google API OAuth2")
 
 	authCode := r.FormValue("code")
 	tok, err := conf.Exchange(oauth2.NoContext, authCode)
