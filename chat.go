@@ -57,7 +57,7 @@ func GetChats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var parser store.Parser
-	var startID int64 = 0
+	var startID int64
 	var count int64 = 10
 
 	if v, ok := r.Form["count"]; ok {
