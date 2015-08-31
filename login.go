@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/bbhasiapacific/openinnovation/response"
-	"github.com/bbhasiapacific/openinnovation/session"
-	"github.com/bbhasiapacific/openinnovation/store"
+	"github.com/bbhmakerlab/openinnovation/response"
+	"github.com/bbhmakerlab/openinnovation/session"
+	"github.com/bbhmakerlab/openinnovation/store"
 	"github.com/google/google-api-go-client/plus/v1"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"

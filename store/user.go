@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/bbhasiapacific/openinnovation/debug"
-	"github.com/bbhasiapacific/openinnovation/response"
-	"github.com/bbhasiapacific/openinnovation/session"
+	"github.com/bbhmakerlab/openinnovation/debug"
+	"github.com/bbhmakerlab/openinnovation/response"
+	"github.com/bbhmakerlab/openinnovation/session"
 )
 
 const (

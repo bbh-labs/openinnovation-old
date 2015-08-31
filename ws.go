@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/bbhasiapacific/openinnovation/debug"
-	"github.com/bbhasiapacific/openinnovation/store"
+	"github.com/bbhmakerlab/openinnovation/debug"
+	"github.com/bbhmakerlab/openinnovation/store"
 	"github.com/gorilla/websocket"
 )
 

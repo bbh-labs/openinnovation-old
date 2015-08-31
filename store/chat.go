@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bbhasiapacific/openinnovation/debug"
+	"github.com/bbhmakerlab/openinnovation/debug"
 )
 
 const createChatSQL = `

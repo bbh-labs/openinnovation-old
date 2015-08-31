@@ -3,7 +3,7 @@ package store
 import (
 	"database/sql"
 
-	"github.com/bbhasiapacific/openinnovation/debug"
+	"github.com/bbhmakerlab/openinnovation/debug"
 )
 
 const (

@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/bbhasiapacific/openinnovation/debug"
+	"github.com/bbhmakerlab/openinnovation/debug"
 	"github.com/lib/pq"
 )
 

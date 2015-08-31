@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/bbhasiapacific/openinnovation/debug"
-	"github.com/bbhasiapacific/openinnovation/httputil"
+	"github.com/bbhmakerlab/openinnovation/debug"
+	"github.com/bbhmakerlab/openinnovation/httputil"
 )
 
 const (

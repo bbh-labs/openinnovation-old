@@ -3,8 +3,8 @@ package main
 import (
 	"net/http"
 
-	"github.com/bbhasiapacific/openinnovation/response"
-	"github.com/bbhasiapacific/openinnovation/store"
+	"github.com/bbhmakerlab/openinnovation/response"
+	"github.com/bbhmakerlab/openinnovation/store"
 )
 
 func GetWorkers(w http.ResponseWriter, r *http.Request) {

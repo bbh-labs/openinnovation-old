@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/bbhasiapacific/openinnovation/store"
+	"github.com/bbhmakerlab/openinnovation/store"
 )
 
 func home(w http.ResponseWriter, r *http.Request) {
